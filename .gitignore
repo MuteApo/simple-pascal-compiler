@@ -1,0 +1,5 @@
+a.out
+lex.yy.c
+yacc.tab.c
+yacc.tab.h
+test.pas
