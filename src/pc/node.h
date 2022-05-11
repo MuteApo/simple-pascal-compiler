@@ -1,6 +1,7 @@
 #ifndef __NODE__
 #define __NODE__
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -18,7 +19,7 @@ enum exprType {
     ET_Record
 };
 enum opKind {
-    /* arithmatic */
+    /* arithmetic */
     OK_Add = 5001,  // a+b
     OK_Sub,         // a-b
     OK_Mul,         // a*b
@@ -30,7 +31,7 @@ enum opKind {
     OK_Neq,  // <>, not equal to
     OK_Lt,   // <, less than
     OK_Gt,   // >, greater than
-    OK_Leq,  // <=, less than or eqaul to
+    OK_Leq,  // <=, less than or equal to
     OK_Geq,  // >=, greater than or equal to
     /* logical */
     OK_Not,  // not
@@ -45,10 +46,11 @@ enum opKind {
     OK_Abs,   // abs(x), absolute value of x
     OK_Odd,   // odd(x), if x is odd(true) or even(false)
     OK_Sqr,   // sqr(x), equals to x*x
-    OK_Sqrt,  // sqrt(x), squre root of x
+    OK_Sqrt,  // sqrt(x), square root of x
     OK_Succ,  // succ(x), which succeeds x
     OK_Pred,  // pred(x), which precedes x
     OK_Write,
+    OK_Read,
     /* assignment */
     OK_Id,
     OK_Array,
@@ -71,36 +73,39 @@ class nodeValue {
     // TODO array type
     // TODO record type
     nodeValue() : _ival(0), _dval(0), _sval("") {}
+    void print() {
+        std::cout << _ival << " " << _dval << " " << _sval << std::endl;
+    }
 };
 
 class syntaxNode {
   private:
     std::vector<syntaxNode *> child;
     syntaxNode               *sibling;
-    int                       node_type;
+    int                       node_kind;
     nodeValue                 value;
     exprType                  expr_type;
     int                       line_no;
 
   public:
-    syntaxNode(declKind dk, int ln) : node_type(dk), line_no(ln) {
+    syntaxNode(declKind dk, int ln) : node_kind(dk), line_no(ln) {
         child.clear();
         sibling = nullptr;
     }
-    syntaxNode(typeKind tk, int ln) : node_type(tk), line_no(ln) {
+    syntaxNode(typeKind tk, int ln) : node_kind(tk), line_no(ln) {
         child.clear();
         sibling = nullptr;
     }
-    syntaxNode(exprKind ek, int ln) : node_type(ek), line_no(ln) {
+    syntaxNode(exprKind ek, int ln) : node_kind(ek), line_no(ln) {
         child.clear();
         sibling = nullptr;
     }
-    syntaxNode(stmtKind sk, int ln) : node_type(sk), line_no(ln) {
+    syntaxNode(stmtKind sk, int ln) : node_kind(sk), line_no(ln) {
         child.clear();
         sibling = nullptr;
     }
     syntaxNode(syntaxNode *op1, syntaxNode *op2, opKind ok, int ln)
-            : node_type(EK_Op), line_no(ln) {
+            : node_kind(EK_Op), line_no(ln) {
         child.clear();
         addChild(op1);
         if (op2 != nullptr) addChild(op2);
@@ -126,7 +131,10 @@ class syntaxNode {
 
     void setExprType(exprType et) { expr_type = et; }
 
-    void        print() { printf("%d %d\n", node_type, line_no); }
+    void print() {
+        printf("%d %d %d\n", node_kind, line_no, expr_type);
+        value.print();
+    }
     static void travel(syntaxNode *t) {
         if (t == nullptr) return;
         t->print();

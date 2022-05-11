@@ -76,17 +76,18 @@ maxint return VAL_MAXINT;
 
 [\t\f] {}
 
-"\n" { line_no ++; }
+"\n" { line_no++; }
 
 " " {}
 
-. { fprintf (stderr, "'%c' (0%o): illegal charcter at line %d\n",
+. {
+    fprintf(stderr, "'%c' (0%o): illegal charcter at line %d\n",
               yytext[0], yytext[0], line_no); }
  
 %%
 
 int yywrap ()
 {
-	std::cout<<"token finish(line: "<<line_no<<")"<<std::endl;
+	printf("token finish(line: %d<<\n", line_no);
     return 1;
 }

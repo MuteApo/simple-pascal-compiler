@@ -37,8 +37,11 @@ extern "C" {
 
 program
 : prog_name_part KWD_VAR var_decl_part KWD_BEGIN stmt_part KWD_END {
-    $$ = $5;
-    $$->setValue($1->getValue()._sval);
+    $$ = new syntaxNode(DK_Prog, line_no);
+    $$->addChild($1);
+    $$->addChild($3);
+    $$->addChild($5);
+    $$->setValue("root");
     root = $$;
 }
 ;
@@ -113,6 +116,10 @@ decl_type_simple
 | TYPE_BOOL {
     $$ = new syntaxNode(TK_Simple, line_no);
     $$->setExprType(ET_Bool);
+}
+| TYPE_STRING {
+    $$ = new syntaxNode(TK_Simple, line_no);
+    $$->setExprType(ET_String);
 }
 ;
 
