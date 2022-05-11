@@ -15,6 +15,8 @@ extern "C"
 
 %}
 
+QUOTE "'"
+
 %%
 
 program return KWD_PROGRAM;
@@ -29,6 +31,22 @@ real return TYPE_REAL;
 char return TYPE_CHAR;
 string return TYPE_STRING;
 boolean return TYPE_BOOL;
+
+":" return MARK_COLON;
+";" return MARK_SEMI;
+"," return MARK_COMMA;
+":=" return MARK_ASSIGN;
+"(" return MARK_LP;
+")" return MARK_RP;
+"+" return MARK_ADD;
+"-" return MARK_SUB;
+"*" return MARK_MUL;
+div return MARK_DIV;
+mod return MARK_MOD;
+
+false return VAL_FALSE;
+true return VAL_TRUE;
+maxint return VAL_MAXINT;
 
 [a-zA-Z]([a-zA-Z0-9_])* {
 	yylval.sval = (char*)malloc(strlen(yytext)+1);
@@ -46,15 +64,15 @@ boolean return TYPE_BOOL;
     return VAL_REAL;
 }
 
+{QUOTE}[^{QUOTE}]{QUOTE} {
+    yylval.sval = yytext;
+    return VAL_CHAR;
+}
 
-":" return MARK_COLON;
-";" return MARK_SEMI;
-"," return MARK_COMMA;
-":=" return MARK_ASSIGN;
-"(" return MARK_LP;
-")" return MARK_RP;
-"+" return MARK_ADD;
-"*" return MARK_MUL;
+{QUOTE}(^{QUOTE}|'')*{QUOTE} {
+    yylval.sval = yytext;
+    return VAL_STRING;
+}
 
 [\t\f] {}
 

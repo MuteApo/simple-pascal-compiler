@@ -1,0 +1,7 @@
+src/pc/pc
+src/pc/a.out
+src/pc/lex.yy.c
+src/pc/yacc.tab.c
+src/pc/yacc.tab.h
+src/pc/test.pas
+src/pc/out.txt

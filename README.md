@@ -35,17 +35,17 @@
 ### 二、工程结构
 
 ``` bash
----- / ---- source ---- compiler 编译器前后端源码
-       |           |
-       |           ---- visualizer 可视化工具源码
-       |           |
-       |           ---- （assembler 汇编器源码）
-       |           |
-       |           ---- （simulator 仿真器源码）
+---- / ---- src ---- pc 编译器前后端源码
+       |        |
+       |        ---- vis 可视化工具源码
+       |        |
+       |        ---- （asm 汇编器源码）
+       |        |
+       |        ---- （sim 仿真器源码）
        |
        ---- release 本工具链可以直接执行的二进制文件
        |
-       ---- document 实现参考文档
+       ---- doc 实现参考文档
        |
        ---- demo 测试过程中使用到的Pascal源代码
        |
@@ -61,7 +61,7 @@
 ### 三、项目进度
 
 - [x] 建立项目仓库，确定需要实现的Pascal语言标准
-  - 语言标准参考`./document/Pascal_User_Manual_and_Report_Fourth_Edition.pdf`
+  - 语言标准参考`./doc/Pascal_User_Manual_and_Report_Fourth_Edition.pdf`
   - 词法分析（Lex）实现参考：
     - <https://opensource.apple.com/source/flex/flex-26/flex/examples/manual/pascal.lex>
     - <https://github.com/yinxiaojian/pascal-compiler/blob/master/lex.l>
