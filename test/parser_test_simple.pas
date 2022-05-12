@@ -9,12 +9,11 @@ var
     f: string;
     G: real;
 begin
-    a := 1;
-    b := 2.3; {Comment B}
+    a := 1 + 2 * 3;
+    b := 4.5 / 3; {Comment B}
     c := 'c';
     d := 'DeadBeef';
-    e := true;
+    e := 5 >= 4 and 3 <> 2;
     f := '''';
-    write(1 + 2);
     G := -1.2E-3;
 end

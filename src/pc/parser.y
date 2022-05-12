@@ -5,7 +5,7 @@
 using namespace std;
 
 extern void yyerror(const char *s);
-extern int yylex(void);
+extern int yylex();
 extern int yylineno;
 
 treeNode *root = nullptr;
@@ -19,9 +19,9 @@ treeNode *root = nullptr;
 
 /**** Symbols ****/
 // Special Symbols
-%token SYM_ADD SYM_SUB SYM_MUL SYM_DIV SYM_EQU // + - * / =
-%token SYM_LT SYM_GT SYM_LE SYM_GE SYM_NE // < > <= >= <>
-%token SYM_DOT SYM_COMMA SYM_COL SYM_SEMI SYM_COL_EQU SYM_DDOT // . , : ; := ..
+%token SYM_ADD SYM_SUB SYM_MUL SYM_DIV // + - * /
+%token SYM_EQ SYM_LT SYM_GT SYM_LE SYM_GE SYM_NE // = < > <= >= <>
+%token SYM_DOT SYM_COMMA SYM_COL SYM_SEMI SYM_ASSIGN SYM_DDOT // . , : ; := ..
 %token SYM_LPAR SYM_RPAR SYM_RSBKT SYM_LSBKT SYM_HAT // ( ) [ ] ^
 
 // Word Symbols (reversed words)
@@ -44,7 +44,7 @@ treeNode *root = nullptr;
 %token <dval> VAL_REAL
 %token <sval> VAL_ID VAL_CHAR VAL_STRING
 
-%type <node> program prog_name_part id expr term factor literal
+%type <node> program prog_name_part id compound_expr expr term factor literal
 %type <node> var_decl_part var_decl var_list decl_type decl_type_simple
 %type <node> stmt_part stmt assign_stmt write_stmt arg_list
 
@@ -139,7 +139,7 @@ stmt: assign_stmt {
     $$ = $1;
 };
 
-assign_stmt: id SYM_COL_EQU expr {
+assign_stmt: id SYM_ASSIGN compound_expr {
     $$ = new treeNode(SK_Assign, yylineno);
     $$->addChild($1);
     $$->addChild($3);
@@ -150,12 +150,28 @@ write_stmt: SID_WRITE SYM_LPAR arg_list SYM_RPAR {
     $$->addChild($3);
 };
 
-arg_list: arg_list SYM_COMMA expr {
+arg_list: arg_list SYM_COMMA compound_expr {
     if ($1 != nullptr) {
         treeNode* t = $1->lastSibling();
         t->setSibling($3);
         $$ = $1;
     } else $$ = $3;
+}| compound_expr {
+    $$ = $1;
+};
+
+compound_expr: compound_expr SYM_EQ expr {
+    $$ = new treeNode($1, $3, OK_Eq, yylineno);
+}| compound_expr SYM_NE expr {
+    $$ = new treeNode($1, $3, OK_Ne, yylineno);
+}| compound_expr SYM_LT expr {
+    $$ = new treeNode($1, $3, OK_Lt, yylineno);
+}| compound_expr SYM_GT expr {
+    $$ = new treeNode($1, $3, OK_Gt, yylineno);
+}| compound_expr SYM_LE expr {
+    $$ = new treeNode($1, $3, OK_Le, yylineno);
+}| compound_expr SYM_GE expr {
+    $$ = new treeNode($1, $3, OK_Ge, yylineno);
 }| expr {
     $$ = $1;
 };
@@ -164,6 +180,8 @@ expr: expr SYM_ADD term {
     $$ = new treeNode($1, $3, OK_Add, yylineno);
 }| expr SYM_SUB term {
     $$ = new treeNode($1, $3, OK_Sub, yylineno);
+}| expr WSYM_OR term {
+    $$ = new treeNode($1, $3, OK_Or, yylineno);
 }| term {
     $$ = $1;
 };
@@ -172,18 +190,26 @@ term: term SYM_MUL factor {
     $$ = new treeNode($1, $3, OK_Mul, yylineno);
 }| term SYM_DIV factor {
     $$ = new treeNode($1, $3, OK_Div, yylineno);
+}| term WSYM_DIV factor {
+    $$ = new treeNode($1, $3, OK_Div, yylineno);
 }| term WSYM_MOD factor {
     $$ = new treeNode($1, $3, OK_Mod, yylineno);
+}| term WSYM_AND factor {
+    $$ = new treeNode($1, $3, OK_And, yylineno);
 }| factor {
     $$ = $1;
 };
 
-factor: id {
+factor: SYM_LPAR compound_expr SYM_RPAR {
+    $$ = $2;
+}| id {
     $$ = $1;
 }| literal {
     $$ = $1;
 }| SYM_SUB factor {
     $$ = new treeNode($2, nullptr, OK_Neg, yylineno);
+}| WSYM_NOT factor {
+    $$ = new treeNode($2, nullptr, OK_Not, yylineno);
 };
 
 literal: VAL_INT {

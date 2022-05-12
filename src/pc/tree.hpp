@@ -27,12 +27,12 @@ enum opKind {
     OK_Mod,         // a%b
     OK_Neg,         // -a
     /* comparative */
-    OK_Eq,   // =, equal to
-    OK_Neq,  // <>, not equal to
-    OK_Lt,   // <, less than
-    OK_Gt,   // >, greater than
-    OK_Leq,  // <=, less than or equal to
-    OK_Geq,  // >=, greater than or equal to
+    OK_Eq,  // =, equal to
+    OK_Ne,  // <>, not equal to
+    OK_Lt,  // <, less than
+    OK_Gt,  // >, greater than
+    OK_Le,  // <=, less than or equal to
+    OK_Ge,  // >=, greater than or equal to
     /* logical */
     OK_Not,  // not
     OK_And,  // and
@@ -67,14 +67,26 @@ enum stmtKind {
 
 class nodeValue {
   public:
+    int         _valid;
     int         _ival;
     double      _dval;
     std::string _sval;
     // TODO array type
     // TODO record type
-    nodeValue() : _ival(0), _dval(0), _sval("") {}
+    nodeValue(int v, int i, double d, std::string s)
+            : _valid(v), _ival(i), _dval(d), _sval(s) {}
+    nodeValue() : nodeValue(0, 0, 0, "") {}
+    nodeValue(int i) : nodeValue(1, i, 0, "") {}
+    nodeValue(double d) : nodeValue(2, 0, d, "") {}
+    nodeValue(std::string s) : nodeValue(3, 0, 0, s) {}
     void print() {
-        std::cout << _ival << " " << _dval << " " << _sval << std::endl;
+        switch (_valid) {
+            case 0: break;
+            case 1: std::cout << "ival=" << _ival << " "; break;
+            case 2: std::cout << "dval=" << _dval << " "; break;
+            case 3: std::cout << "sval=" << _sval << " "; break;
+        }
+        std::cout << std::endl;
     }
 };
 
@@ -82,10 +94,10 @@ class treeNode {
   private:
     std::vector<treeNode *> child;
     treeNode               *sibling;
-    int                       node_kind;
-    nodeValue                 value;
-    exprType                  expr_type;
-    int                       line_no;
+    int                     node_kind;
+    nodeValue               value;
+    exprType                expr_type;
+    int                     line_no;
 
   public:
     treeNode(declKind dk, int ln) : node_kind(dk), line_no(ln) {
@@ -108,15 +120,17 @@ class treeNode {
             : node_kind(EK_Op), line_no(ln) {
         child.clear();
         addChild(op1);
-        if (op2 != nullptr) addChild(op2);
+        addChild(op2);
         sibling = nullptr;
         setValue(ok);
     }
 
-    void addChild(treeNode *c) { child.push_back(c); }
+    void addChild(treeNode *c) {
+        if (c != nullptr) child.push_back(c);
+    }
 
     treeNode *getSibling() { return sibling; }
-    void        setSibling(treeNode *s) { sibling = s; }
+    void      setSibling(treeNode *s) { sibling = s; }
     treeNode *lastSibling() {
         treeNode *t = this;
         while (t->getSibling() != nullptr) t = t->getSibling();
@@ -125,14 +139,18 @@ class treeNode {
 
     nodeValue getValue() { return value; }
     void      setValue(nodeValue v) { value = v; }
-    void      setValue(int i) { value._ival = i; }
-    void      setValue(double d) { value._dval = d; }
-    void      setValue(std::string s) { value._sval = s; }
+    void      setValue(int i) { value = nodeValue(i); }
+    void      setValue(double d) { value = nodeValue(d); }
+    void      setValue(std::string s) { value = nodeValue(s); }
 
     void setExprType(exprType et) { expr_type = et; }
 
     void print() {
-        printf("%d %d %d\n", node_kind, line_no, expr_type);
+        printf("nkind=%d line#%d child=%d ",
+               node_kind,
+               line_no,
+               (int)child.size());
+        if (expr_type) printf("etype=%d ", expr_type);
         value.print();
     }
     static void travel(treeNode *t) {
