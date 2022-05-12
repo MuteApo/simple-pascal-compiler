@@ -1,5 +1,5 @@
-#ifndef __NODE__
-#define __NODE__
+#ifndef __TREE__
+#define __TREE__
 
 #include <iostream>
 #include <string>
@@ -78,33 +78,33 @@ class nodeValue {
     }
 };
 
-class syntaxNode {
+class treeNode {
   private:
-    std::vector<syntaxNode *> child;
-    syntaxNode               *sibling;
+    std::vector<treeNode *> child;
+    treeNode               *sibling;
     int                       node_kind;
     nodeValue                 value;
     exprType                  expr_type;
     int                       line_no;
 
   public:
-    syntaxNode(declKind dk, int ln) : node_kind(dk), line_no(ln) {
+    treeNode(declKind dk, int ln) : node_kind(dk), line_no(ln) {
         child.clear();
         sibling = nullptr;
     }
-    syntaxNode(typeKind tk, int ln) : node_kind(tk), line_no(ln) {
+    treeNode(typeKind tk, int ln) : node_kind(tk), line_no(ln) {
         child.clear();
         sibling = nullptr;
     }
-    syntaxNode(exprKind ek, int ln) : node_kind(ek), line_no(ln) {
+    treeNode(exprKind ek, int ln) : node_kind(ek), line_no(ln) {
         child.clear();
         sibling = nullptr;
     }
-    syntaxNode(stmtKind sk, int ln) : node_kind(sk), line_no(ln) {
+    treeNode(stmtKind sk, int ln) : node_kind(sk), line_no(ln) {
         child.clear();
         sibling = nullptr;
     }
-    syntaxNode(syntaxNode *op1, syntaxNode *op2, opKind ok, int ln)
+    treeNode(treeNode *op1, treeNode *op2, opKind ok, int ln)
             : node_kind(EK_Op), line_no(ln) {
         child.clear();
         addChild(op1);
@@ -113,12 +113,12 @@ class syntaxNode {
         setValue(ok);
     }
 
-    void addChild(syntaxNode *c) { child.push_back(c); }
+    void addChild(treeNode *c) { child.push_back(c); }
 
-    syntaxNode *getSibling() { return sibling; }
-    void        setSibling(syntaxNode *s) { sibling = s; }
-    syntaxNode *lastSibling() {
-        syntaxNode *t = this;
+    treeNode *getSibling() { return sibling; }
+    void        setSibling(treeNode *s) { sibling = s; }
+    treeNode *lastSibling() {
+        treeNode *t = this;
         while (t->getSibling() != nullptr) t = t->getSibling();
         return t;
     }
@@ -135,12 +135,14 @@ class syntaxNode {
         printf("%d %d %d\n", node_kind, line_no, expr_type);
         value.print();
     }
-    static void travel(syntaxNode *t) {
+    static void travel(treeNode *t) {
         if (t == nullptr) return;
         t->print();
-        for (syntaxNode *c : t->child) travel(c);
+        for (treeNode *c : t->child) travel(c);
         travel(t->getSibling());
     }
 };
+
+extern treeNode *root;
 
 #endif
