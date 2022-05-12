@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+extern int global_uid;
+
 enum declKind { DK_Prog = 1001, DK_Const, DK_Var, DK_Type, DK_Func, DK_Proc };
 enum typeKind { TK_Simple = 2001, TK_Array, TK_Record };
 enum exprKind { EK_Id = 3001, EK_Literal };
@@ -70,26 +72,30 @@ enum stmtKind {
     SK_Sys
 };
 
+std::string enum2str(int e);
+
 class valueWrapper {
-  public:
+  private:
     int         _valid;
     int         _ival;
     double      _dval;
     std::string _sval;
+
+  public:
     valueWrapper(int v, int i, double d, std::string s)
             : _valid(v), _ival(i), _dval(d), _sval(s) {}
     valueWrapper() : valueWrapper(0, 0, 0, "") {}
     valueWrapper(int i) : valueWrapper(1, i, 0, "") {}
     valueWrapper(double d) : valueWrapper(2, 0, d, "") {}
     valueWrapper(std::string s) : valueWrapper(3, 0, 0, s) {}
-    void print() {
+
+    std::string toString() {
         switch (_valid) {
-            case 0: break;
-            case 1: std::cout << "ival=" << _ival << " "; break;
-            case 2: std::cout << "dval=" << _dval << " "; break;
-            case 3: std::cout << "sval=" << _sval << " "; break;
+            case 1: return "ival=" + std::to_string(_ival);
+            case 2: return "dval=" + std::to_string(_dval);
+            case 3: return "sval=" + _sval;
         }
-        std::cout << std::endl;
+        return "";
     }
 };
 
@@ -177,14 +183,15 @@ class nodeValue {
             : nodeValue(
                   t, valueWrapper(), typeEnum(), typeRange(), typeSet(), a) {}
     void setType(exprType t) { _type = t; }
-    void print() {
-        printf("%d ", _type);
-        _value.print();
+
+    std::string toString() {
+        return enum2str(_type) + "\\n" + _value.toString();
     }
 };
 
 class treeNode {
   private:
+    int                    uid;
     std::vector<treeNode*> child;
     treeNode*              sibling;
     int                    line_no;
@@ -193,11 +200,13 @@ class treeNode {
 
   public:
     treeNode(int nk, int ln) : node_kind(nk), line_no(ln) {
+        uid = ++global_uid;
         child.clear();
         sibling = nullptr;
     }
     treeNode(treeNode* op1, treeNode* op2, opKind ok, int ln)
             : node_kind(ok), line_no(ln) {
+        uid = ++global_uid;
         child.clear();
         sibling = nullptr;
         addChild(op1), addChild(op2);
@@ -215,26 +224,28 @@ class treeNode {
         return t;
     }
 
-    nodeValue getValue() { return value; }
-    void      setValue(nodeValue v) { value = v; }
-    void      setValue(int i, exprType t = ET_Int) { value = nodeValue(t, i); }
+    nodeValue& getValue() { return value; }
+    void       setValue(nodeValue v) { value = v; }
+    void       setValue(int i, exprType t = ET_Int) { value = nodeValue(t, i); }
     void setValue(double d, exprType t = ET_Real) { value = nodeValue(t, d); }
     void setValue(std::string s, exprType t = ET_String) {
         value = nodeValue(t, s);
     }
 
-    void print() {
-        printf("line#%d nkind=%d child=%d ",
-               line_no,
-               node_kind,
-               (int)child.size());
-        value.print();
+    std::string toString() {
+        return "line#" + std::to_string(line_no) + "\\n" + enum2str(node_kind) +
+               "\\n" + value.toString();
     }
-    static void travel(treeNode* t) {
-        if (t == nullptr) return;
-        t->print();
-        for (treeNode* c : t->child) travel(c);
-        travel(t->getSibling());
+
+    void print() { std::cout << toString() << std::endl; }
+
+    static void travel(int d, treeNode* t) {
+        printf("node%d [label=\"%s\"]\n", t->uid, t->toString().c_str());
+        for (treeNode* c : t->child)
+            printf("node%d -> node%d\n", t->uid, c->uid), travel(d + 1, c);
+        treeNode* s = t->getSibling();
+        if (s != nullptr)
+            printf("node%d -> node%d\n", t->uid, s->uid), travel(d, s);
     }
 };
 

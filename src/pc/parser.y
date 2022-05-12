@@ -8,6 +8,7 @@ extern void yyerror(const char *s);
 extern int yylex();
 extern int yylineno;
 
+int global_uid = 0;
 treeNode *root = nullptr;
 
 %}
@@ -45,7 +46,7 @@ treeNode *root = nullptr;
 %token <sval> VAL_ID VAL_CHAR VAL_STRING
 
 %type <node> program prog_name_part id compound_expr expr term factor literal
-%type <node> var_decl_part var_decl var_list decl_type decl_type_simple
+%type <node> var_decl_part var_decl id_list decl_type decl_type_simple
 %type <node> stmt_part stmt assign_stmt write_stmt arg_list
 
 %start program
@@ -59,14 +60,12 @@ program: prog_name_part WSYM_VAR var_decl_part WSYM_BEGIN stmt_part WSYM_END {
     $$->addChild($5);
     $$->setValue("root");
     root = $$;
-}
-;
+};
 
 prog_name_part: WSYM_PROGRAM VAL_ID SYM_SEMI {
     $$ = new treeNode(DK_Prog, yylineno);
     $$->setValue($2);
-}
-;
+};
 
 var_decl_part: var_decl_part var_decl {
     if ($1 != nullptr) {
@@ -74,20 +73,17 @@ var_decl_part: var_decl_part var_decl {
         t->setSibling($2);
         $$ = $1;
     } else $$ = $2;
-}
-| var_decl {
+}| var_decl {
     $$ = $1;
-}
-;
+};
 
-var_decl: var_list SYM_COL decl_type SYM_SEMI {
+var_decl: id_list SYM_COL decl_type SYM_SEMI {
     $$ = new treeNode(DK_Var, yylineno);
     $$->addChild($1);
     $$->addChild($3);
-}
-;
+};
 
-var_list: var_list SYM_COMMA id {
+id_list: id_list SYM_COMMA id {
     if ($1 != nullptr) {
         treeNode* t = $1->lastSibling();
         t->setSibling($3);
@@ -108,19 +104,28 @@ decl_type: decl_type_simple {
 
 decl_type_simple: SID_INTEGER {
     $$ = new treeNode(TK_Simple, yylineno);
-    $$->setExprType(ET_Int);
+    $$->getValue().setType(ET_Int);
 }| SID_REAL {
     $$ = new treeNode(TK_Simple, yylineno);
-    $$->setExprType(ET_Real);
+    $$->getValue().setType(ET_Real);
 }| SID_CHAR {
     $$ = new treeNode(TK_Simple, yylineno);
-    $$->setExprType(ET_Char);
+    $$->getValue().setType(ET_Char);
 }| SID_BOOLEAN {
     $$ = new treeNode(TK_Simple, yylineno);
-    $$->setExprType(ET_Bool);
+    $$->getValue().setType(ET_Bool);
 }| SID_STRING {
     $$ = new treeNode(TK_Simple, yylineno);
-    $$->setExprType(ET_String);
+    $$->getValue().setType(ET_String);
+}| SYM_LPAR id_list SYM_RPAR {
+    $$ = new treeNode(TK_Simple, yylineno);
+    $$->addChild($2);
+    $$->getValue().setType(ET_Enum);
+}| literal SYM_DDOT literal {
+    $$ = new treeNode(TK_Simple, yylineno);
+    $$->addChild($1);
+    $$->addChild($3);
+    $$->getValue().setType(ET_Range);
 };
 
 stmt_part: stmt_part stmt SYM_SEMI {
@@ -146,7 +151,7 @@ assign_stmt: id SYM_ASSIGN compound_expr {
 };
 
 write_stmt: SID_WRITE SYM_LPAR arg_list SYM_RPAR {
-    $$ = new treeNode(SK_Write, yylineno);
+    $$ = new treeNode(OK_Write, yylineno);
     $$->addChild($3);
 };
 
@@ -214,32 +219,25 @@ factor: SYM_LPAR compound_expr SYM_RPAR {
 
 literal: VAL_INT {
     $$ = new treeNode(EK_Literal, yylineno);
-    $$->setExprType(ET_Int);
-    $$->setValue($1);
+    $$->setValue($1, ET_Int);
 }| VAL_REAL {
     $$ = new treeNode(EK_Literal, yylineno);
-    $$->setExprType(ET_Real);
-    $$->setValue($1);
+    $$->setValue($1, ET_Real);
 }| VAL_CHAR {
     $$ = new treeNode(EK_Literal, yylineno);
-    $$->setExprType(ET_Char);
-    $$->setValue($1);
+    $$->setValue($1, ET_Char);
 }| VAL_STRING {
     $$ = new treeNode(EK_Literal, yylineno);
-    $$->setExprType(ET_String);
-    $$->setValue($1);
+    $$->setValue($1, ET_String);
 }| SID_FALSE {
     $$ = new treeNode(EK_Literal, yylineno);
-    $$->setExprType(ET_Bool);
-    $$->setValue(0);
+    $$->setValue(0, ET_Bool);
 }| SID_TRUE {
     $$ = new treeNode(EK_Literal, yylineno);
-    $$->setExprType(ET_Bool);
-    $$->setValue(1);
+    $$->setValue(1, ET_Bool);
 }| SID_MAXINT {
     $$ = new treeNode(EK_Literal, yylineno);
-    $$->setExprType(ET_Int);
-    $$->setValue(2147483647);
+    $$->setValue(2147483647, ET_Int);
 };
 
 %%
@@ -250,6 +248,8 @@ void yyerror(const char *s){
 
 int main(){
     yyparse();
-    treeNode::travel(root);
+    puts("digraph g {");
+    treeNode::travel(0, root);
+    puts("}");
     return 0;
 }

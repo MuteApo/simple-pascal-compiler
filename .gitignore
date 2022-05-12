@@ -1,6 +1,7 @@
-src/pc/pc
+.vscode
 src/pc/a.out
 src/pc/lex.yy.c
+src/pc/pc
 src/pc/yacc.tab.c
 src/pc/yacc.tab.h
-.vscode
+test/parser_test_simple.viz
