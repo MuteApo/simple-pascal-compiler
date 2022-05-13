@@ -4,4 +4,3 @@ src/pc/lex.yy.c
 src/pc/pc
 src/pc/yacc.tab.c
 src/pc/yacc.tab.h
-test/parser_test_simple.viz

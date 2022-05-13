@@ -45,8 +45,8 @@ treeNode *root = nullptr;
 %token <dval> VAL_REAL
 %token <sval> VAL_ID VAL_CHAR VAL_STRING
 
-%type <node> program prog_name_part id compound_expr expr term factor literal
-%type <node> var_decl_part var_decl_list var_decl id_list decl_type decl_type_simple
+%type <node> program prog_name_part id compound_expr expr term factor signed_literal literal
+%type <node> var_decl_part var_decl_list var_decl id_list decl_type decl_type_simple decl_type_array
 %type <node> block stmt_part stmt assign_stmt write_stmt arg_list
 
 %start program
@@ -108,6 +108,8 @@ id: VAL_ID {
 
 decl_type: decl_type_simple {
     $$ = $1;
+}| decl_type_array {
+    $$ = $1;
 };
 
 decl_type_simple: SID_INTEGER {
@@ -129,12 +131,26 @@ decl_type_simple: SID_INTEGER {
     $$ = new treeNode(TK_Simple, yylineno);
     $$->addChild($2);
     $$->getValue().setType(ET_Enum);
-}| literal SYM_DDOT literal {
+}| signed_literal SYM_DDOT signed_literal {
     $$ = new treeNode(TK_Simple, yylineno);
     $$->addChild($1);
     $$->addChild($3);
     $$->getValue().setType(ET_Range);
+}| WSYM_SET WSYM_OF decl_type_simple {
+    $$ = new treeNode(TK_Simple, yylineno);
+    $$->addChild($3);
+    $$->getValue().setType(ET_Set);
+}| id {
+    $$ = new treeNode(TK_Def, yylineno);
+    $$->setValue($1->getValue());
 };
+
+decl_type_array: WSYM_ARRAY SYM_LSBKT decl_type_simple SYM_RSBKT WSYM_OF decl_type {
+    $$ = new treeNode(TK_Array, yylineno);
+    $$->addChild($3);
+    $$->addChild($6);
+    $$->getValue().setType(ET_Array);
+}
 
 block: WSYM_BEGIN stmt_part WSYM_END {
     $$ = $2;
@@ -160,6 +176,11 @@ assign_stmt: id SYM_ASSIGN compound_expr {
     $$ = new treeNode(SK_Assign, yylineno);
     $$->addChild($1);
     $$->addChild($3);
+}| id SYM_LSBKT compound_expr SYM_RSBKT SYM_ASSIGN compound_expr {
+    $$ = new treeNode(SK_Assign, yylineno);
+    $$->addChild($1);
+    $1->addChild($3);
+    $$->addChild($6);
 };
 
 write_stmt: SID_WRITE SYM_LPAR arg_list SYM_RPAR {
@@ -227,6 +248,10 @@ term: term SYM_MUL factor {
 
 factor: SYM_LPAR compound_expr SYM_RPAR {
     $$ = $2;
+}| id SYM_LSBKT compound_expr SYM_RSBKT {
+    $$ = $1;
+    $$->addChild($3);
+    $$->getValue().setType(ET_Array);
 }| id {
     $$ = $1;
 }| literal {
@@ -235,6 +260,12 @@ factor: SYM_LPAR compound_expr SYM_RPAR {
     $$ = new treeNode($2, nullptr, OK_Neg, yylineno);
 }| WSYM_NOT factor {
     $$ = new treeNode($2, nullptr, OK_Not, yylineno);
+};
+
+signed_literal: SYM_SUB literal {
+    $$ = new treeNode($2, nullptr, OK_Neg, yylineno);
+}| literal {
+    $$ = $1;
 };
 
 literal: VAL_INT {

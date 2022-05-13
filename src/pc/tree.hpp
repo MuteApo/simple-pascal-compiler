@@ -3,13 +3,14 @@
 
 #include <iostream>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
 extern int global_uid;
 
 enum declKind { DK_Prog = 1001, DK_Const, DK_Var, DK_Type, DK_Func, DK_Proc };
-enum typeKind { TK_Simple = 2001, TK_Array, TK_Record };
+enum typeKind { TK_Simple = 2001, TK_Def, TK_Array, TK_Record };
 enum exprKind { EK_Id = 3001, EK_Literal };
 enum exprType {
     ET_Void = 4001,
@@ -20,6 +21,7 @@ enum exprType {
     ET_String,
     ET_Enum,
     ET_Range,
+    ET_Set,
     ET_Array,
     ET_Record
 };
@@ -75,6 +77,12 @@ enum stmtKind {
 
 std::string enum2str(int e);
 
+template <class T> std::string to_string(T v) {
+    std::ostringstream oss;
+    oss << v;
+    return oss.str();
+}
+
 class valueWrapper {
   private:
     int         _valid;  // serve as selector
@@ -90,10 +98,17 @@ class valueWrapper {
     valueWrapper(double d) : valueWrapper(2, 0, d, "") {}
     valueWrapper(std::string s) : valueWrapper(3, 0, 0, s) {}
 
+    template <class T> T getValue() {
+        switch (_valid) {
+            case 1: return _ival;
+            case 2: return _dval;
+            case 3: return _sval;
+        }
+    }
     std::string toString() {
         switch (_valid) {
-            case 1: return "ival=" + std::to_string(_ival);
-            case 2: return "dval=" + std::to_string(_dval);
+            case 1: return "ival=" + to_string(_ival);
+            case 2: return "dval=" + to_string(_dval);
             case 3: return "sval=" + _sval;
         }
         return "";
@@ -216,6 +231,7 @@ class treeNode {
     void addChild(treeNode* c) {
         if (c != nullptr) child.push_back(c);
     }
+    treeNode* firstChild() { return child.front(); }
 
     treeNode* getSibling() { return sibling; }
     void      setSibling(treeNode* s) { sibling = s; }

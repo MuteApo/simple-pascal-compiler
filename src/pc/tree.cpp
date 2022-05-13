@@ -11,6 +11,7 @@ std::string enum2str(int e) {
         case DK_Proc: return "DK_Proc";
 
         case TK_Simple: return "TK_Simple";
+        case TK_Def: return "TK_Def";
         case TK_Array: return "TK_Array";
         case TK_Record: return "TK_Record";
 
@@ -25,6 +26,7 @@ std::string enum2str(int e) {
         case ET_String: return "ET_String";
         case ET_Enum: return "ET_Enum";
         case ET_Range: return "ET_Range";
+        case ET_Set: return "ET_Set";
         case ET_Array: return "ET_Array";
         case ET_Record: return "ET_Record";
 
