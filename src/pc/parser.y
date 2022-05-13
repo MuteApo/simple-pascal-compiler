@@ -1,4 +1,5 @@
 %{
+#include "defs.hpp"
 #include "tree.hpp"
 #include <iostream>
 
@@ -46,18 +47,20 @@ treeNode *root = nullptr;
 %token <sval> VAL_ID VAL_CHAR VAL_STRING
 
 %type <node> program prog_name_part id compound_expr expr term factor signed_literal literal
-%type <node> var_decl_part var_decl_list var_decl id_list decl_type decl_type_simple decl_type_array
+%type <node> const_part const_decl_list const_decl
+%type <node> var_part var_decl_list var_decl id_list decl_type decl_type_simple decl_type_set decl_type_array
 %type <node> block stmt_part stmt assign_stmt write_stmt arg_list
 
 %start program
 
 %%
 
-program: prog_name_part var_decl_part block {
+program: prog_name_part const_part var_part block {
     $$ = new treeNode(DK_Prog, yylineno);
     $$->addChild($1);
     $$->addChild($2);
     $$->addChild($3);
+    $$->addChild($4);
     $$->setValue("root");
     root = $$;
 };
@@ -69,7 +72,33 @@ prog_name_part:  {
     $$->setValue($2);
 };
 
-var_decl_part:  {
+const_part: {
+    $$ = nullptr;
+}| WSYM_CONST const_decl_list {
+    $$ = $2;
+};
+
+const_decl_list: const_decl_list const_decl {
+    if ($1 != nullptr) {
+        treeNode* t = $1->lastSibling();
+        t->setSibling($2);
+        $$ = $1;
+    } else $$ = $2;
+}| const_decl {
+    $$ = $1;
+};
+
+const_decl: id SYM_EQ signed_literal SYM_SEMI {
+    $$ = new treeNode(DK_Const, yylineno);
+    $$->addChild($1);
+    $$->addChild($3);
+}| id SYM_EQ decl_type_set SYM_SEMI {
+    $$ = new treeNode(DK_Const, yylineno);
+    $$->addChild($1);
+    $$->addChild($3);
+};
+
+var_part:  {
     $$ = nullptr;
 }| WSYM_VAR var_decl_list {
     $$ = $2;
@@ -108,6 +137,8 @@ id: VAL_ID {
 
 decl_type: decl_type_simple {
     $$ = $1;
+}| decl_type_set {
+    $$ = $1;
 }| decl_type_array {
     $$ = $1;
 };
@@ -136,13 +167,15 @@ decl_type_simple: SID_INTEGER {
     $$->addChild($1);
     $$->addChild($3);
     $$->getValue().setType(ET_Range);
-}| WSYM_SET WSYM_OF decl_type_simple {
-    $$ = new treeNode(TK_Simple, yylineno);
-    $$->addChild($3);
-    $$->getValue().setType(ET_Set);
 }| id {
     $$ = new treeNode(TK_Def, yylineno);
     $$->setValue($1->getValue());
+};
+
+decl_type_set: WSYM_SET WSYM_OF decl_type_simple {
+    $$ = new treeNode(TK_Simple, yylineno);
+    $$->addChild($3);
+    $$->getValue().setType(ET_Set);
 };
 
 decl_type_array: WSYM_ARRAY SYM_LSBKT decl_type_simple SYM_RSBKT WSYM_OF decl_type {

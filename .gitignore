@@ -1,3 +1,4 @@
+.clang-format
 .vscode
 src/pc/a.out
 src/pc/lex.yy.c

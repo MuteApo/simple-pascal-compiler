@@ -1,27 +1,27 @@
 program test;
 {Comment A}
+const
+    z = 114514;
+    y = set of (A, E, I, O, U);
 var
     a: Integer;
-    b, G: real;
+    B: real;
     c: char;
-    d, f: string;
+    d: string;
     e: boolean;
-    h: (Mon, Tues, Wed, Thur, Fri);
-    i: 1..10;
-    j: -10..-1;
-    k: set of h;
-    l: set of i;
-    m: array [1..10] of integer;
-    n: array [char] of h;
+    f: (Mon, Tues, Wed, Thur, Fri);
+    g: 1..10;
+    h: -10..-1;
+    i: set of f;
+    j: set of h;
+    k: array [1..10] of integer;
+    l: array [char] of f;
 begin
-    a := 1 + 2 * 3;
-    b := 4.5 / 3; {Comment B}
+    a := 3 mod 2 + 6 div 4;
+    b := 4.5 / -1.2E-3; {Comment B}
     c := 'c';
     d := 'DeadBeef';
     e := (5 >= 4) and (3 <> 2);
-    f := '''';
-    G := -1.2E-3;
-    m[5] := 9;
-    n['a'] := Mon;
-    a := m[4];
+    a := k[4];
+    l['a'] := Mon;
 end
