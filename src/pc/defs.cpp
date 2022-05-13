@@ -15,6 +15,8 @@ std::string enum2str(int e) {
         case TK_Def: return "TK_Def";
         case TK_Array: return "TK_Array";
         case TK_Record: return "TK_Record";
+        case TK_Param: return "TK_Param";
+        case TK_Arg: return "TK_Arg";
 
         case EK_Id: return "EK_Id";
         case EK_Literal: return "EK_Literal";
@@ -72,12 +74,13 @@ std::string enum2str(int e) {
         case SK_Then: return "SK_Then";
         case SK_Else: return "SK_Else";
         case SK_For: return "SK_For";
-        case SK_TO: return "SK_TO";
-        case SK_DOWNTO: return "SK_DOWNTO";
+        case SK_To: return "SK_To";
+        case SK_Downto: return "SK_Downto";
         case SK_While: return "SK_While";
         case SK_Repeat: return "SK_Repeat";
         case SK_Switch: return "SK_Switch";
         case SK_Case: return "SK_Case";
+        case SK_Func: return "SK_Func";
         case SK_Sys: return "SK_Sys";
     }
     return "Enum not found: " + std::to_string(e) + "\n";

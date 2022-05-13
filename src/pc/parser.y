@@ -35,6 +35,9 @@ treeNode *root = nullptr;
 %token WSYM_SET WSYM_SHL WSYM_SHR WSYM_THEN WSYM_TO WSYM_TYPE
 %token WSYM_UNTIL WSYM_VAR WSYM_WHILE WSYM_WITH WSYM_XOR
 
+%precedence WSYM_THEN
+%precedence WSYM_ELSE
+
 %union {
     int ival;
     double dval;
@@ -48,14 +51,14 @@ treeNode *root = nullptr;
 
 %type <node> Program Block Id IdList TypeDefList
 %type <node> TypeDefPart TypeDef Type StructTypeDef SetTypeDef ArrayTypeDef
-%type <node> IndexTypeList RecordTypeDef FieldList PtrTypeDef OrdTypeDef ResultType
+%type <node> IndexTypeList RecordTypeDef PtrTypeDef OrdTypeDef ResultType
 %type <node> BasicRealType VarDeclList VarDeclPart VarDecl
 %type <node> VarAccess IndexList Expr Term Factor Item Stmt AssignStmt
-%type <node> ProcStmt IfStmt CaseStmt CaseList Case RepeatStmt
+%type <node> FuncStmt IfStmt CaseStmt CaseList Case RepeatStmt
 %type <node> WhileStmt ForStmt WithStmt CompoundStmt StmtList
 %type <node> ConstDefPart ConstDefList ConstDef ConstList
 %type <node> SignedLiteral Sign Literal ProcAndFuncDeclPart ProcDecl
-%type <node> FuncDecl ActualParamList ActualParam FormalParamList FormalParam
+%type <node> FuncDecl ArgList Arg ParamList Param
 
 %start Program
 
@@ -138,8 +141,8 @@ StructTypeDef:  SetTypeDef{
     $$ = $1;
 }| ArrayTypeDef {
     $$ = $1;
-}| RecordTypeDef { //TODO
-    $$ = nullptr;
+}| RecordTypeDef {
+    $$ = $1;
 }
 
 SetTypeDef: WSYM_SET WSYM_OF OrdTypeDef {
@@ -166,14 +169,9 @@ IndexTypeList: IndexTypeList SYM_COMMA Type {
     $$ = $1;
 }
 
-RecordTypeDef: WSYM_RECORD FieldList WSYM_END {
-
-}
-
-FieldList: FieldList IdList SYM_COL Type SYM_SEMI {
-
-}| IdList SYM_COL Type SYM_SEMI {
-
+RecordTypeDef: WSYM_RECORD VarDeclList WSYM_END {
+    $$ = new treeNode(ET_Record, yylineno);
+    $$->addChild($2);
 }
 
 PtrTypeDef: SYM_HAT BasicRealType {
@@ -331,7 +329,7 @@ Item: Literal {
     $$ = new treeNode($2, nullptr, OK_Not, yylineno);
 }| SYM_LPAR Expr SYM_RPAR {
     $$ = $2;
-}| ProcStmt {
+}| FuncStmt {
     $$ = $1;
 }
 
@@ -342,8 +340,8 @@ Stmt: CompoundStmt {
     $$->addChild($1);
 }| AssignStmt {
     $$ = $1;
-}| ProcStmt { // TODO
-    $$ = nullptr;
+}| FuncStmt {
+    $$ = $1;
 }| IfStmt {
     $$ = $1;
 }| CaseStmt {
@@ -368,8 +366,13 @@ AssignStmt: Id SYM_ASSIGN Expr {
     $$->addChild($3);
 }
 
-ProcStmt: Id SYM_LPAR ActualParamList SYM_RPAR {
-
+FuncStmt: Id SYM_LPAR ArgList SYM_RPAR {
+    $$ = new treeNode(SK_Func, yylineno);
+    $$->addChild($1);
+    $$->addChild($3);
+}| Id SYM_LPAR SYM_RPAR {
+    $$ = new treeNode(SK_Func, yylineno);
+    $$->addChild($1);
 }
 
 IfStmt: WSYM_IF Expr WSYM_THEN Stmt{
@@ -426,7 +429,7 @@ WhileStmt: WSYM_WHILE Expr WSYM_DO Stmt {
 ForStmt: WSYM_FOR Id SYM_ASSIGN Expr WSYM_TO Expr WSYM_DO Stmt {
     $$ = new treeNode(SK_For, yylineno);
     $$->addChild($2);
-    treeNode* t = new treeNode(SK_TO, yylineno);
+    treeNode* t = new treeNode(SK_To, yylineno);
     t->addChild($4);
     t->addChild($6);
     $$->addChild(t);
@@ -434,7 +437,7 @@ ForStmt: WSYM_FOR Id SYM_ASSIGN Expr WSYM_TO Expr WSYM_DO Stmt {
 }| WSYM_FOR Id SYM_ASSIGN Expr WSYM_DOWNTO Expr WSYM_DO Stmt {
     $$ = new treeNode(SK_For, yylineno);
     $$->addChild($2);
-    treeNode* t = new treeNode(SK_DOWNTO, yylineno);
+    treeNode* t = new treeNode(SK_Downto, yylineno);
     t->addChild($4);
     t->addChild($6);
     $$->addChild(t);
@@ -550,45 +553,78 @@ Literal: VAL_INT {
 /************************* Rules of Proc&Stmt *************************/
 
 ProcAndFuncDeclPart: ProcAndFuncDeclPart ProcDecl SYM_SEMI {
-    $$ = nullptr;
+    if ($1 != nullptr) {
+        treeNode* t = $1->lastSibling();
+        t->setSibling($2);
+        $$ = $1;
+    } else $$ = $2;
 }| ProcAndFuncDeclPart FuncDecl SYM_SEMI {
-    $$ = nullptr;
+    if ($1 != nullptr) {
+        treeNode* t = $1->lastSibling();
+        t->setSibling($2);
+        $$ = $1;
+    } else $$ = $2;
 }| {
     $$ = nullptr;
 }
 
 ProcDecl: WSYM_PROCEDURE Id SYM_SEMI Block {
-
-}| WSYM_PROCEDURE Id SYM_LPAR FormalParamList SYM_RPAR SYM_SEMI Block {
-
+    $$ = new treeNode(DK_Proc, yylineno);
+    $$->addChild($2);
+    $$->addChild($4);
+}| WSYM_PROCEDURE Id SYM_LPAR ParamList SYM_RPAR SYM_SEMI Block {
+    $$ = new treeNode(DK_Proc, yylineno);
+    $$->addChild($2);
+    $$->addChild($4);
+    $$->addChild($7);
 }
 
 FuncDecl: WSYM_FUNCTION Id SYM_COL ResultType SYM_SEMI Block {
-
-}| WSYM_FUNCTION Id SYM_LPAR FormalParamList SYM_RPAR SYM_COL ResultType SYM_SEMI Block {
-
+    $$ = new treeNode(DK_Func, yylineno);
+    $$->addChild($2);
+    $$->addChild($4);
+    $$->addChild($6);
+}| WSYM_FUNCTION Id SYM_LPAR ParamList SYM_RPAR SYM_COL ResultType SYM_SEMI Block {
+    $$ = new treeNode(DK_Func, yylineno);
+    $$->addChild($2);
+    $$->addChild($4);
+    $$->addChild($7);
+    $$->addChild($9);
 }
 
-ActualParamList: ActualParamList SYM_COMMA ActualParam {
-
-}| ActualParam{
-
+ArgList: ArgList SYM_COMMA Arg {
+    if ($1 != nullptr) {
+        treeNode* t = $1->lastSibling();
+        t->setSibling($3);
+        $$ = $1;
+    } else $$ = $3;
+}| Arg{
+    $$ = $1;
 }
 
-ActualParam: Expr {
-
+Arg: Expr {
+    $$ = new treeNode(TK_Arg, yylineno);
+    $$->addChild($1);
 }
 
-FormalParamList: FormalParamList SYM_SEMI FormalParam {
-
-}| FormalParam {
-
+ParamList: ParamList SYM_SEMI Param {
+    if ($1 != nullptr) {
+        treeNode* t = $1->lastSibling();
+        t->setSibling($3);
+        $$ = $1;
+    } else $$ = $3;
+}| Param {
+    $$ = $1;
 }
 
-FormalParam: Id SYM_COL Type {
-
-}|WSYM_VAR Id SYM_COL Type {
-
+Param: Id SYM_COL Type {
+    $$ = new treeNode(TK_Param, yylineno);
+    $$->addChild($1);
+    $$->addChild($3);
+}| WSYM_VAR Id SYM_COL Type {
+    $$ = new treeNode(TK_Param, yylineno);
+    $$->addChild($2);
+    $$->addChild($4);
 }
 
 %%

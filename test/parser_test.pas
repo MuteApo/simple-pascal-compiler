@@ -14,14 +14,26 @@ var
     e: boolean;
     f: week;
     g: digit;
+    l: record
+        u: week;
+        v: integer;
+    end;
     h: set of week;
     i: set of digit;
     j: array [1..10] of integer;
     k: array [char] of week;
+function ff:week;
 begin
+    ff := k['z'];
+end;
+procedure gg(var x: integer; y: digit);
+begin
+    if y > 0 then x := x + 1;
+end;
+begin
+    c := 'c';
     a := 3 mod 2 + 6 div 4;
     b := 4.5 / -1.2E-3; {Comment B}
-    c := 'c';
     d := 'DeadBeef';
     a := 0;
     repeat
@@ -41,8 +53,6 @@ begin
         end;
         a := a + 1;
     until a > 3;
-    f := Fri;
-    g := 8;
-    a := j[4];
-    k['a'] := Mon;
+    f := ff();
+    gg(j[1], g);
 end

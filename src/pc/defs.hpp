@@ -12,7 +12,14 @@ enum declKind {
     DK_Func,
     DK_Proc
 };
-enum typeKind { TK_Simple = 2001, TK_Def, TK_Array, TK_Record };
+enum typeKind {
+    TK_Simple = 2001,
+    TK_Def,
+    TK_Array,
+    TK_Record,
+    TK_Param,
+    TK_Arg
+};
 enum exprKind { EK_Id = 3001, EK_Literal };
 enum exprType {
     ET_Void = 4001,
@@ -76,12 +83,13 @@ enum stmtKind {
     SK_Then,
     SK_Else,
     SK_For,
-    SK_TO,
-    SK_DOWNTO,
+    SK_To,
+    SK_Downto,
     SK_While,
     SK_Repeat,
     SK_Switch,
     SK_Case,
+    SK_Func,
     SK_Sys
 };
 
