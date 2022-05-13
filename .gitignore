@@ -1,6 +1,7 @@
 .clang-format
 .vscode
-bin/*
+bin/pc
+bin/parser_test.viz
 src/pc/lex.yy.c
 src/pc/pc
 src/pc/yacc.tab.c
