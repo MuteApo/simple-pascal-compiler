@@ -1,6 +1,6 @@
 %{
-#include <iostream>
 #include "tree.hpp"
+#include <iostream>
 
 using namespace std;
 
@@ -31,8 +31,8 @@ treeNode *root = nullptr;
 %token WSYM_FOR WSYM_FUNCTION WSYM_GOTO WSYM_IF WSYM_IN WSYM_LABEL
 %token WSYM_MOD WSYM_NIL WSYM_NOT WSYM_OF WSYM_OR
 %token WSYM_PROCEDURE WSYM_PROGRAM WSYM_RECORD WSYM_REPEAT
-%token WSYM_SET WSYM_THEN WSYM_TO WSYM_TYPE
-%token WSYM_UNTIL WSYM_VAR WSYM_WHILE WSYM_WITH
+%token WSYM_SET WSYM_SHL WSYM_SHR WSYM_THEN WSYM_TO WSYM_TYPE
+%token WSYM_UNTIL WSYM_VAR WSYM_WHILE WSYM_WITH WSYM_XOR
 
 %union {
     int ival;
@@ -46,28 +46,36 @@ treeNode *root = nullptr;
 %token <sval> VAL_ID VAL_CHAR VAL_STRING
 
 %type <node> program prog_name_part id compound_expr expr term factor literal
-%type <node> var_decl_part var_decl id_list decl_type decl_type_simple
-%type <node> stmt_part stmt assign_stmt write_stmt arg_list
+%type <node> var_decl_part var_decl_list var_decl id_list decl_type decl_type_simple
+%type <node> block stmt_part stmt assign_stmt write_stmt arg_list
 
 %start program
 
 %%
 
-program: prog_name_part WSYM_VAR var_decl_part WSYM_BEGIN stmt_part WSYM_END {
+program: prog_name_part var_decl_part block {
     $$ = new treeNode(DK_Prog, yylineno);
     $$->addChild($1);
+    $$->addChild($2);
     $$->addChild($3);
-    $$->addChild($5);
     $$->setValue("root");
     root = $$;
 };
 
-prog_name_part: WSYM_PROGRAM VAL_ID SYM_SEMI {
+prog_name_part:  {
+    $$ = nullptr;
+}| WSYM_PROGRAM VAL_ID SYM_SEMI {
     $$ = new treeNode(DK_Prog, yylineno);
     $$->setValue($2);
 };
 
-var_decl_part: var_decl_part var_decl {
+var_decl_part:  {
+    $$ = nullptr;
+}| WSYM_VAR var_decl_list {
+    $$ = $2;
+};
+
+var_decl_list: var_decl_list var_decl {
     if ($1 != nullptr) {
         treeNode* t = $1->lastSibling();
         t->setSibling($2);
@@ -128,6 +136,10 @@ decl_type_simple: SID_INTEGER {
     $$->getValue().setType(ET_Range);
 };
 
+block: WSYM_BEGIN stmt_part WSYM_END {
+    $$ = $2;
+};
+
 stmt_part: stmt_part stmt SYM_SEMI {
     if ($1 != nullptr) {
         treeNode* t = $1->lastSibling();
@@ -177,6 +189,8 @@ compound_expr: compound_expr SYM_EQ expr {
     $$ = new treeNode($1, $3, OK_Le, yylineno);
 }| compound_expr SYM_GE expr {
     $$ = new treeNode($1, $3, OK_Ge, yylineno);
+}| compound_expr WSYM_IN expr {
+    $$ = new treeNode($1, $3, OK_In, yylineno);
 }| expr {
     $$ = $1;
 };
@@ -187,6 +201,8 @@ expr: expr SYM_ADD term {
     $$ = new treeNode($1, $3, OK_Sub, yylineno);
 }| expr WSYM_OR term {
     $$ = new treeNode($1, $3, OK_Or, yylineno);
+}| expr WSYM_XOR term {
+    $$ = new treeNode($1, $3, OK_Xor, yylineno);
 }| term {
     $$ = $1;
 };
@@ -201,6 +217,10 @@ term: term SYM_MUL factor {
     $$ = new treeNode($1, $3, OK_Mod, yylineno);
 }| term WSYM_AND factor {
     $$ = new treeNode($1, $3, OK_And, yylineno);
+}| term WSYM_SHL factor {
+    $$ = new treeNode($1, $3, OK_Shl, yylineno);
+}| term WSYM_SHR factor {
+    $$ = new treeNode($1, $3, OK_Shr, yylineno);
 }| factor {
     $$ = $1;
 };
@@ -249,7 +269,7 @@ void yyerror(const char *s){
 int main(){
     yyparse();
     puts("digraph g {");
-    treeNode::travel(0, root);
+    treeNode::traverse(0, root);
     puts("}");
     return 0;
 }

@@ -45,18 +45,19 @@ enum opKind {
     OK_Xor,  // xor
     OK_Shl,  // shl
     OK_Shr,  // shr
+    OK_In,   // in
     /* built-in */
-    OK_Chr,   // chr(x), converts to char type of x
-    OK_Ord,   // ord(x), original value of x, usually used for char/enum
-    OK_Abs,   // abs(x), absolute value of x
-    OK_Odd,   // odd(x), if x is odd(true) or even(false)
-    OK_Sqr,   // sqr(x), equals to x*x
-    OK_Sqrt,  // sqrt(x), square root of x
-    OK_Succ,  // succ(x), which succeeds x
-    OK_Pred,  // pred(x), which precedes x
-    OK_Read,
-    OK_Write,
-    OK_Writeln,
+    OK_Chr,      // chr(x), converts to char type of x
+    OK_Ord,      // ord(x), original value of x, usually used for char/enum
+    OK_Abs,      // abs(x), absolute value of x
+    OK_Odd,      // odd(x), if x is odd(true) or even(false)
+    OK_Sqr,      // sqr(x), equals to x*x
+    OK_Sqrt,     // sqrt(x), square root of x
+    OK_Succ,     // succ(x), which succeeds x
+    OK_Pred,     // pred(x), which precedes x
+    OK_Read,     // read(x,y), read from input
+    OK_Write,    // write(x,y), write to output
+    OK_Writeln,  // writeln(x,y), write to output with an extra line feed
     /* assignment */
     OK_Id,
     OK_Array,
@@ -76,7 +77,7 @@ std::string enum2str(int e);
 
 class valueWrapper {
   private:
-    int         _valid;
+    int         _valid;  // serve as selector
     int         _ival;
     double      _dval;
     std::string _sval;
@@ -191,12 +192,12 @@ class nodeValue {
 
 class treeNode {
   private:
-    int                    uid;
-    std::vector<treeNode*> child;
-    treeNode*              sibling;
-    int                    line_no;
-    int                    node_kind;
-    nodeValue              value;
+    int                    uid;        // used for graphviz
+    std::vector<treeNode*> child;      // vector of children
+    treeNode*              sibling;    // pointer to sibling
+    int                    line_no;    // line number
+    int                    node_kind;  // node kind
+    nodeValue              value;      // node value
 
   public:
     treeNode(int nk, int ln) : node_kind(nk), line_no(ln) {
@@ -237,15 +238,30 @@ class treeNode {
                "\\n" + value.toString();
     }
 
-    void print() { std::cout << toString() << std::endl; }
+    static void traverse(int d, treeNode* t) {
+        // node declaration
+        printf("\tnode%d [label=\"%s\"];\n", t->uid, t->toString().c_str());
 
-    static void travel(int d, treeNode* t) {
-        printf("node%d [label=\"%s\"]\n", t->uid, t->toString().c_str());
-        for (treeNode* c : t->child)
-            printf("node%d -> node%d\n", t->uid, c->uid), travel(d + 1, c);
+        // ensure child-wise left-to-right layout using invisible edges
+        for (int i = 1; i < t->child.size(); i++)
+            printf("\t{rank=same; node%d -> node%d [style=invis];}\n",
+                   t->child[i - 1]->lastSibling()->uid,
+                   t->child[i]->uid);
+
+        // draw child relationship in blue
+        for (treeNode* c : t->child) {
+            printf("\tnode%d -> node%d [color=blue];\n", t->uid, c->uid);
+            traverse(d + 1, c);
+        }
+
+        // draw sibling relationship in red, if exists
         treeNode* s = t->getSibling();
-        if (s != nullptr)
-            printf("node%d -> node%d\n", t->uid, s->uid), travel(d, s);
+        if (s != nullptr) {
+            printf("\t{rank=same; node%d -> node%d [color=red];}\n",
+                   t->uid,
+                   s->uid);
+            traverse(d, s);
+        }
     }
 };
 

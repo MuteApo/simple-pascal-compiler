@@ -2,16 +2,15 @@
 %option yylineno
 
 %{
-#include <cstdio>
-#include <ctype.h>
 #include "tree.hpp"
 #include "parser.tab.h"
+#include <cstdio>
 
 extern int yylex(void);
 
 void to_lowercase(char *str){
     for (char *p = str; *p; p++)
-        if (isalpha(*p)) *p |= 32;
+        if (*p >= 'A' && *p <= 'Z') *p |= 32;
 }
 
 %}
@@ -94,6 +93,8 @@ Identifier {Letter}({Letter}|{Digit})*
 (?i:program) { return WSYM_PROGRAM; }
 (?i:record) { return WSYM_RECORD; }
 (?i:repeat) { return WSYM_REPEAT; }
+(?i:shl) { return WSYM_SHL; }
+(?i:shr) { return WSYM_SHR; }
 (?i:set) { return WSYM_SET; }
 (?i:then) { return WSYM_THEN; }
 (?i:to) { return WSYM_TO; }
@@ -102,6 +103,7 @@ Identifier {Letter}({Letter}|{Digit})*
 (?i:var) { return WSYM_VAR; }
 (?i:while) { return WSYM_WHILE; }
 (?i:with) { return WSYM_WITH; }
+(?i:xor) { return WSYM_XOR; }
 
 (?i:{Identifier}) {
 	yylval.sval = (char*)malloc(strlen(yytext) + 1);
