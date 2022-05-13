@@ -193,31 +193,31 @@ class treeNode {
                "\\n" + value.toString();
     }
 
-    static void traverse(int d, treeNode* t) {
+    static void traverse(FILE *file, int d, treeNode* t) {
         if (t == nullptr) return;
 
         // node declaration
-        printf("\tnode%d [label=\"%s\"];\n", t->uid, t->toString().c_str());
+        fprintf(file, "\tnode%d [label=\"%s\"];\n", t->uid, t->toString().c_str());
 
         // ensure child-wise left-to-right layout using invisible edges
         for (int i = 1; i < t->child.size(); i++)
-            printf("\t{rank=same; node%d -> node%d [style=invis];}\n",
+            fprintf(file, "\t{rank=same; node%d -> node%d [style=invis];}\n",
                    t->child[i - 1]->lastSibling()->uid,
                    t->child[i]->uid);
 
         // draw child relationship in blue
         for (treeNode* c : t->child) {
-            printf("\tnode%d -> node%d [color=blue];\n", t->uid, c->uid);
-            traverse(d + 1, c);
+            fprintf(file, "\tnode%d -> node%d [color=blue];\n", t->uid, c->uid);
+            traverse(file, d + 1, c);
         }
 
         // draw sibling relationship in red, if exists
         treeNode* s = t->getSibling();
         if (s != nullptr) {
-            printf("\t{rank=same; node%d -> node%d [color=red];}\n",
+            fprintf(file, "\t{rank=same; node%d -> node%d [color=red];}\n",
                    t->uid,
                    s->uid);
-            traverse(d, s);
+            traverse(file, d, s);
         }
     }
 };

@@ -64,12 +64,12 @@ treeNode *root = nullptr;
 
 %%
 
-Program:  WSYM_PROGRAM Id SYM_SEMI Block {
+Program:  WSYM_PROGRAM Id SYM_SEMI Block SYM_DOT {
     $$ = new treeNode(DK_Prog, yylineno);
     $$->addChild($2);
     $$->addChild($4);
     root = $$;
-}| WSYM_PROGRAM Id SYM_LPAR IdList SYM_RPAR SYM_SEMI Block{
+}| WSYM_PROGRAM Id SYM_LPAR IdList SYM_RPAR SYM_SEMI Block SYM_DOT {
     $$ = new treeNode(DK_Prog, yylineno);
     $$->addChild($2);
     $$->addChild($4);
@@ -617,11 +617,11 @@ ParamList: ParamList SYM_SEMI Param {
     $$ = $1;
 }
 
-Param: Id SYM_COL Type {
+Param: IdList SYM_COL Type {
     $$ = new treeNode(TK_Param, yylineno);
     $$->addChild($1);
     $$->addChild($3);
-}| WSYM_VAR Id SYM_COL Type {
+}| WSYM_VAR IdList SYM_COL Type {
     $$ = new treeNode(TK_Param, yylineno);
     $$->addChild($2);
     $$->addChild($4);
@@ -631,12 +631,4 @@ Param: Id SYM_COL Type {
 
 void yyerror(const char *s){
 	std::cerr << s << " | line: " << yylineno << std::endl;
-}
-
-int main(){
-    yyparse();
-    puts("digraph g {");
-    treeNode::traverse(0, root);
-    puts("}");
-    return 0;
 }
