@@ -4,6 +4,7 @@
 std::string enum2str(int e) {
     switch (e) {
         case DK_Prog: return "DK_Prog";
+        case DK_Block: return "DK_Block";
         case DK_Const: return "DK_Const";
         case DK_Var: return "DK_Var";
         case DK_Type: return "DK_Type";
@@ -19,23 +20,26 @@ std::string enum2str(int e) {
         case EK_Literal: return "EK_Literal";
 
         case ET_Void: return "ET_Void";
+        case ET_Id: return "ET_Id";
         case ET_Int: return "ET_Int";
         case ET_Real: return "ET_Real";
         case ET_Char: return "ET_Char";
         case ET_Bool: return "ET_Bool";
         case ET_String: return "ET_String";
+        case ET_Nil: return "ET_Nil";
         case ET_Enum: return "ET_Enum";
         case ET_Range: return "ET_Range";
         case ET_Set: return "ET_Set";
         case ET_Array: return "ET_Array";
         case ET_Record: return "ET_Record";
+        case ET_Addr: return "ET_Addr";
 
         case OK_Add: return "OK_Add";
         case OK_Sub: return "OK_Sub";
         case OK_Mul: return "OK_Mul";
         case OK_Div: return "OK_Div";
         case OK_Mod: return "OK_Mod";
-        case OK_Neg: return "OK_Neg";
+        case OK_Sign: return "OK_Sign";
         case OK_Eq: return "OK_Eq";
         case OK_Ne: return "OK_Ne";
         case OK_Lt: return "OK_Lt";

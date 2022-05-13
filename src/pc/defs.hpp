@@ -3,21 +3,32 @@
 
 #include <string>
 
-enum declKind { DK_Prog = 1001, DK_Const, DK_Type, DK_Var, DK_Func, DK_Proc };
+enum declKind {
+    DK_Prog = 1001,
+    DK_Block,
+    DK_Const,
+    DK_Type,
+    DK_Var,
+    DK_Func,
+    DK_Proc
+};
 enum typeKind { TK_Simple = 2001, TK_Def, TK_Array, TK_Record };
 enum exprKind { EK_Id = 3001, EK_Literal };
 enum exprType {
     ET_Void = 4001,
+    ET_Id,
     ET_Int,
     ET_Real,
     ET_Char,
     ET_Bool,
     ET_String,
+    ET_Nil,
     ET_Enum,
     ET_Range,
     ET_Set,
     ET_Array,
-    ET_Record
+    ET_Record,
+    ET_Addr
 };
 enum opKind {
     /* arithmetic */
@@ -26,7 +37,7 @@ enum opKind {
     OK_Mul,         // a*b
     OK_Div,         // a/b
     OK_Mod,         // a%b
-    OK_Neg,         // -a
+    OK_Sign,        // +-a
     /* comparative */
     OK_Eq,  // =, equal to
     OK_Ne,  // <>, not equal to

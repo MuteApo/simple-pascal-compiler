@@ -1,6 +1,6 @@
 .clang-format
 .vscode
-src/pc/a.out
+bin/*
 src/pc/lex.yy.c
 src/pc/pc
 src/pc/yacc.tab.c

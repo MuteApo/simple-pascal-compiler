@@ -40,9 +40,9 @@ class valueWrapper {
     }
     std::string toString() {
         switch (_valid) {
-            case 1: return "ival=" + to_string(_ival);
-            case 2: return "dval=" + to_string(_dval);
-            case 3: return "sval=" + _sval;
+            case 1: return "[i]" + to_string(_ival);
+            case 2: return "[d]" + to_string(_dval);
+            case 3: return "[s]" + _sval;
         }
         return "";
     }
@@ -131,10 +131,14 @@ class nodeValue {
     nodeValue(exprType t, typeArray a)
             : nodeValue(
                   t, valueWrapper(), typeEnum(), typeRange(), typeSet(), a) {}
+
     void setType(exprType t) { _type = t; }
 
+    valueWrapper& getValue() { return _value; }
+
     std::string toString() {
-        return enum2str(_type) + "\\n" + _value.toString();
+        return (_type == ET_Void ? "" : enum2str(_type) + "\\n") +
+               _value.toString();
     }
 };
 
@@ -167,7 +171,9 @@ class treeNode {
     treeNode* firstChild() { return child.front(); }
 
     treeNode* getSibling() { return sibling; }
-    void      setSibling(treeNode* s) { sibling = s; }
+    void      setSibling(treeNode* s) {
+        if (s != nullptr) sibling = s;
+    }
     treeNode* lastSibling() {
         treeNode* t = this;
         while (t->getSibling() != nullptr) t = t->getSibling();
@@ -188,6 +194,8 @@ class treeNode {
     }
 
     static void traverse(int d, treeNode* t) {
+        if (t == nullptr) return;
+
         // node declaration
         printf("\tnode%d [label=\"%s\"];\n", t->uid, t->toString().c_str());
 

@@ -2,15 +2,15 @@ program test;
 {Comment A}
 const
     z = 114514;
-    y = set of (A, E, I, O, U);
 type
     week = (Mon, Tues, Wed, Thur, Fri);
     digit = 0..9;
+    y = set of (A, E, I, O, U);
 var
     a: Integer;
     B: real;
     c: char;
-    d: string;
+    {d: string;}
     e: boolean;
     f: week;
     g: digit;
