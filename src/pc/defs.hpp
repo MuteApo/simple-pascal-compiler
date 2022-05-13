@@ -3,7 +3,7 @@
 
 #include <string>
 
-enum declKind { DK_Prog = 1001, DK_Const, DK_Var, DK_Type, DK_Func, DK_Proc };
+enum declKind { DK_Prog = 1001, DK_Const, DK_Type, DK_Var, DK_Func, DK_Proc };
 enum typeKind { TK_Simple = 2001, TK_Def, TK_Array, TK_Record };
 enum exprKind { EK_Id = 3001, EK_Literal };
 enum exprType {

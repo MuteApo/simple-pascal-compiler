@@ -46,21 +46,26 @@ treeNode *root = nullptr;
 %token <dval> VAL_REAL
 %token <sval> VAL_ID VAL_CHAR VAL_STRING
 
-%type <node> program prog_name_part id compound_expr expr term factor signed_literal literal
+%type <node> program prog_name_part 
 %type <node> const_part const_decl_list const_decl
-%type <node> var_part var_decl_list var_decl id_list decl_type decl_type_simple decl_type_set decl_type_array
-%type <node> block stmt_part stmt assign_stmt write_stmt arg_list
+%type <node> type_part type_def_list type_def
+%type <node> var_part var_decl_list var_decl 
+%type <node> type_decl type_decl_simple type_decl_set type_decl_array
+%type <node> block stmt_part stmt assign_stmt write_stmt
+%type <node> arg_list id_list id
+%type <node> compound_expr expr term factor signed_literal literal
 
 %start program
 
 %%
 
-program: prog_name_part const_part var_part block {
+program: prog_name_part const_part type_part var_part block {
     $$ = new treeNode(DK_Prog, yylineno);
     $$->addChild($1);
     $$->addChild($2);
     $$->addChild($3);
     $$->addChild($4);
+    $$->addChild($5);
     $$->setValue("root");
     root = $$;
 };
@@ -92,11 +97,33 @@ const_decl: id SYM_EQ signed_literal SYM_SEMI {
     $$ = new treeNode(DK_Const, yylineno);
     $$->addChild($1);
     $$->addChild($3);
-}| id SYM_EQ decl_type_set SYM_SEMI {
+}| id SYM_EQ type_decl_set SYM_SEMI {
     $$ = new treeNode(DK_Const, yylineno);
     $$->addChild($1);
     $$->addChild($3);
 };
+
+type_part: {
+    $$ = nullptr;
+}| WSYM_TYPE type_def_list {
+    $$ = $2;
+};
+
+type_def_list: type_def_list type_def {
+    if ($1 != nullptr) {
+        treeNode* t = $1->lastSibling();
+        t->setSibling($2);
+        $$ = $1;
+    } else $$ = $2;
+} | type_def {
+    $$ = $1;
+};
+
+type_def: id SYM_EQ type_decl SYM_SEMI {
+    $$ = new treeNode(DK_Type, yylineno);
+    $$->addChild($1);
+    $$->addChild($3);
+}
 
 var_part:  {
     $$ = nullptr;
@@ -114,7 +141,7 @@ var_decl_list: var_decl_list var_decl {
     $$ = $1;
 };
 
-var_decl: id_list SYM_COL decl_type SYM_SEMI {
+var_decl: id_list SYM_COL type_decl SYM_SEMI {
     $$ = new treeNode(DK_Var, yylineno);
     $$->addChild($1);
     $$->addChild($3);
@@ -135,15 +162,15 @@ id: VAL_ID {
     $$->setValue($1);
 };
 
-decl_type: decl_type_simple {
+type_decl: type_decl_simple {
     $$ = $1;
-}| decl_type_set {
+}| type_decl_set {
     $$ = $1;
-}| decl_type_array {
+}| type_decl_array {
     $$ = $1;
 };
 
-decl_type_simple: SID_INTEGER {
+type_decl_simple: SID_INTEGER {
     $$ = new treeNode(TK_Simple, yylineno);
     $$->getValue().setType(ET_Int);
 }| SID_REAL {
@@ -172,13 +199,13 @@ decl_type_simple: SID_INTEGER {
     $$->setValue($1->getValue());
 };
 
-decl_type_set: WSYM_SET WSYM_OF decl_type_simple {
+type_decl_set: WSYM_SET WSYM_OF type_decl_simple {
     $$ = new treeNode(TK_Simple, yylineno);
     $$->addChild($3);
     $$->getValue().setType(ET_Set);
 };
 
-decl_type_array: WSYM_ARRAY SYM_LSBKT decl_type_simple SYM_RSBKT WSYM_OF decl_type {
+type_decl_array: WSYM_ARRAY SYM_LSBKT type_decl_simple SYM_RSBKT WSYM_OF type_decl {
     $$ = new treeNode(TK_Array, yylineno);
     $$->addChild($3);
     $$->addChild($6);
