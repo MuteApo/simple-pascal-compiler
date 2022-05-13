@@ -3,6 +3,7 @@
 bin/pc
 bin/parser_test.viz
 src/pc/lex.yy.c
+src/pc/parser.output
 src/pc/pc
 src/pc/yacc.tab.c
 src/pc/yacc.tab.h

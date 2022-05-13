@@ -342,16 +342,16 @@ Stmt: CompoundStmt {
     $$ = $1;
 }| ProcStmt { // TODO
     $$ = nullptr;
-}| IfStmt { // TODO
-    $$ = nullptr;
-}| CaseStmt { // TODO
-    $$ = nullptr;
-}| WhileStmt { // TODO
-    $$ = nullptr;
-}| RepeatStmt { // TODO
-    $$ = nullptr;
-}| ForStmt { // TODO
-    $$ = nullptr;
+}| IfStmt {
+    $$ = $1;
+}| CaseStmt {
+    $$ = $1;
+}| WhileStmt {
+    $$ = $1;
+}| RepeatStmt {
+    $$ = $1;
+}| ForStmt {
+    $$ = $1;
 }| WithStmt { // TODO
     $$ = nullptr;
 }
@@ -372,38 +372,73 @@ ProcStmt: Id {
 
 }
 
-IfStmt: WSYM_IF Expr WSYM_THEN Stmt {
-
-} WSYM_IF Expr WSYM_THEN Stmt WSYM_ELSE Stmt {
-
+IfStmt: WSYM_IF Expr WSYM_THEN Stmt{
+    $$ = new treeNode(SK_If, yylineno);
+    $$->addChild($2);
+    treeNode *if_part = new treeNode(SK_Then, yylineno);
+    if_part->addChild($4);
+    $$->addChild(if_part);
+}| WSYM_IF Expr WSYM_THEN Stmt WSYM_ELSE Stmt {
+    $$ = new treeNode(SK_If, yylineno);
+    $$->addChild($2);
+    treeNode *if_part = new treeNode(SK_Then, yylineno);
+    if_part->addChild($4);
+    $$->addChild(if_part);
+    treeNode *else_part = new treeNode(SK_Else, yylineno);
+    else_part->addChild($6);
+    $$->addChild(else_part);
 }
 
 CaseStmt: WSYM_CASE Expr WSYM_OF CaseList WSYM_END {
-
+    $$ = new treeNode(SK_Switch, yylineno);
+    $$->addChild($2);
+    $$->addChild($4);
 }
 
 CaseList: CaseList Case SYM_SEMI {
-
+    if ($1 != nullptr) {
+        treeNode* t = $1->lastSibling();
+        t->setSibling($2);
+        $$ = $1;
+    } else $$ = $2;
 }| Case SYM_SEMI {
-
+    $$ = $1;
 }
 
 Case: ConstList SYM_COL Stmt {
-
+    $$ = new treeNode(SK_Case, yylineno);
+    $$->addChild($1);
+    $$->addChild($3);
 }
 
 RepeatStmt: WSYM_REPEAT StmtList WSYM_UNTIL Expr {
-
+    $$ = new treeNode(SK_Repeat, yylineno);
+    $$->addChild($2);
+    $$->addChild($4);
 }
 
 WhileStmt: WSYM_WHILE Expr WSYM_DO Stmt {
-
+    $$ = new treeNode(SK_While, yylineno);
+    $$->addChild($2);
+    $$->addChild($4);
 }
 
 ForStmt: WSYM_FOR Id SYM_ASSIGN Expr WSYM_TO Expr WSYM_DO Stmt {
-
+    $$ = new treeNode(SK_For, yylineno);
+    $$->addChild($2);
+    treeNode* t = new treeNode(SK_TO, yylineno);
+    t->addChild($4);
+    t->addChild($6);
+    $$->addChild(t);
+    $$->addChild($8);
 }| WSYM_FOR Id SYM_ASSIGN Expr WSYM_DOWNTO Expr WSYM_DO Stmt {
-
+    $$ = new treeNode(SK_For, yylineno);
+    $$->addChild($2);
+    treeNode* t = new treeNode(SK_DOWNTO, yylineno);
+    t->addChild($4);
+    t->addChild($6);
+    $$->addChild(t);
+    $$->addChild($8);
 }
 
 WithStmt: WSYM_WITH IdList WSYM_DO Stmt {

@@ -23,7 +23,24 @@ begin
     b := 4.5 / -1.2E-3; {Comment B}
     c := 'c';
     d := 'DeadBeef';
-    e := (5 >= 4) and (3 <> 2);
+    a := 0;
+    repeat
+        for i := 1 to 9 do begin
+            case (a) of
+                0, 1: j := i;
+                2: j := i - 1;
+                3: j := i + 1;
+            end;
+            while j > 0 do begin
+                if (5 >= 4) and (3 <> 2)
+                    then if (i <= 5) 
+                        then e := true
+                        else e := false;
+                j := j - 1;
+            end;
+        end;
+        a := a + 1;
+    until a > 3;
     f := Fri;
     g := 8;
     a := j[4];

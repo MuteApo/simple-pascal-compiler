@@ -73,9 +73,14 @@ enum opKind {
 enum stmtKind {
     SK_Assign = 6001,
     SK_If,
+    SK_Then,
+    SK_Else,
     SK_For,
+    SK_TO,
+    SK_DOWNTO,
     SK_While,
     SK_Repeat,
+    SK_Switch,
     SK_Case,
     SK_Sys
 };

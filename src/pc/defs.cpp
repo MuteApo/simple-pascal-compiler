@@ -69,9 +69,14 @@ std::string enum2str(int e) {
 
         case SK_Assign: return "SK_Assign";
         case SK_If: return "SK_If";
+        case SK_Then: return "SK_Then";
+        case SK_Else: return "SK_Else";
         case SK_For: return "SK_For";
+        case SK_TO: return "SK_TO";
+        case SK_DOWNTO: return "SK_DOWNTO";
         case SK_While: return "SK_While";
         case SK_Repeat: return "SK_Repeat";
+        case SK_Switch: return "SK_Switch";
         case SK_Case: return "SK_Case";
         case SK_Sys: return "SK_Sys";
     }

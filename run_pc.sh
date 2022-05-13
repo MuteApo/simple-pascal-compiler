@@ -1,5 +1,5 @@
 cd src/pc
-bison -d parser.y
+bison -d -v parser.y
 lex scanner.l
 g++ parser.tab.c lex.yy.c defs.cpp -o ../../bin/pc
 rm -rf parser.tab.c parser.tab.h lex.yy.c
