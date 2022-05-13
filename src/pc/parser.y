@@ -331,6 +331,8 @@ Item: Literal {
     $$ = new treeNode($2, nullptr, OK_Not, yylineno);
 }| SYM_LPAR Expr SYM_RPAR {
     $$ = $2;
+}| ProcStmt {
+    $$ = $1;
 }
 
 /************************* Rules of Stmt *************************/
@@ -366,9 +368,7 @@ AssignStmt: Id SYM_ASSIGN Expr {
     $$->addChild($3);
 }
 
-ProcStmt: Id {
-
-}| Id SYM_LPAR ActualParamList SYM_RPAR {
+ProcStmt: Id SYM_LPAR ActualParamList SYM_RPAR {
 
 }
 
