@@ -64,15 +64,6 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 - Procedure和Function
 - 部分内置函数（输入、输出）
 
-项目使用到以下工具：
-
-- 词法分析器自动生成工具Lex（Flex）
-- 语法分析器自动生成工具Yacc（Bison）
-- 构建工具GNU make和GCC/g++
-- 可视化工具Graphviz
-
-建议在Linux环境下（Docker/VM/wsl）进行开发。
-
 ### 二、工程结构
 
 ``` bash
@@ -118,37 +109,78 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 
 目前已经实现的语言特性：
 
-|              | 词法、语法分析支持 | 语义分析支持 | 后端支持 |
-| :----------: | :----------------: | :----------: | :------: |
-|   常量定义   |         x          |              |          |
-| 实数类型定义 |         x          |              |          |
-| 枚举类型定义 |         x          |              |          |
-| 子界类型定义 |         x          |              |          |
-| 数组类型定义 |         x          |              |          |
-| 集合类型定义 |         x          |              |          |
-| 记录类型定义 |         x          |              |          |
-| 指针类型定义 |         x          |              |          |
-| 数组成员访问 |         x          |              |          |
-| 记录成员访问 |         x          |              |          |
-| 指针变量访问 |         x          |              |          |
-|   算术运算   |         x          |              |          |
-|   关系运算   |         x          |              |          |
-|   布尔运算   |         x          |              |          |
-|   移位运算   |         x          |              |          |
-|   赋值语句   |         x          |              |          |
-|   调用语句   |         x          |              |          |
-|   goto语句   |                    |              |          |
-|   复合语句   |         x          |              |          |
-|    if语句    |         x          |              |          |
-|   case语句   |         x          |              |          |
-|  while语句   |         x          |              |          |
-|  repeat语句  |         x          |              |          |
-|   for语句    |         x          |              |          |
-|   with语句   |                    |              |          |
-|  作用域控制  |        N/A         |              |          |
-|   过程定义   |         x          |              |          |
-|   函数定义   |         x          |              |          |
-|   递归调用   |         x          |              |          |
-|     read     |                    |              |          |
-|    write     |                    |              |          |
-|  string类型  |                    |              |          |
+|                  |   词法/语法分析    | 语义分析 | 后端支持 |
+| :--------------: | :----------------: | :------: | :------: |
+|    自定义常量    | :heavy_check_mark: |          |          |
+|   自定义实类型   | :heavy_check_mark: |          |          |
+| 自定义字符串类型 |                    |          |          |
+|  自定义枚举类型  | :heavy_check_mark: |          |          |
+|  自定义子界类型  | :heavy_check_mark: |          |          |
+|  自定义集合类型  | :heavy_check_mark: |          |          |
+|  自定义数组类型  | :heavy_check_mark: |          |          |
+|  自定义记录类型  | :heavy_check_mark: |          |          |
+|  自定义指针类型  |                    |          |          |
+|   数组成员访问   | :heavy_check_mark: |          |          |
+|   记录成员访问   | :heavy_check_mark: |          |          |
+|   指针变量访问   |                    |          |          |
+|     变量定义     | :heavy_check_mark: |          |          |
+|     过程定义     | :heavy_check_mark: |          |          |
+|     函数定义     | :heavy_check_mark: |          |          |
+|     算术运算     | :heavy_check_mark: |          |          |
+|     关系运算     | :heavy_check_mark: |          |          |
+|     逻辑运算     | :heavy_check_mark: |          |          |
+|     复合语句     | :heavy_check_mark: |          |          |
+|     赋值语句     | :heavy_check_mark: |          |          |
+|  过程/函数调用   | :heavy_check_mark: |          |          |
+|     goto语句     |                    |          |          |
+|      if语句      | :heavy_check_mark: |          |          |
+|     case语句     | :heavy_check_mark: |          |          |
+|    while语句     | :heavy_check_mark: |          |          |
+|    repeat语句    | :heavy_check_mark: |          |          |
+|     for语句      | :heavy_check_mark: |          |          |
+|     with语句     |                    |          |          |
+|  read/write语句  |                    |          |          |
+|    作用域控制    | :heavy_minus_sign: |          |          |
+|     递归调用     | :heavy_minus_sign: |          |          |
+|       RTTI       | :heavy_minus_sign: |          |          |
+
+### 四、开发环境
+
+项目使用到以下工具：
+
+- 词法分析器自动生成工具Lex（Flex）
+- 语法分析器自动生成工具Yacc（Bison）
+- 构建工具GNU make和GCC/G++
+- 可视化工具Graphviz
+
+建议在Linux环境下（Docker/VM/wsl）进行开发。Ubuntu下环境搭建：
+
+```bash
+# gnu tool-chain
+sudo apt install build-essential
+
+# lex
+sudo apt install flex
+
+# yacc
+sudo apt install bison
+
+# visualization tool
+sudo apt install graphviz
+```
+
+构建可执行文件：
+```bash
+make all
+```
+
+清理构建产物：
+```bash
+make clean
+```
+
+测试编译器（指定输入文件并产生可视化结果）：
+```bash
+make debug SRC=test/fib.pas
+```
+
