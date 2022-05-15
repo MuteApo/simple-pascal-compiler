@@ -17,7 +17,7 @@ treeNode *root = nullptr;
 /***** Standard Ids *****/
 %token SID_FALSE SID_MAXINT SID_TRUE // Consts
 %token SID_BOOLEAN SID_CHAR SID_INTEGER SID_REAL SID_STRING // Types
-%token SID_READ SID_WRITE // Built-in Procs
+%token SID_READ SID_WRITE SID_WRITELN // Built-in Procs
 
 /**** Symbols ****/
 // Special Symbols
@@ -53,9 +53,9 @@ treeNode *root = nullptr;
 %type <node> TypeDefPart TypeDef Type StructTypeDef SetTypeDef ArrayTypeDef StringTypeDef
 %type <node> IndexTypeList RecordTypeDef PtrTypeDef OrdTypeDef ResultType
 %type <node> BasicRealType VarDeclList VarDeclPart VarDecl
-%type <node> VarAccess IndexList Expr Term Factor Item Stmt AssignStmt
+%type <node> VarAccess Accessible IndexList Expr Term Factor Item Stmt AssignStmt
 %type <node> FuncStmt IfStmt CaseStmt CaseList Case RepeatStmt
-%type <node> WhileStmt ForStmt WithStmt CompoundStmt StmtList
+%type <node> WhileStmt ForStmt WithStmt CompoundStmt StmtList ReadStmt WriteStmt
 %type <node> ConstDefPart ConstDefList ConstDef ConstList
 %type <node> SignedLiteral Sign Literal ProcAndFuncDeclPart ProcDecl
 %type <node> FuncDecl ArgList Arg ParamList Param
@@ -131,8 +131,8 @@ Type: BasicRealType {
     $$ = $1;
 }| StructTypeDef {
     $$ = $1;
-}| PtrTypeDef { //TODO
-    $$ = nullptr;
+}| PtrTypeDef {
+    $$ = $1;
 }| Id {
     $$ = $1;
 }
@@ -200,10 +200,12 @@ RecordTypeDef: WSYM_RECORD VarDeclList WSYM_END {
     $$->addChild($2);
 }
 
-PtrTypeDef: SYM_HAT BasicRealType { // TODO
-
-}| SYM_HAT Id { // TODO
-
+PtrTypeDef: SYM_HAT BasicRealType {
+    $$ = new treeNode(TK_Ptr, yylineno);
+    $$->addChild($2);
+}| SYM_HAT Id {
+    $$ = new treeNode(TK_Ptr, yylineno);
+    $$->addChild($2);
 }
 
 OrdTypeDef: SYM_LPAR ConstList SYM_RPAR {
@@ -267,16 +269,23 @@ VarDecl: IdList SYM_COL Type{
     $$->addChild($3);
 }
 
-VarAccess: Id SYM_HAT {
+VarAccess: Accessible SYM_HAT {
     $$ = new treeNode(TK_Ptr, yylineno);
     $$->addChild($1);
-}| Id SYM_DOT Id {
-    $$ = new treeNode(TK_Range, yylineno);
+}| Accessible SYM_DOT Id {
+    $$ = new treeNode(TK_Record, yylineno);
     $$->addChild($1);
-}| Id SYM_LSBKT IndexList SYM_RSBKT {
+    $1->lastSibling()->setSibling($3);
+}| Accessible SYM_LSBKT IndexList SYM_RSBKT {
     $$ = new treeNode(TK_Array, yylineno);
     $$->addChild($1);
     $1->lastSibling()->setSibling($3);
+}
+
+Accessible: VarAccess {
+    $$ = $1;
+}| Id {
+    $$ = $1;
 }
 
 IndexList: IndexList SYM_COMMA Expr {
@@ -375,6 +384,10 @@ Stmt: CompoundStmt {
     $$ = $1;
 }| WithStmt { // TODO
     $$ = nullptr;
+}| ReadStmt {
+    $$ = $1;
+}| WriteStmt {
+    $$ = $1;
 }
 
 AssignStmt: Id SYM_ASSIGN Expr {
@@ -467,6 +480,19 @@ ForStmt: WSYM_FOR Id SYM_ASSIGN Expr WSYM_TO Expr WSYM_DO Stmt {
 
 WithStmt: WSYM_WITH IdList WSYM_DO Stmt {
 
+}
+
+ReadStmt: SID_READ SYM_LPAR ArgList SYM_RPAR {
+    $$ = new treeNode(SK_Read, yylineno);
+    $$->addChild($3);
+}
+
+WriteStmt: SID_WRITE SYM_LPAR ArgList SYM_RPAR {
+    $$ = new treeNode(SK_Write, yylineno);
+    $$->addChild($3);
+}| SID_WRITELN SYM_LPAR ArgList SYM_RPAR {
+    $$ = new treeNode(SK_Writeln, yylineno);
+    $$->addChild($3);
 }
 
 CompoundStmt: WSYM_BEGIN StmtList WSYM_END {

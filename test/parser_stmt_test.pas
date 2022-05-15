@@ -6,35 +6,19 @@ type
     week = (Mon, Tues, Wed, Thur, Fri);
     digit = 0..9;
     y = set of (A, E, I, O, U);
-var
-    d: string;
-    d1: string[233];
-    d2: string[w];
-    e: boolean;
-    f: week;
-    g: digit;
-    l: record
-        u: week;
-        v: integer;
-    end;
-    h: set of week;
-    i: set of digit;
-    j: array [1..10] of integer;
-    k: array [char] of week;
 function ff:week;
 begin
-    ff := k['z'];
+    ff := Fri;
 end;
 procedure gg(var x: integer; y: digit);
 begin
     if y > 0 then x := x + 1;
 end;
 begin
-    c := 'c';
     a := 3 mod 2 + 6 div 4;
     b := 4.5 / -1.2E-3; {Comment B}
     d := 'DeadBeef';
-    a := 0;
+    read(a);
     repeat
         for i := 1 to 9 do begin
             case (a) of
@@ -52,6 +36,6 @@ begin
         end;
         a := a + 1;
     until a > 3;
-    f := ff();
+    write(ff());
     gg(j[1], g);
 end.

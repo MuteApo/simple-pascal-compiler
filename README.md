@@ -109,40 +109,40 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 
 目前已经实现的语言特性：
 
-|                  |   词法/语法分析    | 语义分析 | 后端支持 |
-| :--------------: | :----------------: | :------: | :------: |
-|    自定义常量    | :heavy_check_mark: |          |          |
-|   自定义实类型   | :heavy_check_mark: |          |          |
-| 自定义字符串类型 | :heavy_check_mark: |          |          |
-|  自定义枚举类型  | :heavy_check_mark: |          |          |
-|  自定义子界类型  | :heavy_check_mark: |          |          |
-|  自定义集合类型  | :heavy_check_mark: |          |          |
-|  自定义数组类型  | :heavy_check_mark: |          |          |
-|  自定义记录类型  | :heavy_check_mark: |          |          |
-|  自定义指针类型  |                    |          |          |
-|   数组成员访问   | :heavy_check_mark: |          |          |
-|   记录成员访问   | :heavy_check_mark: |          |          |
-|   指针变量访问   |                    |          |          |
-|     变量定义     | :heavy_check_mark: |          |          |
-|     过程定义     | :heavy_check_mark: |          |          |
-|     函数定义     | :heavy_check_mark: |          |          |
-|     算术运算     | :heavy_check_mark: |          |          |
-|     关系运算     | :heavy_check_mark: |          |          |
-|     逻辑运算     | :heavy_check_mark: |          |          |
-|     复合语句     | :heavy_check_mark: |          |          |
-|     赋值语句     | :heavy_check_mark: |          |          |
-|  过程/函数调用   | :heavy_check_mark: |          |          |
-|     goto语句     |                    |          |          |
-|      if语句      | :heavy_check_mark: |          |          |
-|     case语句     | :heavy_check_mark: |          |          |
-|    while语句     | :heavy_check_mark: |          |          |
-|    repeat语句    | :heavy_check_mark: |          |          |
-|     for语句      | :heavy_check_mark: |          |          |
-|     with语句     |                    |          |          |
-|  read/write语句  |                    |          |          |
-|    作用域控制    | :heavy_minus_sign: |          |          |
-|     递归调用     | :heavy_minus_sign: |          |          |
-|       RTTI       | :heavy_minus_sign: |          |          |
+|                  |      词法/语法分析       | 语义分析 | 后端支持 |
+| :--------------: | :----------------------: | :------: | :------: |
+|    自定义常量    |    :heavy_check_mark:    |          |          |
+|   自定义实类型   |    :heavy_check_mark:    |          |          |
+| 自定义字符串类型 |    :heavy_check_mark:    |          |          |
+|  自定义枚举类型  |    :heavy_check_mark:    |          |          |
+|  自定义子界类型  |    :heavy_check_mark:    |          |          |
+|  自定义集合类型  |    :heavy_check_mark:    |          |          |
+|  自定义数组类型  |    :heavy_check_mark:    |          |          |
+|  自定义记录类型  |    :heavy_check_mark:    |          |          |
+|  自定义指针类型  |    :heavy_check_mark:    |          |          |
+|   数组成员访问   |    :heavy_check_mark:    |          |          |
+|   记录成员访问   |    :heavy_check_mark:    |          |          |
+|   指针变量访问   |    :heavy_check_mark:    |          |          |
+|     变量定义     |    :heavy_check_mark:    |          |          |
+|     过程定义     |    :heavy_check_mark:    |          |          |
+|     函数定义     |    :heavy_check_mark:    |          |          |
+|     算术运算     |    :heavy_check_mark:    |          |          |
+|     关系运算     |    :heavy_check_mark:    |          |          |
+|     逻辑运算     |    :heavy_check_mark:    |          |          |
+|     复合语句     |    :heavy_check_mark:    |          |          |
+|     赋值语句     |    :heavy_check_mark:    |          |          |
+|  过程/函数调用   |    :heavy_check_mark:    |          |          |
+|     goto语句     | :heavy_multiplication_x: |          |          |
+|      if语句      |    :heavy_check_mark:    |          |          |
+|     case语句     |    :heavy_check_mark:    |          |          |
+|    while语句     |    :heavy_check_mark:    |          |          |
+|    repeat语句    |    :heavy_check_mark:    |          |          |
+|     for语句      |    :heavy_check_mark:    |          |          |
+|     with语句     |                          |          |          |
+|  read/write语句  |    :heavy_check_mark:    |          |          |
+|     类型检查     |    :heavy_minus_sign:    |          |          |
+|    作用域控制    |    :heavy_minus_sign:    |          |          |
+|     递归调用     |    :heavy_minus_sign:    |          |          |
 
 ### 四、开发环境
 
