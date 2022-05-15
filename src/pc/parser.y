@@ -181,6 +181,13 @@ PtrTypeDef: SYM_HAT BasicRealType {
 
 OrdTypeDef: SYM_LPAR ConstList SYM_RPAR {
     $$ = new treeNode($2, nullptr, TK_Enum, yylineno);
+    $$->setValue(new typeEnum($2->getValue()->getType()));
+    treeNode* t = $2;
+    while (t != nullptr) {
+        // std::cout << t->getValue()->toString() << std::endl;
+        dynamic_cast<typeEnum*>($$->getValue())->insert(t->getValue()->getValue());
+        t = t->getSibling();
+    }
 }| Id SYM_DDOT Id {
     $$ = new treeNode($1, $3, TK_Range, yylineno);
 }| Id SYM_DDOT SignedLiteral {
