@@ -1,22 +1,29 @@
-LEX = flex
 YACC = bison
+YACC_PREFIX = parser
+YACC_OUT = $(YACC_PREFIX).tab.c $(YACC_PREFIX).tab.h $(YACC_PREFIX).output
+
+LEX = flex
+LEX_PREFIX = scanner
+LEX_OUT = $(LEX_PREFIX).yy.c
+
 CC = g++
 CFLAG = -O2
+CC_SRC = main.cpp defs.cpp
 
-LEX_SRC = scanner.l
-YACC_SRC = parser.y
-CC_SRC = main.cpp defs.cpp lex.yy.c parser.tab.c
-TMP = lex.yy.c parser.tab.c parser.tab.h
 EXE = ../../bin/pc
 
-.PHONY: before all clean
+.PHONY: all clean
 
-before:$(YACC_SRC) $(LEX_SRC)
-	$(YACC) -d $(YACC_SRC)
-	$(LEX) $(LEX_SRC)
+all: $(EXE)
 
-all: before $(CC_SRC)
-	$(CC) $(CC_SRC) ${CFLAG} -o $(EXE)
+$(YACC_OUT): $(YACC_PREFIX).y
+	$(YACC) -o $(YACC_PREFIX).tab.c -d -v $^ 
+
+$(LEX_OUT): $(LEX_PREFIX).l $(YACC_PREFIX).tab.h
+	$(LEX) -o $(LEX_OUT) $< 
+
+$(EXE): $(YACC_PREFIX).tab.c $(LEX_PREFIX).yy.c $(CC_SRC)
+	$(CC) $^ ${CFLAG} -o $@
 
 clean:
-	$(shell rm -f $(TMP))
+	$(shell rm -f $(YACC_OUT) $(LEX_OUT))

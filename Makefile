@@ -1,14 +1,15 @@
-EXE = bin/pc
-SRC = 
+DBG_EXE = bin/pc
+DBG_SRC = test/fib.pas
+DBG_VIZ_PREFIX = bin/tree
 
 .PHONY: all debug clean
 
-all:
+all: src/pc all
 	$(MAKE) -C src/pc all
 
-debug: $(EXE)
-	$(EXE) -i $(SRC) -V bin/tree.viz
-	dot -Tpng bin/tree.viz -o bin/tree.png
+debug: all
+	$(DBG_EXE) -i $(DBG_SRC) -V $(DBG_VIZ_PREFIX).viz
+	dot -Tpng -o $(DBG_VIZ_PREFIX).png $(DBG_VIZ_PREFIX).viz
 
 clean:
 	$(MAKE) -C src/pc clean
