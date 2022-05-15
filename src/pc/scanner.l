@@ -43,6 +43,7 @@ Identifier {Letter}({Letter}|{Digit})*
 
 (?i:read) { return SID_READ; }
 (?i:write) { return SID_WRITE; }
+(?i:writeln) { return SID_WRITELN; }
 
 "+" { return SYM_ADD; }
 "-" { return SYM_SUB; }
