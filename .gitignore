@@ -1,6 +1,7 @@
 .clang-format
 .vscode
 bin/pc
+bin/tree.png
 bin/tree.viz
 src/pc/lex.yy.c
 src/pc/yacc.tab.c

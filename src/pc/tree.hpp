@@ -157,8 +157,7 @@ class treeNode {
         child.clear();
         sibling = nullptr;
     }
-    treeNode(treeNode* op1, treeNode* op2, exprKind ek, int ln)
-            : treeNode(ek, ln) {
+    treeNode(treeNode* op1, treeNode* op2, int nk, int ln) : treeNode(nk, ln) {
         addChild(op1);
         addChild(op2);
     }

@@ -65,9 +65,7 @@ treeNode *root = nullptr;
 %%
 
 Program:  WSYM_PROGRAM Id SYM_SEMI Block SYM_DOT {
-    $$ = new treeNode(DK_Prog, yylineno);
-    $$->addChild($2);
-    $$->addChild($4);
+    $$ = new treeNode($2, $4, DK_Prog, yylineno);
     root = $$;
 }| WSYM_PROGRAM Id SYM_LPAR IdList SYM_RPAR SYM_SEMI Block SYM_DOT {
     $$ = new treeNode(DK_Prog, yylineno);
@@ -120,9 +118,7 @@ TypeDefList: TypeDefList TypeDef SYM_SEMI {
 }
 
 TypeDef: Id SYM_EQ Type {
-    $$ = new treeNode(DK_Type, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, DK_Type, yylineno);
 }
 
 Type: BasicRealType {
@@ -148,17 +144,13 @@ StructTypeDef:  SetTypeDef{
 }
 
 SetTypeDef: WSYM_SET WSYM_OF OrdTypeDef {
-    $$ = new treeNode(TK_Set, yylineno);
-    $$->addChild($3);
+    $$ = new treeNode($3, nullptr, TK_Set, yylineno);
 }| WSYM_SET WSYM_OF Id {
-    $$ = new treeNode(TK_Set, yylineno);
-    $$->addChild($3);
+    $$ = new treeNode($3, nullptr, TK_Set, yylineno);
 }
 
 ArrayTypeDef: WSYM_ARRAY SYM_LSBKT IndexTypeList SYM_RSBKT WSYM_OF Type {
-    $$ = new treeNode(TK_Array, yylineno);
-    $$->addChild($3);
-    $$->addChild($6);
+    $$ = new treeNode($3, $6, TK_Array, yylineno);
 }
 
 IndexTypeList: IndexTypeList SYM_COMMA Type {
@@ -172,61 +164,43 @@ IndexTypeList: IndexTypeList SYM_COMMA Type {
 }
 
 StringTypeDef: SID_STRING {
-    $$ = new treeNode(TK_String, yylineno);
     treeNode* lb = new treeNode(EK_Literal, yylineno);
     lb->setValue(1, TK_Int);
-    $$->addChild(lb);
     treeNode* ub = new treeNode(EK_Literal, yylineno);
     ub->setValue(255, TK_Int);
-    $$->addChild(ub);
+    $$ = new treeNode(lb, ub, TK_String, yylineno);
 }| SID_STRING SYM_LSBKT Id SYM_RSBKT {
-    $$ = new treeNode(TK_String, yylineno);
     treeNode* lb = new treeNode(EK_Literal, yylineno);
     lb->setValue(1, TK_Int);
-    $$->addChild(lb);
-    $$->addChild($3);
+    $$ = new treeNode(lb, $3, TK_String, yylineno);
 }| SID_STRING SYM_LSBKT VAL_INT SYM_RSBKT {
-    $$ = new treeNode(TK_String, yylineno);
     treeNode* lb = new treeNode(EK_Literal, yylineno);
     lb->setValue(1, TK_Int);
-    $$->addChild(lb);
     treeNode* ub = new treeNode(EK_Literal, yylineno);
     ub->setValue($3, TK_Int);
-    $$->addChild(ub);
+    $$ = new treeNode(lb, ub, TK_String, yylineno);
 }
 
 RecordTypeDef: WSYM_RECORD VarDeclList WSYM_END {
-    $$ = new treeNode(TK_Record, yylineno);
-    $$->addChild($2);
+    $$ = new treeNode($2, nullptr, TK_Record, yylineno);
 }
 
 PtrTypeDef: SYM_HAT BasicRealType {
-    $$ = new treeNode(TK_Ptr, yylineno);
-    $$->addChild($2);
+    $$ = new treeNode($2, nullptr, TK_Ptr, yylineno);
 }| SYM_HAT Id {
-    $$ = new treeNode(TK_Ptr, yylineno);
-    $$->addChild($2);
+    $$ = new treeNode($2, nullptr, TK_Ptr, yylineno);
 }
 
 OrdTypeDef: SYM_LPAR ConstList SYM_RPAR {
-    $$ = new treeNode(TK_Enum, yylineno);
-    $$->addChild($2);
+    $$ = new treeNode($2, nullptr, TK_Enum, yylineno);
 }| Id SYM_DDOT Id {
-    $$ = new treeNode(TK_Range, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, TK_Range, yylineno);
 }| Id SYM_DDOT SignedLiteral {
-    $$ = new treeNode(TK_Range, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, TK_Range, yylineno);
 }| SignedLiteral SYM_DDOT Id {
-    $$ = new treeNode(TK_Range, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, TK_Range, yylineno);
 }| SignedLiteral SYM_DDOT SignedLiteral {
-    $$ = new treeNode(TK_Range, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, TK_Range, yylineno);
 }
 
 ResultType: BasicRealType {
@@ -264,21 +238,16 @@ VarDeclList: VarDeclList VarDecl SYM_SEMI {
 }
 
 VarDecl: IdList SYM_COL Type{
-    $$ = new treeNode(DK_Var, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, DK_Var, yylineno);
 }
 
 VarAccess: Accessible SYM_HAT {
-    $$ = new treeNode(TK_Ptr, yylineno);
-    $$->addChild($1);
+    $$ = new treeNode($1, nullptr, TK_Ptr, yylineno);
 }| Accessible SYM_DOT Id {
-    $$ = new treeNode(TK_Record, yylineno);
-    $$->addChild($1);
+    $$ = new treeNode($1, nullptr, TK_Record, yylineno);
     $1->lastSibling()->setSibling($3);
 }| Accessible SYM_LSBKT IndexList SYM_RSBKT {
-    $$ = new treeNode(TK_Array, yylineno);
-    $$->addChild($1);
+    $$ = new treeNode($1, nullptr, TK_Array, yylineno);
     $1->lastSibling()->setSibling($3);
 }
 
@@ -391,45 +360,30 @@ Stmt: CompoundStmt {
 }
 
 AssignStmt: Id SYM_ASSIGN Expr {
-    $$ = new treeNode(SK_Assign, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, SK_Assign, yylineno);
 }| VarAccess SYM_ASSIGN Expr {
-    $$ = new treeNode(SK_Assign, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, SK_Assign, yylineno);
 }
 
 FuncStmt: Id SYM_LPAR ArgList SYM_RPAR {
-    $$ = new treeNode(SK_Func, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, SK_Func, yylineno);
 }| Id SYM_LPAR SYM_RPAR {
-    $$ = new treeNode(SK_Func, yylineno);
-    $$->addChild($1);
+    $$ = new treeNode($1, nullptr, SK_Func, yylineno);
 }
 
 IfStmt: WSYM_IF Expr WSYM_THEN Stmt{
-    $$ = new treeNode(SK_If, yylineno);
-    $$->addChild($2);
-    treeNode *if_part = new treeNode(SK_Then, yylineno);
-    if_part->addChild($4);
-    $$->addChild(if_part);
+    treeNode *if_part = new treeNode($4, nullptr, SK_Then, yylineno);
+    $$ = new treeNode($2, if_part, SK_If, yylineno);
 }| WSYM_IF Expr WSYM_THEN Stmt WSYM_ELSE Stmt {
-    $$ = new treeNode(SK_If, yylineno);
-    $$->addChild($2);
-    treeNode *if_part = new treeNode(SK_Then, yylineno);
-    if_part->addChild($4);
+    treeNode *if_part = new treeNode($4, nullptr, SK_Then, yylineno);
+    treeNode *else_part = new treeNode($6, nullptr, SK_Else, yylineno);
+    $$ = new treeNode($2, nullptr, SK_If, yylineno);
     $$->addChild(if_part);
-    treeNode *else_part = new treeNode(SK_Else, yylineno);
-    else_part->addChild($6);
     $$->addChild(else_part);
 }
 
 CaseStmt: WSYM_CASE Expr WSYM_OF CaseList WSYM_END {
-    $$ = new treeNode(SK_Switch, yylineno);
-    $$->addChild($2);
-    $$->addChild($4);
+    $$ = new treeNode($2, $4, SK_Switch, yylineno);
 }
 
 CaseList: CaseList Case SYM_SEMI {
@@ -443,38 +397,24 @@ CaseList: CaseList Case SYM_SEMI {
 }
 
 Case: ConstList SYM_COL Stmt {
-    $$ = new treeNode(SK_Case, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, SK_Case, yylineno);
 }
 
 RepeatStmt: WSYM_REPEAT StmtList WSYM_UNTIL Expr {
-    $$ = new treeNode(SK_Repeat, yylineno);
-    $$->addChild($2);
-    $$->addChild($4);
+    $$ = new treeNode($2, $4, SK_Repeat, yylineno);
 }
 
 WhileStmt: WSYM_WHILE Expr WSYM_DO Stmt {
-    $$ = new treeNode(SK_While, yylineno);
-    $$->addChild($2);
-    $$->addChild($4);
+    $$ = new treeNode($2, $4, SK_While, yylineno);
 }
 
 ForStmt: WSYM_FOR Id SYM_ASSIGN Expr WSYM_TO Expr WSYM_DO Stmt {
-    $$ = new treeNode(SK_For, yylineno);
-    $$->addChild($2);
-    treeNode* t = new treeNode(EK_To, yylineno);
-    t->addChild($4);
-    t->addChild($6);
-    $$->addChild(t);
+    treeNode* t = new treeNode($4, $6, EK_To, yylineno);
+    $$ = new treeNode($2, t, SK_For, yylineno);
     $$->addChild($8);
 }| WSYM_FOR Id SYM_ASSIGN Expr WSYM_DOWNTO Expr WSYM_DO Stmt {
-    $$ = new treeNode(SK_For, yylineno);
-    $$->addChild($2);
-    treeNode* t = new treeNode(EK_Downto, yylineno);
-    t->addChild($4);
-    t->addChild($6);
-    $$->addChild(t);
+    treeNode* t = new treeNode($4, $6, EK_Downto, yylineno);
+    $$ = new treeNode($2, t, SK_For, yylineno);
     $$->addChild($8);
 }
 
@@ -483,21 +423,17 @@ WithStmt: WSYM_WITH IdList WSYM_DO Stmt {
 }
 
 ReadStmt: SID_READ SYM_LPAR ArgList SYM_RPAR {
-    $$ = new treeNode(SK_Read, yylineno);
-    $$->addChild($3);
+    $$ = new treeNode($3, nullptr, SK_Read, yylineno);
 }
 
 WriteStmt: SID_WRITE SYM_LPAR ArgList SYM_RPAR {
-    $$ = new treeNode(SK_Write, yylineno);
-    $$->addChild($3);
+    $$ = new treeNode($3, nullptr, SK_Write, yylineno);
 }| SID_WRITELN SYM_LPAR ArgList SYM_RPAR {
-    $$ = new treeNode(SK_Writeln, yylineno);
-    $$->addChild($3);
+    $$ = new treeNode($3, nullptr, SK_Writeln, yylineno);
 }
 
 CompoundStmt: WSYM_BEGIN StmtList WSYM_END {
-    $$ = new treeNode(SK_Compound, yylineno);
-    $$->addChild($2);
+    $$ = new treeNode($2, nullptr, SK_Compound, yylineno);
 }
 
 StmtList: StmtList Stmt SYM_SEMI {
@@ -529,13 +465,9 @@ ConstDefList:  ConstDefList ConstDef SYM_SEMI {
 }
 
 ConstDef: Id SYM_EQ SignedLiteral {
-    $$ = new treeNode(DK_Const, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, DK_Const, yylineno);
 }| Id SYM_EQ Id {
-    $$ = new treeNode(DK_Const, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, DK_Const, yylineno);
 }
 
 ConstList: ConstList SYM_COMMA Id {
@@ -559,9 +491,7 @@ ConstList: ConstList SYM_COMMA Id {
 SignedLiteral: Literal {
     $$ = $1;
 }| Sign Literal {
-    $$ = new treeNode(EK_Sign, yylineno);
-    $$->addChild($1);
-    $$->addChild($2);
+    $$ = new treeNode($1, $2, EK_Sign, yylineno);
 }
 
 Sign: SYM_ADD {
@@ -617,9 +547,7 @@ ProcAndFuncDeclPart: ProcAndFuncDeclPart ProcDecl SYM_SEMI {
 }
 
 ProcDecl: WSYM_PROCEDURE Id SYM_SEMI Block {
-    $$ = new treeNode(DK_Proc, yylineno);
-    $$->addChild($2);
-    $$->addChild($4);
+    $$ = new treeNode($2, $4, DK_Proc, yylineno);
 }| WSYM_PROCEDURE Id SYM_LPAR ParamList SYM_RPAR SYM_SEMI Block {
     $$ = new treeNode(DK_Proc, yylineno);
     $$->addChild($2);
@@ -665,13 +593,9 @@ ParamList: ParamList SYM_SEMI Param {
 }
 
 Param: IdList SYM_COL Type {
-    $$ = new treeNode(DK_Var, yylineno);
-    $$->addChild($1);
-    $$->addChild($3);
+    $$ = new treeNode($1, $3, DK_Var, yylineno);
 }| WSYM_VAR IdList SYM_COL Type {
-    $$ = new treeNode(DK_Ref, yylineno);
-    $$->addChild($2);
-    $$->addChild($4);
+    $$ = new treeNode($2, $4, DK_Ref, yylineno);
 }
 
 %%
