@@ -8,7 +8,7 @@ LEX_OUT = $(LEX_PREFIX).yy.c
 
 CC = g++
 CFLAG = -O2
-CC_SRC = main.cpp defs.cpp
+CC_SRC = main.cpp defs.cpp symboltable.cpp semantics.cpp
 
 EXE = ../../bin/pc
 

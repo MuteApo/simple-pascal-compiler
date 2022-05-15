@@ -17,4 +17,4 @@ begin
     f := '''';
     write(1 + 2);
     G := -1.2E-3;
-end
+end.

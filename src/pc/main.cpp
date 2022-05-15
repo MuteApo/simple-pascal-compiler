@@ -2,6 +2,7 @@
 #include <string.h>
 #include "tree.hpp"
 #include "parser.tab.h"
+#include "semantics.hpp"
 
 int main(int argc, char* argv[]){
     FILE *viz_file = NULL;
@@ -37,6 +38,10 @@ int main(int argc, char* argv[]){
         }
     }
     yyparse();
+    semanticAnalyser sem=semanticAnalyser();
+    sem.analyseTree(root);
+    sem.st.printTable();
+    sem.err.printError();
     if(viz_file != NULL){
         fprintf(viz_file, "digraph g {");
         treeNode::traverse(viz_file, 0, root);

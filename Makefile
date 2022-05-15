@@ -1,5 +1,5 @@
 DBG_EXE = bin/pc
-DBG_SRC = test/fib.pas
+DBG_SRC = test/parser_decl_test.pas
 DBG_VIZ_PREFIX = bin/tree
 
 .PHONY: all debug clean
