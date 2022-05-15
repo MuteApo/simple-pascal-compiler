@@ -113,7 +113,7 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 | :--------------: | :----------------: | :------: | :------: |
 |    自定义常量    | :heavy_check_mark: |          |          |
 |   自定义实类型   | :heavy_check_mark: |          |          |
-| 自定义字符串类型 |                    |          |          |
+| 自定义字符串类型 | :heavy_check_mark: |          |          |
 |  自定义枚举类型  | :heavy_check_mark: |          |          |
 |  自定义子界类型  | :heavy_check_mark: |          |          |
 |  自定义集合类型  | :heavy_check_mark: |          |          |

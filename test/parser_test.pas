@@ -1,16 +1,15 @@
 program test;
 {Comment A}
 const
-    z = 114514;
+    z = 233;
 type
     week = (Mon, Tues, Wed, Thur, Fri);
     digit = 0..9;
     y = set of (A, E, I, O, U);
 var
-    a: Integer;
-    B: real;
-    c: char;
-    {d: string;}
+    d: string;
+    d1: string[233];
+    d2: string[w];
     e: boolean;
     f: week;
     g: digit;

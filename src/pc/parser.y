@@ -50,7 +50,7 @@ treeNode *root = nullptr;
 %token <sval> VAL_ID VAL_CHAR VAL_STRING
 
 %type <node> Program Block Id IdList TypeDefList
-%type <node> TypeDefPart TypeDef Type StructTypeDef SetTypeDef ArrayTypeDef
+%type <node> TypeDefPart TypeDef Type StructTypeDef SetTypeDef ArrayTypeDef StringTypeDef
 %type <node> IndexTypeList RecordTypeDef PtrTypeDef OrdTypeDef ResultType
 %type <node> BasicRealType VarDeclList VarDeclPart VarDecl
 %type <node> VarAccess IndexList Expr Term Factor Item Stmt AssignStmt
@@ -141,6 +141,8 @@ StructTypeDef:  SetTypeDef{
     $$ = $1;
 }| ArrayTypeDef {
     $$ = $1;
+}| StringTypeDef {
+    $$ = $1;
 }| RecordTypeDef {
     $$ = $1;
 }
@@ -169,14 +171,38 @@ IndexTypeList: IndexTypeList SYM_COMMA Type {
     $$ = $1;
 }
 
+StringTypeDef: SID_STRING {
+    $$ = new treeNode(TK_String, yylineno);
+    treeNode* lb = new treeNode(EK_Literal, yylineno);
+    lb->setValue(1, TK_Int);
+    $$->addChild(lb);
+    treeNode* ub = new treeNode(EK_Literal, yylineno);
+    ub->setValue(255, TK_Int);
+    $$->addChild(ub);
+}| SID_STRING SYM_LSBKT Id SYM_RSBKT {
+    $$ = new treeNode(TK_String, yylineno);
+    treeNode* lb = new treeNode(EK_Literal, yylineno);
+    lb->setValue(1, TK_Int);
+    $$->addChild(lb);
+    $$->addChild($3);
+}| SID_STRING SYM_LSBKT VAL_INT SYM_RSBKT {
+    $$ = new treeNode(TK_String, yylineno);
+    treeNode* lb = new treeNode(EK_Literal, yylineno);
+    lb->setValue(1, TK_Int);
+    $$->addChild(lb);
+    treeNode* ub = new treeNode(EK_Literal, yylineno);
+    ub->setValue($3, TK_Int);
+    $$->addChild(ub);
+}
+
 RecordTypeDef: WSYM_RECORD VarDeclList WSYM_END {
     $$ = new treeNode(TK_Record, yylineno);
     $$->addChild($2);
 }
 
-PtrTypeDef: SYM_HAT BasicRealType {
+PtrTypeDef: SYM_HAT BasicRealType { // TODO
 
-}| SYM_HAT Id {
+}| SYM_HAT Id { // TODO
 
 }
 
