@@ -39,15 +39,6 @@ class valueWrapper {
         }
     }
 
-    bool operator<(const valueWrapper& v) const {
-        switch (_valid) {
-            case 1: return _ival < v._ival;
-            case 2: return _dval < v._dval;
-            case 3: return _sval < v._sval;
-        }
-        return false;
-    }
-
     std::string toString() {
         switch (_valid) {
             case 1: return to_string(_ival);
@@ -58,44 +49,10 @@ class valueWrapper {
     }
 };
 
-/* !!! refactor required !!! */
-// class typeRange {
-//   private:
-//     typeKind     range_type;
-//     valueWrapper lower_bound;
-//     valueWrapper upper_bound;
-
-//   public:
-//     typeRange(typeKind t, valueWrapper l, valueWrapper u)
-//             : range_type(t), lower_bound(l), upper_bound(u) {}
-//     typeRange() : typeRange(TK_Void, valueWrapper(), valueWrapper()) {}
-// };
-
-// class typeSet {
-//   private:
-//     typeKind               set_type;
-//     std::set<valueWrapper> set;
-
-//   public:
-//     typeSet(typeKind t, std::set<valueWrapper> s) : set_type(t), set(s) {}
-//     typeSet() : set_type(TK_Void) { set.clear(); }
-// };
-
-// class typeArray {
-//   private:
-//     typeKind ele_type;
-//     typeSet  indices;
-
-//   public:
-//     typeArray(typeKind t, typeSet s) : ele_type(t), indices(s) {}
-//     typeArray() : ele_type(TK_Void), indices(typeSet()) {}
-// };
-
 class nodeValue {
   protected:
     typeKind _type;
 
-    // TODO record type
   public:
     nodeValue(typeKind t) : _type(t) {}
     nodeValue() : nodeValue(TK_Void) {}
@@ -143,14 +100,54 @@ class typeEnum : public nodeValue {
 
     std::string toString() {
         std::string str = "";
-        if (_enum.size()) {
-            str += _enum[0].toString();
-            for (int i = 1; i < _enum.size(); i++)
-                str += "," + _enum[i].toString();
-        }
+        for (valueWrapper v : _enum) str += v.toString() + ",";
+        str.pop_back();
         return (_type == TK_Void ? "" : enum2str(_type) + "\\n") + "(" + str +
                ")";
     }
+};
+
+class typeRange : public nodeValue {
+  protected:
+    valueWrapper lower_bound;
+    valueWrapper upper_bound;
+
+  public:
+    typeRange(typeKind t, valueWrapper l, valueWrapper u)
+            : nodeValue(t), lower_bound(l), upper_bound(u) {}
+    typeRange(typeKind t) : typeRange(t, valueWrapper(), valueWrapper()) {}
+    typeRange() : typeRange(TK_Void) {}
+
+    std::string toString() {
+        return (_type == TK_Void ? "" : enum2str(_type) + "\\n") +
+               lower_bound.toString() + ".." + upper_bound.toString();
+    }
+};
+
+class typeSet : public nodeValue {
+  protected:
+    std::set<valueWrapper> _set;
+
+  public:
+    typeSet(typeKind t, std::set<valueWrapper> s) : nodeValue(t), _set(s) {}
+    typeSet(typeKind t) : nodeValue(t) { _set.clear(); }
+    typeSet() : typeSet(TK_Void) {}
+
+    std::string toString() {
+        std::string str = "";
+        for (valueWrapper v : _set) str += v.toString() + ",";
+        str.pop_back();
+        return (_type == TK_Void ? "" : enum2str(_type) + "\\n") + "[" + str +
+               "]";
+    }
+};
+
+class typeArray : public nodeValue {
+    // TODO
+};
+
+class typeRecord : public nodeValue {
+    // TODO
 };
 
 class treeNode {
@@ -197,6 +194,8 @@ class treeNode {
         } else
             return tn2;
     }
+
+    int getNodeKind() { return node_kind; }
 
     nodeValue* getValue() { return value; }
     void       setValue(nodeValue* v) { value = v; }

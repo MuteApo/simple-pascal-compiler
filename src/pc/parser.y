@@ -137,8 +137,10 @@ StructTypeDef:  SetTypeDef{
 
 SetTypeDef: WSYM_SET WSYM_OF OrdTypeDef {
     $$ = new treeNode($3, nullptr, TK_Set, yylineno);
+    $$->setValue($3->getValue());
 }| WSYM_SET WSYM_OF Id {
     $$ = new treeNode($3, nullptr, TK_Set, yylineno);
+    $$->setValue($3->getValue());
 }
 
 ArrayTypeDef: WSYM_ARRAY SYM_LSBKT IndexTypeList SYM_RSBKT WSYM_OF Type {
@@ -182,20 +184,32 @@ PtrTypeDef: SYM_HAT BasicRealType {
 OrdTypeDef: SYM_LPAR ConstList SYM_RPAR {
     $$ = new treeNode($2, nullptr, TK_Enum, yylineno);
     $$->setValue(new typeEnum($2->getValue()->getType()));
-    treeNode* t = $2;
-    while (t != nullptr) {
-        // std::cout << t->getValue()->toString() << std::endl;
+    for (treeNode* t = $2; t != nullptr; t = t->getSibling()) 
         dynamic_cast<typeEnum*>($$->getValue())->insert(t->getValue()->getValue());
-        t = t->getSibling();
-    }
 }| Id SYM_DDOT Id {
     $$ = new treeNode($1, $3, TK_Range, yylineno);
+    $$->setValue(new typeRange(
+        $1->getValue()->getType(),
+        $1->getValue()->getValue(),
+        $3->getValue()->getValue()));
 }| Id SYM_DDOT SignedLiteral {
     $$ = new treeNode($1, $3, TK_Range, yylineno);
+    $$->setValue(new typeRange(
+        $3->getValue()->getType(),
+        $1->getValue()->getValue(),
+        $3->getValue()->getValue()));
 }| SignedLiteral SYM_DDOT Id {
     $$ = new treeNode($1, $3, TK_Range, yylineno);
+    $$->setValue(new typeRange(
+        $1->getValue()->getType(),
+        $1->getValue()->getValue(),
+        $3->getValue()->getValue()));
 }| SignedLiteral SYM_DDOT SignedLiteral {
     $$ = new treeNode($1, $3, TK_Range, yylineno);
+    $$->setValue(new typeRange(
+        $1->getValue()->getType(),
+        $1->getValue()->getValue(),
+        $3->getValue()->getValue()));
 }
 
 ResultType: BasicRealType {
