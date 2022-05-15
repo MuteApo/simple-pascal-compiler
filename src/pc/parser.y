@@ -90,11 +90,7 @@ Id: VAL_ID {
 }
 
 IdList: IdList SYM_COMMA Id {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($3);
-        $$ = $1;
-    } else $$ = $3;
+    $$ = treeNode::linkSibling($1, $3);
 }| Id {
     $$ = $1;
 }
@@ -108,11 +104,7 @@ TypeDefPart: WSYM_TYPE TypeDefList {
 }
 
 TypeDefList: TypeDefList TypeDef SYM_SEMI {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($2);
-        $$ = $1;
-    } else $$ = $2;
+    $$ = treeNode::linkSibling($1, $2);
 }| TypeDef SYM_SEMI {
     $$ = $1;
 }
@@ -154,11 +146,7 @@ ArrayTypeDef: WSYM_ARRAY SYM_LSBKT IndexTypeList SYM_RSBKT WSYM_OF Type {
 }
 
 IndexTypeList: IndexTypeList SYM_COMMA Type {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($3);
-        $$ = $1;
-    } else $$ = $3;
+    $$ = treeNode::linkSibling($1, $3);
 }| Type {
     $$ = $1;
 }
@@ -228,11 +216,7 @@ VarDeclPart: WSYM_VAR VarDeclList {
 }
 
 VarDeclList: VarDeclList VarDecl SYM_SEMI {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($2);
-        $$ = $1;
-    } else $$ = $2;
+    $$ = treeNode::linkSibling($1, $2);
 }| VarDecl SYM_SEMI {
     $$ = $1;
 }
@@ -258,11 +242,7 @@ Accessible: VarAccess {
 }
 
 IndexList: IndexList SYM_COMMA Expr {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($3);
-        $$ = $1;
-    } else $$ = $3;
+    $$ = treeNode::linkSibling($1, $3);
 }| Expr {
     $$ = $1;
 }
@@ -387,11 +367,7 @@ CaseStmt: WSYM_CASE Expr WSYM_OF CaseList WSYM_END {
 }
 
 CaseList: CaseList Case SYM_SEMI {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($2);
-        $$ = $1;
-    } else $$ = $2;
+    $$ = treeNode::linkSibling($1, $2);
 }| Case SYM_SEMI {
     $$ = $1;
 }
@@ -437,11 +413,7 @@ CompoundStmt: WSYM_BEGIN StmtList WSYM_END {
 }
 
 StmtList: StmtList Stmt SYM_SEMI {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($2);
-        $$ = $1;
-    } else $$ = $2;
+    $$ = treeNode::linkSibling($1, $2);
 }| {
     $$ = nullptr;
 }
@@ -455,11 +427,7 @@ ConstDefPart: WSYM_CONST ConstDefList {
 }
 
 ConstDefList:  ConstDefList ConstDef SYM_SEMI {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($2);
-        $$ = $1;
-    } else $$ = $2;
+    $$ = treeNode::linkSibling($1, $2);
 }| ConstDef SYM_SEMI {
     $$ = $1;
 }
@@ -471,17 +439,9 @@ ConstDef: Id SYM_EQ SignedLiteral {
 }
 
 ConstList: ConstList SYM_COMMA Id {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($3);
-        $$ = $1;
-    } else $$ = $3;
+    $$ = treeNode::linkSibling($1, $3);
 }| ConstList SYM_COMMA SignedLiteral {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($3);
-        $$ = $1;
-    } else $$ = $3;
+    $$ = treeNode::linkSibling($1, $3);
 }| Id {
     $$ = $1;
 }| SignedLiteral {
@@ -531,17 +491,9 @@ Literal: VAL_INT {
 /************************* Rules of Proc&Stmt *************************/
 
 ProcAndFuncDeclPart: ProcAndFuncDeclPart ProcDecl SYM_SEMI {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($2);
-        $$ = $1;
-    } else $$ = $2;
+    $$ = treeNode::linkSibling($1, $2);
 }| ProcAndFuncDeclPart FuncDecl SYM_SEMI {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($2);
-        $$ = $1;
-    } else $$ = $2;
+    $$ = treeNode::linkSibling($1, $2);
 }| {
     $$ = nullptr;
 }
@@ -569,11 +521,7 @@ FuncDecl: WSYM_FUNCTION Id SYM_COL ResultType SYM_SEMI Block {
 }
 
 ArgList: ArgList SYM_COMMA Arg {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($3);
-        $$ = $1;
-    } else $$ = $3;
+    $$ = treeNode::linkSibling($1, $3);
 }| Arg{
     $$ = $1;
 }
@@ -583,11 +531,7 @@ Arg: Expr {
 }
 
 ParamList: ParamList SYM_SEMI Param {
-    if ($1 != nullptr) {
-        treeNode* t = $1->lastSibling();
-        t->setSibling($3);
-        $$ = $1;
-    } else $$ = $3;
+    $$ = treeNode::linkSibling($1, $3);
 }| Param {
     $$ = $1;
 }

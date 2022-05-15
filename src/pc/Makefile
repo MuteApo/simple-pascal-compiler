@@ -16,8 +16,8 @@ EXE = ../../bin/pc
 
 all: $(EXE)
 
-$(YACC_OUT): $(YACC_PREFIX).y
-	$(YACC) -o $(YACC_PREFIX).tab.c -d -v $^ 
+$(YACC_OUT): $(YACC_PREFIX).y tree.hpp
+	$(YACC) -o $(YACC_PREFIX).tab.c -d -v $<
 
 $(LEX_OUT): $(LEX_PREFIX).l $(YACC_PREFIX).tab.h
 	$(LEX) -o $(LEX_OUT) $< 
