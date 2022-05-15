@@ -1,6 +1,8 @@
 EXE = bin/pc
 SRC = 
 
+.PHONY: all debug clean
+
 all:
 	$(MAKE) -C src/pc all
 
