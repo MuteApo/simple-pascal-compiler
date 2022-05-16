@@ -2,8 +2,8 @@
 %option yylineno
 
 %{
-#include "defs.hpp"
-#include "tree.hpp"
+#include "include/defs.hpp"
+#include "include/tree.hpp"
 #include "parser.tab.h"
 #include <cstdio>
 

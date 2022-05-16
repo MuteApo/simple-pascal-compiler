@@ -8,7 +8,16 @@ LEX_OUT = $(LEX_PREFIX).yy.c
 
 CC = g++
 CFLAG = -O2
-CC_SRC = main.cpp defs.cpp symboltable.cpp semantics.cpp
+LFLAG = -static-libgcc
+
+SRC_C = $(YACC_PREFIX).tab.c $(LEX_PREFIX).yy.c
+SRC_CPP = $(sort $(wildcard *.cpp))
+INC = $(sort $(wildcard include/*.hpp))
+
+OBJ_C = $(patsubst %.c,%.o,$(SRC_C))
+OBJ_CPP = $(patsubst %.cpp,%.o,$(SRC_CPP))
+
+TMP = $(OBJ_C) $(OBJ_CPP) $(YACC_OUT) $(LEX_OUT)
 
 EXE = ../../bin/pc
 
@@ -16,14 +25,17 @@ EXE = ../../bin/pc
 
 all: $(EXE)
 
-$(YACC_OUT): $(YACC_PREFIX).y tree.hpp
+$(YACC_OUT): $(YACC_PREFIX).y $(INC)
 	$(YACC) -o $(YACC_PREFIX).tab.c -d -v $<
 
 $(LEX_OUT): $(LEX_PREFIX).l $(YACC_PREFIX).tab.h
 	$(LEX) -o $(LEX_OUT) $< 
 
-$(EXE): $(YACC_PREFIX).tab.c $(LEX_PREFIX).yy.c $(CC_SRC)
-	$(CC) $^ ${CFLAG} -o $@
+$(OBJ_C) $(OBJ_CPP): $(SRC_C) $(SRC_CPP)
+	$(CC) ${CFLAG} -c $^
+
+$(EXE): $(OBJ_C) $(OBJ_CPP)
+	$(CC) ${LFLAG} -o $@ $^
 
 clean:
-	$(shell rm -f $(YACC_OUT) $(LEX_OUT))
+	$(shell rm -f $(TMP) 2>/dev/null)

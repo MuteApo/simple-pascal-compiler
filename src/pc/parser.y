@@ -1,6 +1,6 @@
 %{
-#include "defs.hpp"
-#include "tree.hpp"
+#include "include/defs.hpp"
+#include "include/tree.hpp"
 #include <iostream>
 
 using namespace std;
