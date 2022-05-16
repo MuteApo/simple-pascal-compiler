@@ -195,11 +195,11 @@ class treeNode {
             return tn2;
     }
 
-    int getNodeKind() { return node_kind; }
-    int getLine() {return line_no;}
-    std::string getIdName(){
-      std::string s=value->getValue().toString();
-      return s;
+    int         getNodeKind() { return node_kind; }
+    int         getLine() { return line_no; }
+    std::string getIdName() {
+        std::string s = value->getValue().toString();
+        return s;
     }
 
     nodeValue* getValue() { return value; }
