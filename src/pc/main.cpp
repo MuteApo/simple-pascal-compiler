@@ -1,6 +1,6 @@
+#include "tree.hpp"
 #include "parser.tab.h"
 #include "semantics.hpp"
-#include "tree.hpp"
 #include <stdio.h>
 #include <string.h>
 
