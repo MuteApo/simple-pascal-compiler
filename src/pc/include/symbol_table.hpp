@@ -12,18 +12,21 @@ enum symbol_item_kind { symbol_const = 10001, symbol_type, symbol_var, symbol_pr
 
 class TableItem {
   public:
-    int              level;
-    std::string      name;
-    int              kind;
-    int              line;
-    treeNode*        node;
+    int         level;
+    std::string name;
+    int         kind;
+    int         line;
+    treeNode*   node;
+
     symbol_item_kind item_kind;
     TypeAttrNode*    type;
+
     TableItem(int lv, std::string nm, int k, treeNode* nd)
             : level(lv), name(nm), kind(k), line(nd->getLine()), node(nd) {}
     TableItem(std::string s, TypeAttrNode* t) : name(s), item_kind(symbol_type), type(t) {}
     std::string toString() {
-        return "[name: " + name + "; kind:" + enum2str(kind) + "; level: " + to_string(level) + "]";
+        return "\t[name: " + name + "\tkind: " + enum2str(kind) + "\tlevel: " + to_string(level) +
+               "]";
     }
 };
 
@@ -45,20 +48,27 @@ class SymbolTable {
     SymbolTable() {
         currLevel = 0;
     }
-    // void addSymbol(treeNode* t);
-    void addSymbol(treeNode* t, int kind);
 
-    void addSymbol(std::string id, TypeAttrNode* type) {
-        auto item = TypeDeclMap.find(id);
-        if (item == TypeDeclMap.end()) {
-            std::list<TableItem> l;
-            l.clear();
-            l.push_back(TableItem(id, type));
-            TypeDeclMap.insert(std::make_pair(id, l));
-        } else
-            item->second.push_front(TableItem(id, type));
+    int getLevel() {
+        return this->currLevel;
     }
 
+    /* old */
+    void addSymbol(treeNode* t, int kind);
+
+    int addSymbol(std::string id, TypeAttrNode* type) {
+        auto item = TypeDeclMap.find(id);
+        if (item == TypeDeclMap.end()) {
+            TypeDeclMap.insert(std::make_pair(id, std::list<TableItem>()));
+            item = TypeDeclMap.find(id);
+        }
+        if (!item->second.empty() && item->second.front().level >= this->currLevel)
+            return -1;
+        item->second.push_front(TableItem(id, type));
+        return 0;
+    }
+
+    /* old */
     TableItem* findSymbol(std::string name, int kind);
 
     TypeAttrNode* findSymbol(std::string id) {
@@ -66,9 +76,32 @@ class SymbolTable {
         return item == TypeDeclMap.end() ? nullptr : item->second.front().type;
     }
 
+    std::vector<TypeAttrNode*> getScope() {
+        std::vector<TypeAttrNode*> result;
+        result.clear();
+        for (auto it : TypeDeclMap)
+            if (it.second.front().level == this->currLevel)
+                result.push_back(it.second.front().type);
+        return result;
+    }
+
+    void popSymbol(std::unordered_map<std::string, std::list<TableItem>>& decl_map, int level) {
+        for (auto& it : decl_map) {
+            if (!it.second.empty() && it.second.front().level == level)
+                it.second.pop_front();
+            if (it.second.empty())
+                decl_map.erase(it.first);
+        }
+    }
     void enterScope();
     void leaveScope();
 
+    void printSymbol(const std::unordered_map<std::string, std::list<TableItem>>& decl_map) {
+        for (auto it1 : decl_map) {
+            std::cout << it1.first;
+            for (auto it2 : it1.second) std::cout << it2.toString() << std::endl;
+        }
+    }
     void printTable();
 };
 
