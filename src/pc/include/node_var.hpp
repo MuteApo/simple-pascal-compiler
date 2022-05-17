@@ -15,7 +15,7 @@ class VarDefNode {
     // bool is_legal(SymbolTable &symtbl){
     //     return (symtbl.findSymbol() != nullptr);
     // }
-    std::string generate_asm_define() {}
+    std::string gen_asm_def() {}
 };
 
 #endif

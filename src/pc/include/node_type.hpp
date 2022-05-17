@@ -30,9 +30,9 @@ class TypeDefNode {
   private:
     std::string   identifier;
     TypeAttrNode* type;
-
   public:
-    TypeDefNode(std::string id, TypeAttrNode* t);
+    TypeDefNode(std::string id, TypeAttrNode* t): identifier(id), type(t);
+    void insert_sym_tab(void);
 };
 
 class TypeAttrNode {
@@ -175,8 +175,9 @@ class StructAttrNode {
 class SetAttrNode {  // TODO
   private:
     TypeAttrNode* basic_type;
-
+    
   public:
+    
 };
 
 class ArrayAttrNode {

@@ -3,8 +3,8 @@
 
 SymbolTable sym_tab;
 
-TypeDefNode::TypeDefNode(std::string id, TypeAttrNode* t) : identifier(id), type(t) {
-    sym_tab.addSymbol(id, t);
+void insert_sym_tab(void){
+    
 }
 
 int TypeAttrNode::get_length(void) {
