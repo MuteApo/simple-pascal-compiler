@@ -1,4 +1,4 @@
-#include "include/symboltable.hpp"
+#include "include/symbol_table.hpp"
 using namespace std;
 
 void SymbolTable::addSymbol(treeNode* t, int kind){

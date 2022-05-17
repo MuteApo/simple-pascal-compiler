@@ -1,6 +1,6 @@
 #ifndef _SYMBOLTABLE_H
 #define _SYMBOLTABLE_H
-#include "errorhandler.hpp"
+#include "error_handler.hpp"
 #include "tree.hpp"
 #include <iostream>
 #include <list>

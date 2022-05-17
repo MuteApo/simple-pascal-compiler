@@ -1,8 +1,8 @@
 #ifndef _SEMANTIC_H
 #define _SEMANTIC_H
 
-#include "errorhandler.hpp"
-#include "symboltable.hpp"
+#include "error_handler.hpp"
+#include "symbol_table.hpp"
 
 class semanticAnalyser {
   public:
