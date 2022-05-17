@@ -11,7 +11,7 @@ LEX_SRC := $(LEX_FILE).yy.c
 LEX_OUT := $(LEX_SRC)
 
 CC := g++
-CFLAG :=
+CFLAG := -O2
 LFLAG :=
 
 INC := $(sort $(wildcard include/*.hpp))

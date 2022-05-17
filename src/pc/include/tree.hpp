@@ -56,12 +56,20 @@ class nodeValue {
     nodeValue(typeKind t) : _type(t) {}
     nodeValue() : nodeValue(TK_Void) {}
 
-    void     setType(typeKind t) { _type = t; }
-    typeKind getType() { return _type; }
+    void setType(typeKind t) {
+        _type = t;
+    }
+    typeKind getType() {
+        return _type;
+    }
 
-    virtual valueWrapper getValue() { return valueWrapper(); }
+    virtual valueWrapper getValue() {
+        return valueWrapper();
+    }
 
-    virtual std::string toString() { return _type == TK_Void ? "" : enum2str(_type); }
+    virtual std::string toString() {
+        return _type == TK_Void ? "" : enum2str(_type);
+    }
 };
 
 class typeBasic : public nodeValue {
@@ -75,9 +83,13 @@ class typeBasic : public nodeValue {
     typeBasic(typeKind t, double d) : typeBasic(t, valueWrapper(d)) {}
     typeBasic(typeKind t, std::string s) : typeBasic(t, valueWrapper(s)) {}
 
-    valueWrapper getValue() { return _value; }
+    valueWrapper getValue() {
+        return _value;
+    }
 
-    std::string toString() { return (_type == TK_Void ? "" : enum2str(_type) + "\\n") + _value.toString(); }
+    std::string toString() {
+        return (_type == TK_Void ? "" : enum2str(_type) + "\\n") + _value.toString();
+    }
 };
 
 class typeEnum : public nodeValue {
@@ -86,10 +98,14 @@ class typeEnum : public nodeValue {
 
   public:
     typeEnum(typeKind t, std::vector<valueWrapper> e) : nodeValue(t), _enum(e) {}
-    typeEnum(typeKind t) : nodeValue(t) { _enum.clear(); }
+    typeEnum(typeKind t) : nodeValue(t) {
+        _enum.clear();
+    }
     typeEnum() : typeEnum(TK_Void) {}
 
-    void insert(valueWrapper v) { _enum.push_back(v); }
+    void insert(valueWrapper v) {
+        _enum.push_back(v);
+    }
 
     std::string toString() {
         std::string str = "";
@@ -105,7 +121,8 @@ class typeRange : public nodeValue {
     valueWrapper upper_bound;
 
   public:
-    typeRange(typeKind t, valueWrapper l, valueWrapper u) : nodeValue(t), lower_bound(l), upper_bound(u) {}
+    typeRange(typeKind t, valueWrapper l, valueWrapper u)
+            : nodeValue(t), lower_bound(l), upper_bound(u) {}
     typeRange(typeKind t) : typeRange(t, valueWrapper(), valueWrapper()) {}
     typeRange() : typeRange(TK_Void) {}
 
@@ -121,7 +138,9 @@ class typeSet : public nodeValue {
 
   public:
     typeSet(typeKind t, std::set<valueWrapper> s) : nodeValue(t), _set(s) {}
-    typeSet(typeKind t) : nodeValue(t) { _set.clear(); }
+    typeSet(typeKind t) : nodeValue(t) {
+        _set.clear();
+    }
     typeSet() : typeSet(TK_Void) {}
 
     std::string toString() {
@@ -152,7 +171,6 @@ class treeNode {
   public:
     treeNode(int nk, int ln) : node_kind(nk), line_no(ln) {
         uid = ++global_uid;
-        std::cout << "$" << uid << " " << toString() << std::endl;
         child.clear();
         sibling = nullptr;
         value   = nullptr;
@@ -162,15 +180,23 @@ class treeNode {
         addChild(tn2);
     }
 
-    std::vector<treeNode*>& getChild() { return child; }
-    void                    addChild(treeNode* c) {
-        if (c != nullptr) child.push_back(c);
+    std::vector<treeNode*>& getChild() {
+        return child;
     }
-    treeNode* firstChild() { return child.front(); }
+    void addChild(treeNode* c) {
+        if (c != nullptr)
+            child.push_back(c);
+    }
+    treeNode* firstChild() {
+        return child.front();
+    }
 
-    treeNode* getSibling() { return sibling; }
-    void      setSibling(treeNode* s) {
-        if (s != nullptr) sibling = s;
+    treeNode* getSibling() {
+        return sibling;
+    }
+    void setSibling(treeNode* s) {
+        if (s != nullptr)
+            sibling = s;
     }
     treeNode* lastSibling() {
         treeNode* t = this;
@@ -186,18 +212,32 @@ class treeNode {
             return tn2;
     }
 
-    int         getNodeKind() { return node_kind; }
-    int         getLine() { return line_no; }
+    int getNodeKind() {
+        return node_kind;
+    }
+    int getLine() {
+        return line_no;
+    }
     std::string getIdName() {
         std::string s = value->getValue().toString();
         return s;
     }
 
-    nodeValue* getValue() { return value; }
-    void       setValue(nodeValue* v) { value = v; }
-    void       setValue(int i, typeKind t = TK_Int) { value = new typeBasic(t, i); }
-    void       setValue(double d, typeKind t = TK_Real) { value = new typeBasic(t, d); }
-    void       setValue(std::string s, typeKind t = TK_String) { value = new typeBasic(t, s); }
+    nodeValue* getValue() {
+        return value;
+    }
+    void setValue(nodeValue* v) {
+        value = v;
+    }
+    void setValue(int i, typeKind t = TK_Int) {
+        value = new typeBasic(t, i);
+    }
+    void setValue(double d, typeKind t = TK_Real) {
+        value = new typeBasic(t, d);
+    }
+    void setValue(std::string s, typeKind t = TK_String) {
+        value = new typeBasic(t, s);
+    }
 
     std::string toString() {
         return "line#" + to_string(line_no) + "\\n" + enum2str(node_kind) +
@@ -205,7 +245,11 @@ class treeNode {
     }
 
     static void traverse(FILE* file, int d, treeNode* t) {
-        if (t == nullptr) return;
+        if (t == nullptr)
+            return;
+
+        // std::cout << "$" << t->uid << " " << t->toString() << " "
+        //           << (t->value == nullptr ? "" : t->value->toString()) << std::endl;
 
         /* node declaration */
         fprintf(file, "\tnode%d [label=\"%s\"];\n", t->uid, t->toString().c_str());
