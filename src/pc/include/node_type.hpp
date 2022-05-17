@@ -34,6 +34,7 @@ class TypeAttrNode {
     friend class EnumAttrNode;
     friend class StructAttrNode;
     friend class ArrayAttrNode;
+    friend class RecordAttrNode;
 
   public:
     TypeAttrNode();
@@ -250,12 +251,40 @@ class StructAttrNode {
   private:
     struct_type_kind type;
     ArrayAttrNode*   array_attr;
+    RecordAttrNode*  record_attr;
     friend class TypeAttrNode;
     friend class ArrayAttrNode;
+    friend class RecordAttrNode;
 
   public:
-    int  get_length() {}
-    bool is_type_equ(TypeAttrNode* type) {}
+    StructAttrNode(std::vector<TypeAttrNode*> it, TypeAttrNode* et)
+            : type(array), array_attr(new ArrayAttrNode(it, et)), record_attr(nullptr) {}
+    ~StructAttrNode() {
+        if (array_attr != nullptr)
+            delete array_attr;
+        if (record_attr != nullptr)
+            delete record_attr;
+    }
+
+    int get_length() {
+        switch (type) {
+            case array: return array_attr->get_length();
+            case record: return record_attr->get_length();
+        }
+        return -1;
+    }
+
+    int get_offset() {
+        // TODO
+    }
+
+    bool is_type_equ(TypeAttrNode* type) {
+        switch (this->type) {
+            case array: return array_attr->is_type_equ(type);
+            case record: return record_attr->is_type_equ(type);
+        }
+        return false;
+    }
 };
 
 class SetAttrNode {  // TODO
@@ -267,6 +296,7 @@ class ArrayAttrNode {
   private:
     std::vector<TypeAttrNode*> index_type;
     TypeAttrNode*              element_type;
+    friend class StructAttrNode;
 
   public:
     ArrayAttrNode(std::vector<TypeAttrNode*> it, TypeAttrNode* et)
@@ -306,9 +336,48 @@ class ArrayAttrNode {
     }
 };
 
-class RecordAttrNode {
+class RecordAttrNode {  // TODO how to design it
   private:
+    std::vector<std::string>   identifiers;
+    std::vector<TypeAttrNode*> types;
+
   public:
+    RecordAttrNode(std::vector<std::string> ids, std::vector<TypeAttrNode*> ts)
+            : identifiers(ids), types(ts) {}
+
+    int getDim() {
+        return identifiers.size();
+    }
+
+    int get_length(void) {
+        // TODO
+    }
+
+    int get_offset() {
+        // TODO
+    }
+
+    bool is_type_equ(TypeAttrNode* type) {
+        if (type->root_type != structured)
+            return false;
+        return is_type_equ(type->struct_attr);
+    }
+    bool is_type_equ(StructAttrNode* type) {
+        if (type->type != record)
+            return false;
+        return is_type_equ(type->record_attr);
+    }
+    bool is_type_equ(RecordAttrNode* type) {
+        if (getDim() != type->getDim())
+            return false;
+        for (int i = 0; i < identifiers.size(); i++) {
+            if (identifiers.at(0) != type->identifiers.at(0))
+                return false;
+            if (!types.at(0)->is_type_equ(type->types.at(0)))
+                return false;
+        }
+        return true;
+    }
 };
 
 #endif
