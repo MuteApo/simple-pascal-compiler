@@ -18,13 +18,19 @@ typedef enum { array = 401, record } struct_type_kind;
 
 class TypeDefNode {
   private:
+    std::string   identifier;
+    TypeAttrNode* type_def;
+
   public:
+    TypeDefNode() {
+        // TODO insert (identifier, type_def) into symbol table
+    }
 };
 
 class TypeAttrNode {
   private:
     type_kind       root_type;
-    std::string     type_identifier;
+    std::string     type_id;
     BasicAttrNode*  basic_attr;
     OrdAttrNode*    ord_attr;
     StructAttrNode* struct_attr;
@@ -44,22 +50,21 @@ class TypeAttrNode {
     TypeAttrNode();
 
     int get_length(void) {
-        if (this->root_type == basic)
-            return this->basic_attr->get_length();
-        else if (this->root_type == ordinal)
-            return this->ord_attr->get_length();
-        else if (this->root_type == structured)
-            return this->struct_attr->get_length();
-        else
-            return -1;
+        switch (root_type) {
+            case basic: return basic_attr->get_length();
+            case ordinal: return ord_attr->get_length();
+            case structured: return struct_attr->get_length();
+            case pointer: return BASIC_PTR_LEN;
+            case type_identifier: return -1;  // TODO look-up symbol table
+        }
+        return -1;
     }
 
     // -1: Fail to get the offset
-    int get_offset(void) {  // For basic type (RealType)
-        if (this->root_type != basic)
-            return -1;
-        else
+    int get_offset(void) {  // For basic type (RealType) or pointer
+        if (root_type == basic || root_type == pointer)
             return 0;
+        return -1;
     }
     int get_offset(std::vector<int> indexs) {  // For array type
         if (this->root_type != structured)
@@ -74,16 +79,16 @@ class TypeAttrNode {
             return ord_attr->get_offset();
     }
 
-    bool is_type_equ(TypeAttrNode* type, bool use_struct = false) {
+    bool is_type_equ(TypeAttrNode* type, bool use_struct = true) {
         if (!use_struct)
-            return (this == type);  // TODO dangerous! act pointer comparison
-        else
-            switch (this->root_type) {
-                case basic: return basic_attr->is_type_equ(type);
-                case ordinal: return ord_attr->is_type_equ(type);
-                case structured: return struct_attr->is_type_equ(type);
-                default: return false;
-            }
+            return this == type;
+        switch (root_type) {
+            case basic: return basic_attr->is_type_equ(type);
+            case ordinal: return ord_attr->is_type_equ(type);
+            case structured: return struct_attr->is_type_equ(type);
+            case pointer: return type->root_type == pointer;
+            case type_identifier: return -1;  // TODO look-up symbol table
+        }
     }
 };
 
@@ -99,7 +104,7 @@ class BasicAttrNode {
     }
 
     int get_length(void) {
-        switch (this->type) {
+        switch (type) {
             case boolean: return BASIC_BOOL_LEN;
             case integer: return BASIC_INT_LEN2;
             case real: return BASIC_REAL_LEN;
@@ -124,13 +129,13 @@ class BasicAttrNode {
 
 class OrdAttrNode {
   private:
-    TypeAttrNode*     basic_type;  // TODO when to use this variable?
     bool              is_subrange;
     SubrangeAttrNode* subrange_attr;
     EnumAttrNode*     enum_attr;
     friend class TypeAttrNode;
     friend class SubrangeAttrNode;
     friend class EnumAttrNode;
+    friend class ArrayAttrNode;
 
   public:
     OrdAttrNode(int lower_bound, int upper_bound)
@@ -150,11 +155,15 @@ class OrdAttrNode {
             delete enum_attr;
     }
 
-    int get_length() {
+    int get_length(void) {
         return is_subrange ? subrange_attr->get_length() : enum_attr->get_length();
     }
 
-    int get_offset() {
+    int get_size(void) {
+        return is_subrange ? subrange_attr->get_size() : enum_attr->get_size();
+    }
+
+    int get_offset(void) {
         // TODO
     }
 
@@ -190,6 +199,14 @@ class SubrangeAttrNode {
         return 2 * BASIC_INT_LEN2 + (is_int_bound ? BASIC_INT_LEN2 : BASIC_CHAR_LEN);
     }
 
+    int get_size(void) {
+        return bounds[1] - bounds[0] + 1;
+    }
+
+    int get_offset(void) {
+        // TODO
+    }
+
     bool is_type_equ(TypeAttrNode* type) {
         if (type->root_type != ordinal)
             return false;
@@ -223,7 +240,11 @@ class EnumAttrNode {
         return BASIC_INT_LEN2 * identifiers.size();
     }
 
-    int get_offset() {
+    int get_size(void) {
+        return identifiers.size();
+    }
+
+    int get_offset(void) {
         // TODO
     }
 
@@ -266,7 +287,7 @@ class StructAttrNode {
             delete record_attr;
     }
 
-    int get_length() {
+    int get_length(void) {
         switch (type) {
             case array: return array_attr->get_length();
             case record: return record_attr->get_length();
@@ -274,7 +295,7 @@ class StructAttrNode {
         return -1;
     }
 
-    int get_offset() {
+    int get_offset(void) {
         // TODO
     }
 
@@ -289,6 +310,8 @@ class StructAttrNode {
 
 class SetAttrNode {  // TODO
   private:
+    TypeAttrNode* basic_type;
+
   public:
 };
 
@@ -302,15 +325,21 @@ class ArrayAttrNode {
     ArrayAttrNode(std::vector<TypeAttrNode*> it, TypeAttrNode* et)
             : index_type(it), element_type(et) {}
 
-    int getDim() {
+    int getDimension() {
         return index_type.size();
     }
 
     int get_length(void) {
-        // TODO
+        int result = element_type->get_length();
+        for (TypeAttrNode* type : index_type) {
+            if (type->root_type != ordinal)
+                return -1;
+            result *= type->ord_attr->get_size();
+        }
+        return result;
     }
 
-    int get_offset() {
+    int get_offset(void) {
         // TODO
     }
 
@@ -325,7 +354,7 @@ class ArrayAttrNode {
         return is_type_equ(type->array_attr);
     }
     bool is_type_equ(ArrayAttrNode* type) {
-        if (getDim() != type->getDim())
+        if (getDimension() != type->getDimension())
             return false;
         if (!element_type->is_type_equ(type->element_type, true))
             return false;
@@ -345,15 +374,17 @@ class RecordAttrNode {  // TODO how to design it
     RecordAttrNode(std::vector<std::string> ids, std::vector<TypeAttrNode*> ts)
             : identifiers(ids), types(ts) {}
 
-    int getDim() {
+    int getDimension() {
         return identifiers.size();
     }
 
     int get_length(void) {
-        // TODO
+        int result = 0;
+        for (TypeAttrNode* type : types) result += type->get_length();
+        return result;
     }
 
-    int get_offset() {
+    int get_offset(void) {
         // TODO
     }
 
@@ -368,12 +399,12 @@ class RecordAttrNode {  // TODO how to design it
         return is_type_equ(type->record_attr);
     }
     bool is_type_equ(RecordAttrNode* type) {
-        if (getDim() != type->getDim())
+        if (getDimension() != type->getDimension())
             return false;
         for (int i = 0; i < identifiers.size(); i++) {
-            if (identifiers.at(0) != type->identifiers.at(0))
+            if (identifiers.at(i) != type->identifiers.at(i))
                 return false;
-            if (!types.at(0)->is_type_equ(type->types.at(0)))
+            if (!types.at(i)->is_type_equ(type->types.at(i)))
                 return false;
         }
         return true;
