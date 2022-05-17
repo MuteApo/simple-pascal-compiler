@@ -3,9 +3,9 @@
 
 #include <string>
 
-class ProcAndFuncDefNode{
+class ProcAndFuncDefNode {
     std::string name;
-    bool is_func;
+    bool        is_func;
 };
 
 #endif
