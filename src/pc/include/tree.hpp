@@ -24,8 +24,7 @@ class valueWrapper {
     std::string _sval;
 
   public:
-    valueWrapper(int v, int i, double d, std::string s)
-            : _valid(v), _ival(i), _dval(d), _sval(s) {}
+    valueWrapper(int v, int i, double d, std::string s) : _valid(v), _ival(i), _dval(d), _sval(s) {}
     valueWrapper() : valueWrapper(0, 0, 0, "") {}
     valueWrapper(int i) : valueWrapper(1, i, 0, "") {}
     valueWrapper(double d) : valueWrapper(2, 0, d, "") {}
@@ -62,9 +61,7 @@ class nodeValue {
 
     virtual valueWrapper getValue() { return valueWrapper(); }
 
-    virtual std::string toString() {
-        return _type == TK_Void ? "" : enum2str(_type);
-    }
+    virtual std::string toString() { return _type == TK_Void ? "" : enum2str(_type); }
 };
 
 class typeBasic : public nodeValue {
@@ -80,10 +77,7 @@ class typeBasic : public nodeValue {
 
     valueWrapper getValue() { return _value; }
 
-    std::string toString() {
-        return (_type == TK_Void ? "" : enum2str(_type) + "\\n") +
-               _value.toString();
-    }
+    std::string toString() { return (_type == TK_Void ? "" : enum2str(_type) + "\\n") + _value.toString(); }
 };
 
 class typeEnum : public nodeValue {
@@ -91,8 +85,7 @@ class typeEnum : public nodeValue {
     std::vector<valueWrapper> _enum;
 
   public:
-    typeEnum(typeKind t, std::vector<valueWrapper> e)
-            : nodeValue(t), _enum(e) {}
+    typeEnum(typeKind t, std::vector<valueWrapper> e) : nodeValue(t), _enum(e) {}
     typeEnum(typeKind t) : nodeValue(t) { _enum.clear(); }
     typeEnum() : typeEnum(TK_Void) {}
 
@@ -102,8 +95,7 @@ class typeEnum : public nodeValue {
         std::string str = "";
         for (valueWrapper v : _enum) str += v.toString() + ",";
         str.pop_back();
-        return (_type == TK_Void ? "" : enum2str(_type) + "\\n") + "(" + str +
-               ")";
+        return (_type == TK_Void ? "" : enum2str(_type) + "\\n") + "(" + str + ")";
     }
 };
 
@@ -113,14 +105,13 @@ class typeRange : public nodeValue {
     valueWrapper upper_bound;
 
   public:
-    typeRange(typeKind t, valueWrapper l, valueWrapper u)
-            : nodeValue(t), lower_bound(l), upper_bound(u) {}
+    typeRange(typeKind t, valueWrapper l, valueWrapper u) : nodeValue(t), lower_bound(l), upper_bound(u) {}
     typeRange(typeKind t) : typeRange(t, valueWrapper(), valueWrapper()) {}
     typeRange() : typeRange(TK_Void) {}
 
     std::string toString() {
-        return (_type == TK_Void ? "" : enum2str(_type) + "\\n") +
-               lower_bound.toString() + ".." + upper_bound.toString();
+        return (_type == TK_Void ? "" : enum2str(_type) + "\\n") + lower_bound.toString() + ".." +
+               upper_bound.toString();
     }
 };
 
@@ -137,8 +128,7 @@ class typeSet : public nodeValue {
         std::string str = "";
         for (valueWrapper v : _set) str += v.toString() + ",";
         str.pop_back();
-        return (_type == TK_Void ? "" : enum2str(_type) + "\\n") + "[" + str +
-               "]";
+        return (_type == TK_Void ? "" : enum2str(_type) + "\\n") + "[" + str + "]";
     }
 };
 
@@ -162,6 +152,7 @@ class treeNode {
   public:
     treeNode(int nk, int ln) : node_kind(nk), line_no(ln) {
         uid = ++global_uid;
+        std::cout << "$" << uid << " " << toString() << std::endl;
         child.clear();
         sibling = nullptr;
         value   = nullptr;
@@ -204,13 +195,9 @@ class treeNode {
 
     nodeValue* getValue() { return value; }
     void       setValue(nodeValue* v) { value = v; }
-    void setValue(int i, typeKind t = TK_Int) { value = new typeBasic(t, i); }
-    void setValue(double d, typeKind t = TK_Real) {
-        value = new typeBasic(t, d);
-    }
-    void setValue(std::string s, typeKind t = TK_String) {
-        value = new typeBasic(t, s);
-    }
+    void       setValue(int i, typeKind t = TK_Int) { value = new typeBasic(t, i); }
+    void       setValue(double d, typeKind t = TK_Real) { value = new typeBasic(t, d); }
+    void       setValue(std::string s, typeKind t = TK_String) { value = new typeBasic(t, s); }
 
     std::string toString() {
         return "line#" + to_string(line_no) + "\\n" + enum2str(node_kind) +
@@ -221,8 +208,7 @@ class treeNode {
         if (t == nullptr) return;
 
         /* node declaration */
-        fprintf(
-            file, "\tnode%d [label=\"%s\"];\n", t->uid, t->toString().c_str());
+        fprintf(file, "\tnode%d [label=\"%s\"];\n", t->uid, t->toString().c_str());
 
         /* ensure child-wise left-to-right layout using invisible edges */
         for (int i = 1; i < t->child.size(); i++)
@@ -240,10 +226,7 @@ class treeNode {
         /* draw sibling relationship in red, if exists */
         treeNode* s = t->getSibling();
         if (s != nullptr) {
-            fprintf(file,
-                    "\t{rank=same; node%d -> node%d [color=red];}\n",
-                    t->uid,
-                    s->uid);
+            fprintf(file, "\t{rank=same; node%d -> node%d [color=red];}\n", t->uid, s->uid);
             traverse(file, d, s);
         }
     }
