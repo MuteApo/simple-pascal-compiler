@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
             printf("-i <file> Use <file> as source input (default: stdin)\n");
             printf("-o <file> Place the assembly output into <file> (default: assembly.S)\n");
             printf("-V <file> Generate Graphviz visualization script <file> for parse tree\n");
-            printf("-h Show this information\n"); 
+            printf("-h Show this information\n");
             return 0;
         } else {
             printf("unrecognized command line option %s\n", argv[i]);
