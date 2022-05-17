@@ -32,6 +32,8 @@ class TypeAttrNode {
     friend class OrdAttrNode;
     friend class SubrangeAttrNode;
     friend class EnumAttrNode;
+    friend class StructAttrNode;
+    friend class ArrayAttrNode;
 
   public:
     TypeAttrNode();
@@ -122,29 +124,24 @@ class BasicAttrNode {
 class OrdAttrNode {
   private:
     TypeAttrNode*     basic_type;  // TODO when to use this variable?
-    std::string       type_name;
     bool              is_subrange;
     SubrangeAttrNode* subrange_attr;
     EnumAttrNode*     enum_attr;
+    friend class TypeAttrNode;
     friend class SubrangeAttrNode;
     friend class EnumAttrNode;
 
   public:
-    OrdAttrNode(std::string name, int lower_bound, int upper_bound)
-            : type_name(name),
-              is_subrange(true),
+    OrdAttrNode(int lower_bound, int upper_bound)
+            : is_subrange(true),
               subrange_attr(new SubrangeAttrNode(lower_bound, upper_bound)),
               enum_attr(nullptr) {}
-    OrdAttrNode(std::string name, char lower_bound, char upper_bound)
-            : type_name(name),
-              is_subrange(true),
+    OrdAttrNode(char lower_bound, char upper_bound)
+            : is_subrange(true),
               subrange_attr(new SubrangeAttrNode(lower_bound, upper_bound)),
               enum_attr(nullptr) {}
-    OrdAttrNode(std::string name, std::vector<std::string> ids)
-            : type_name(name),
-              is_subrange(false),
-              subrange_attr(nullptr),
-              enum_attr(new EnumAttrNode(ids)) {}
+    OrdAttrNode(std::vector<std::string> ids)
+            : is_subrange(false), subrange_attr(nullptr), enum_attr(new EnumAttrNode(ids)) {}
     ~OrdAttrNode() {
         if (subrange_attr != nullptr)
             delete subrange_attr;
@@ -252,25 +249,61 @@ class EnumAttrNode {
 class StructAttrNode {
   private:
     struct_type_kind type;
+    ArrayAttrNode*   array_attr;
     friend class TypeAttrNode;
+    friend class ArrayAttrNode;
 
   public:
     int  get_length() {}
     bool is_type_equ(TypeAttrNode* type) {}
 };
 
-class SetAttrNode {
+class SetAttrNode {  // TODO
   private:
   public:
 };
 
 class ArrayAttrNode {
   private:
-    int                        dim_num;
     std::vector<TypeAttrNode*> index_type;
     TypeAttrNode*              element_type;
 
   public:
+    ArrayAttrNode(std::vector<TypeAttrNode*> it, TypeAttrNode* et)
+            : index_type(it), element_type(et) {}
+
+    int getDim() {
+        return index_type.size();
+    }
+
+    int get_length(void) {
+        // TODO
+    }
+
+    int get_offset() {
+        // TODO
+    }
+
+    bool is_type_equ(TypeAttrNode* type) {
+        if (type->root_type != structured)
+            return false;
+        return is_type_equ(type->struct_attr);
+    }
+    bool is_type_equ(StructAttrNode* type) {
+        if (type->type != array)
+            return false;
+        return is_type_equ(type->array_attr);
+    }
+    bool is_type_equ(ArrayAttrNode* type) {
+        if (getDim() != type->getDim())
+            return false;
+        if (!element_type->is_type_equ(type->element_type, true))
+            return false;
+        for (int i = 0; i < index_type.size(); i++)
+            if (!index_type.at(i)->is_type_equ(type->index_type.at(i), true))
+                return false;
+        return true;
+    }
 };
 
 class RecordAttrNode {
