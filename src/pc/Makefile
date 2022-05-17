@@ -1,47 +1,40 @@
-YACC := bison
-YACC_FILE := parser
-YACC_SRC := $(YACC_FILE).tab.c
-YACC_INC := $(YACC_FILE).tab.h
-YACC_LOG := $(YACC_FILE).output
-YACC_OUT := $(YACC_SRC) $(YACC_INC) $(YACC_LOG)
+YACC = bison
+YACC_PREFIX = parser
+YACC_OUT = $(YACC_PREFIX).tab.c $(YACC_PREFIX).tab.h $(YACC_PREFIX).output
 
-LEX := flex
-LEX_FILE := scanner
-LEX_SRC := $(LEX_FILE).yy.c
-LEX_OUT := $(LEX_SRC)
+LEX = flex
+LEX_PREFIX = scanner
+LEX_OUT = $(LEX_PREFIX).yy.c
 
-CC := g++
-CFLAG := -O2
-LFLAG :=
+CC = g++
+CFLAG = -O2
+LFLAG = -static-libgcc
 
-INC := $(sort $(wildcard include/*.hpp))
-SRC_CPP := $(sort $(wildcard *.cpp))
-SRC_C := $(sort $(wildcard *.c) $(YACC_SRC) $(LEX_SRC))
+SRC_C = $(sort $(wildcard *.c)) $(YACC_PREFIX).tab.c $(LEX_PREFIX).yy.c
+SRC_CPP = $(sort $(wildcard *.cpp))
+INC = $(sort $(wildcard include/*.hpp))
 
-OBJ := $(patsubst %.cpp,%.o,$(SRC_CPP))
-OBJ += $(patsubst %.c,%.o,$(SRC_C))
+OBJ_C = $(patsubst %.c,%.o,$(SRC_C))
+OBJ_CPP = $(patsubst %.cpp,%.o,$(SRC_CPP))
 
-TMP := $(OBJ) $(YACC_OUT) $(LEX_OUT)
+TMP = $(OBJ_C) $(OBJ_CPP) $(YACC_OUT) $(LEX_OUT)
 
-EXE := ../../bin/pc
+EXE = ../../bin/pc
 
 .PHONY: all clean
 
 all: $(EXE)
 
-$(YACC_SRC): $(YACC_FILE).y $(INC)
-	$(YACC) -o $(YACC_SRC) -d -v $<
+$(YACC_OUT): $(YACC_PREFIX).y $(INC)
+	$(YACC) -o $(YACC_PREFIX).tab.c -d -v $<
 
-$(LEX_SRC): $(LEX_FILE).l $(YACC_INC)
-	$(LEX) -o $(LEX_SRC) $< 
+$(LEX_OUT): $(LEX_PREFIX).l $(YACC_PREFIX).tab.h
+	$(LEX) -o $(LEX_OUT) $< 
 
-%.o: %.c
-	$(CC) ${CFLAG} -c $<
+$(OBJ_C) $(OBJ_CPP): $(SRC_C) $(SRC_CPP)
+	$(CC) ${CFLAG} -c $^
 
-%.o: %.cpp $(YACC_SRC)
-	$(CC) ${CFLAG} -c $<
-
-$(EXE): $(OBJ)
+$(EXE): $(OBJ_C) $(OBJ_CPP)
 	$(CC) ${LFLAG} -o $@ $^
 
 clean:

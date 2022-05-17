@@ -1,6 +1,8 @@
 #include "include/symbol_table.hpp"
 using namespace std;
 
+SymbolTable symbol_table;
+
 void SymbolTable::addSymbol(treeNode* t, int kind) {
     unordered_map<string, list<TableItem>>* map;
     switch (kind) {

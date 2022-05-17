@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 
+
 enum symbol_item_kind { symbol_const = 10001, symbol_type, symbol_var, symbol_proc_func };
 
 class TableItem {
@@ -104,5 +105,7 @@ class SymbolTable {
     }
     void printTable();
 };
+
+extern SymbolTable symbol_table;
 
 #endif
