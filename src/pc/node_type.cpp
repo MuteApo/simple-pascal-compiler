@@ -13,7 +13,7 @@ int TypeAttrNode::get_length(void) {
         case ordinal: return this->ord_attr->get_length();
         case structured: return this->struct_attr->get_length();
         case pointer: return BASIC_PTR_LEN;
-        case type_identifier: return -1;  // TODO look-up symbol table
+        case type_identifier: return sym_tab.findSymbol(this->type_id)->get_length();
     }
     return -1;
 }
@@ -34,12 +34,18 @@ int TypeAttrNode::get_offset(std::string member) {
 bool TypeAttrNode::is_type_equ(TypeAttrNode* type, bool use_struct) {
     if (!use_struct)
         return this == type;
+    if (type->root_type != this->root_type)
+        return false;
     switch (this->root_type) {
         case basic: return this->basic_attr->is_type_equ(type);
         case ordinal: return this->ord_attr->is_type_equ(type);
         case structured: return this->struct_attr->is_type_equ(type);
         case pointer: return type->root_type == pointer;
-        case type_identifier: return -1;  // TODO look-up symbol table
+        case type_identifier: {
+            TypeAttrNode* lut_this = sym_tab.findSymbol(this->type_id);
+            TypeAttrNode* lut_type = sym_tab.findSymbol(type->type_id);
+            return lut_this->is_type_equ(lut_type);
+        }
     }
     return false;
 }

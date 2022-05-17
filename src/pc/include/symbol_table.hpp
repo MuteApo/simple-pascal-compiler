@@ -61,6 +61,11 @@ class SymbolTable {
 
     TableItem* findSymbol(std::string name, int kind);
 
+    TypeAttrNode* findSymbol(std::string id) {
+        auto item = TypeDeclMap.find(id);
+        return item == TypeDeclMap.end() ? nullptr : item->second.front().type;
+    }
+
     void enterScope();
     void leaveScope();
 
