@@ -1,6 +1,18 @@
 #ifndef _NODE_TYPE_H_
 #define _NODE_TYPE_H_
 
+class TypeDefNode;
+class TypeDefListNode;
+class TypeAttrNode;
+class BasicAttrNode;
+class OrdAttrNode;
+class SubrangeAttrNode;
+class EnumAttrNode;
+class StructAttrNode;
+class SetAttrNode;
+class ArrayAttrNode;
+class RecordAttrNode;
+
 #include <set>
 #include <string>
 #include <vector>
@@ -16,39 +28,29 @@ typedef enum { boolean = 201, integer, real, character } basic_type_kind;
 typedef enum { subrange = 301, enumerate } ord_type_kind;
 typedef enum { array = 401, record } struct_type_kind;
 
-class TypeAttrNode;
-class BasicAttrNode;
-class OrdAttrNode;
-class SubrangeAttrNode;
-class EnumAttrNode;
-class StructAttrNode;
-class SetAttrNode;
-class ArrayAttrNode;
-class RecordAttrNode;
-
 class TypeDefNode {
   private:
     std::string   identifier;
-    TypeAttrNode* type;
+    TypeAttrNode *type;
 
   public:
-    TypeDefNode(std::string id, TypeAttrNode* t) : identifier(id), type(t) {}
+    TypeDefNode(std::string id, TypeAttrNode *t) : identifier(id), type(t) {}
 
     int gen_sym_tab(void);
 };
 
 class TypeDefListNode {
   private:
-    std::vector<TypeDefNode*> type_defs;
+    std::vector<TypeDefNode *> type_defs;
 
   public:
-    void append_type_def(TypeDefNode* type_def) {
+    void append_type_def(TypeDefNode *type_def) {
         type_defs.push_back(type_def);
     }
 
     bool gen_sym_tab() {
         bool succeed = true;
-        for (TypeDefNode* type : type_defs) succeed &= type->gen_sym_tab();
+        for (TypeDefNode *type : type_defs) succeed &= type->gen_sym_tab();
         return succeed;
     }
 };
@@ -57,9 +59,9 @@ class TypeAttrNode {
   private:
     type_kind       root_type;
     std::string     type_id;
-    BasicAttrNode*  basic_attr;
-    OrdAttrNode*    ord_attr;
-    StructAttrNode* struct_attr;
+    BasicAttrNode  *basic_attr;
+    OrdAttrNode    *ord_attr;
+    StructAttrNode *struct_attr;
     friend class BasicAttrNode;
     friend class OrdAttrNode;
     friend class SubrangeAttrNode;
@@ -71,9 +73,9 @@ class TypeAttrNode {
   public:
     TypeAttrNode(type_kind       type,
                  std::string     id,
-                 BasicAttrNode*  b_attr = nullptr,
-                 OrdAttrNode*    o_attr = nullptr,
-                 StructAttrNode* s_attr = nullptr)
+                 BasicAttrNode  *b_attr = nullptr,
+                 OrdAttrNode    *o_attr = nullptr,
+                 StructAttrNode *s_attr = nullptr)
             : root_type(type),
               type_id(id),
               basic_attr(b_attr),
@@ -81,9 +83,9 @@ class TypeAttrNode {
               struct_attr(s_attr) {}
     TypeAttrNode(void) : TypeAttrNode(pointer, "") {}
     TypeAttrNode(std::string id) : TypeAttrNode(type_identifier, id) {}
-    TypeAttrNode(BasicAttrNode* attr_node) : TypeAttrNode(basic, "", attr_node, nullptr, nullptr) {}
-    TypeAttrNode(OrdAttrNode* attr_node) : TypeAttrNode(ordinal, "", nullptr, attr_node, nullptr) {}
-    TypeAttrNode(StructAttrNode* attr_node)
+    TypeAttrNode(BasicAttrNode *attr_node) : TypeAttrNode(basic, "", attr_node, nullptr, nullptr) {}
+    TypeAttrNode(OrdAttrNode *attr_node) : TypeAttrNode(ordinal, "", nullptr, attr_node, nullptr) {}
+    TypeAttrNode(StructAttrNode *attr_node)
             : TypeAttrNode(structured, "", nullptr, nullptr, attr_node) {}
 
     int get_length(void);
@@ -93,9 +95,12 @@ class TypeAttrNode {
     int get_offset(std::vector<int> static_indexs);  // For array type
     int get_offset(std::string member);              // For record type
 
-    bool is_type_equ(TypeAttrNode* type, bool use_struct = true);
+    bool is_type_equ(TypeAttrNode *type, bool use_struct = true);
 
-    std::string gen_asm_def(void);  // TODO
+    std::string gen_asm_def(void) {
+        // TODO
+        return "";
+    }
 
     std::string toString() {
         return "";
@@ -105,6 +110,7 @@ class TypeAttrNode {
 class BasicAttrNode {
   private:
     basic_type_kind type;
+    friend class LiteralNode;
 
   public:
     BasicAttrNode(basic_type_kind t) : type(t) {}
@@ -115,15 +121,15 @@ class BasicAttrNode {
 
     int get_offset(void);
 
-    bool is_type_equ(TypeAttrNode* type);
-    bool is_type_equ(BasicAttrNode* type);
+    bool is_type_equ(TypeAttrNode *type);
+    bool is_type_equ(BasicAttrNode *type);
 };
 
 class OrdAttrNode {
   private:
     bool              is_subrange;
-    SubrangeAttrNode* subrange_attr;
-    EnumAttrNode*     enum_attr;
+    SubrangeAttrNode *subrange_attr;
+    EnumAttrNode     *enum_attr;
     friend class TypeAttrNode;
     friend class SubrangeAttrNode;
     friend class EnumAttrNode;
@@ -141,8 +147,8 @@ class OrdAttrNode {
 
     int get_offset(void);
 
-    bool is_type_equ(TypeAttrNode* type);
-    bool is_type_equ(OrdAttrNode* type);
+    bool is_type_equ(TypeAttrNode *type);
+    bool is_type_equ(OrdAttrNode *type);
 };
 
 class SubrangeAttrNode {
@@ -165,9 +171,9 @@ class SubrangeAttrNode {
 
     int get_offset(void);
 
-    bool is_type_equ(TypeAttrNode* type);
-    bool is_type_equ(OrdAttrNode* type);
-    bool is_type_equ(SubrangeAttrNode* type);
+    bool is_type_equ(TypeAttrNode *type);
+    bool is_type_equ(OrdAttrNode *type);
+    bool is_type_equ(SubrangeAttrNode *type);
 };
 
 class EnumAttrNode {
@@ -184,46 +190,46 @@ class EnumAttrNode {
 
     int get_offset(void);
 
-    bool is_type_equ(TypeAttrNode* type);
-    bool is_type_equ(OrdAttrNode* type);
-    bool is_type_equ(EnumAttrNode* type);
+    bool is_type_equ(TypeAttrNode *type);
+    bool is_type_equ(OrdAttrNode *type);
+    bool is_type_equ(EnumAttrNode *type);
 };
 
 class StructAttrNode {
   private:
     struct_type_kind type;
-    ArrayAttrNode*   array_attr;
-    RecordAttrNode*  record_attr;
+    ArrayAttrNode   *array_attr;
+    RecordAttrNode  *record_attr;
     friend class TypeAttrNode;
     friend class ArrayAttrNode;
     friend class RecordAttrNode;
 
   public:
-    StructAttrNode(std::vector<TypeAttrNode*> it, TypeAttrNode* et);
+    StructAttrNode(std::vector<TypeAttrNode *> it, TypeAttrNode *et);
     ~StructAttrNode();
 
     int get_length(void);
 
     int get_offset(void);
 
-    bool is_type_equ(TypeAttrNode* type);
+    bool is_type_equ(TypeAttrNode *type);
 };
 
 class SetAttrNode {  // TODO
   private:
-    TypeAttrNode* basic_type;
+    TypeAttrNode *basic_type;
 
   public:
 };
 
 class ArrayAttrNode {
   private:
-    std::vector<TypeAttrNode*> index_type;
-    TypeAttrNode*              element_type;
+    std::vector<TypeAttrNode *> index_type;
+    TypeAttrNode               *element_type;
     friend class StructAttrNode;
 
   public:
-    ArrayAttrNode(std::vector<TypeAttrNode*> it, TypeAttrNode* et)
+    ArrayAttrNode(std::vector<TypeAttrNode *> it, TypeAttrNode *et)
             : index_type(it), element_type(et) {}
 
     int get_dim();
@@ -232,18 +238,18 @@ class ArrayAttrNode {
 
     int get_offset(void);
 
-    bool is_type_equ(TypeAttrNode* type);
-    bool is_type_equ(StructAttrNode* type);
-    bool is_type_equ(ArrayAttrNode* type);
+    bool is_type_equ(TypeAttrNode *type);
+    bool is_type_equ(StructAttrNode *type);
+    bool is_type_equ(ArrayAttrNode *type);
 };
 
 class RecordAttrNode {  // TODO how to design it
   private:
-    std::vector<std::string>   identifiers;
-    std::vector<TypeAttrNode*> types;
+    std::vector<std::string>    identifiers;
+    std::vector<TypeAttrNode *> types;
 
   public:
-    RecordAttrNode(std::vector<std::string> ids, std::vector<TypeAttrNode*> ts)
+    RecordAttrNode(std::vector<std::string> ids, std::vector<TypeAttrNode *> ts)
             : identifiers(ids), types(ts) {}
 
     int get_dim();
@@ -252,9 +258,9 @@ class RecordAttrNode {  // TODO how to design it
 
     int get_offset(void);
 
-    bool is_type_equ(TypeAttrNode* type);
-    bool is_type_equ(StructAttrNode* type);
-    bool is_type_equ(RecordAttrNode* type);
+    bool is_type_equ(TypeAttrNode *type);
+    bool is_type_equ(StructAttrNode *type);
+    bool is_type_equ(RecordAttrNode *type);
 };
 
 #endif

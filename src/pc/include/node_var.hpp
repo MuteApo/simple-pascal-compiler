@@ -1,6 +1,9 @@
 #ifndef _NODE_VAR_H_
 #define _NODE_VAR_H_
 
+class VarDefNode;
+class VarDefListNode;
+
 #include <string>
 #include <vector>
 
@@ -32,10 +35,10 @@ class VarDefNode {
 
 class VarDefListNode {
   private:
-    std::vector<VarDefNode*> var_defs;
+    std::vector<VarDefNode *> var_defs;
 
   public:
-    void append_var_def(VarDefNode* var_def);
+    void append_var_def(VarDefNode *var_def);
 
     bool gen_sym_tab(void);
 
