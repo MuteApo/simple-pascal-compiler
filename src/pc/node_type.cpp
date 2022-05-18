@@ -13,7 +13,7 @@ int TypeAttrNode::get_length(void) {
         case structured: return this->struct_attr->get_length();
         case pointer: return BASIC_PTR_LEN;
         case type_identifier: {
-            TypeAttrNode* lut_this = symbol_table.findSymbol(this->type_id);
+            TypeAttrNode* lut_this = symbol_table.findTypeSymbol(this->type_id);
             if (lut_this == nullptr)
                 return -1;  // Type identifer not found in all scope
             else
@@ -45,8 +45,8 @@ bool TypeAttrNode::is_type_equ(TypeAttrNode* type, bool use_struct) {
         case structured: return this->struct_attr->is_type_equ(type);
         case pointer: return type->root_type == pointer;
         case type_identifier: {
-            TypeAttrNode* lut_this = symbol_table.findSymbol(this->type_id);
-            TypeAttrNode* lut_type = symbol_table.findSymbol(type->type_id);
+            TypeAttrNode* lut_this = symbol_table.findTypeSymbol(this->type_id);
+            TypeAttrNode* lut_type = symbol_table.findTypeSymbol(type->type_id);
             return lut_this->is_type_equ(lut_type);
         }
     }
