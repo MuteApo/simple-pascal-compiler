@@ -8,7 +8,6 @@
 #include <string>
 #include <unordered_map>
 
-
 enum symbol_item_kind { symbol_const = 10001, symbol_type, symbol_var, symbol_proc_func };
 
 class TableItem {
@@ -63,8 +62,7 @@ class SymbolTable {
             TypeDeclMap.insert(std::make_pair(id, std::list<TableItem>()));
             item = TypeDeclMap.find(id);
         }
-        if (!item->second.empty() && item->second.front().level >= this->currLevel)
-            return -1;
+        if (!item->second.empty() && item->second.front().level >= this->currLevel) return -1;
         item->second.push_front(TableItem(id, type));
         return 0;
     }
@@ -87,21 +85,18 @@ class SymbolTable {
     }
 
     void popSymbol(std::unordered_map<std::string, std::list<TableItem>>& decl_map, int level) {
-        for (auto& it : decl_map) {
-            if (!it.second.empty() && it.second.front().level == level)
-                it.second.pop_front();
-            if (it.second.empty())
-                decl_map.erase(it.first);
-        }
+        for (auto& it : decl_map)
+            if (!it.second.empty() && it.second.front().level == level) it.second.pop_front();
     }
     void enterScope();
     void leaveScope();
 
     void printSymbol(const std::unordered_map<std::string, std::list<TableItem>>& decl_map) {
-        for (auto it1 : decl_map) {
-            std::cout << it1.first;
-            for (auto it2 : it1.second) std::cout << it2.toString() << std::endl;
-        }
+        for (auto it1 : decl_map)
+            if (!it1.second.empty()) {
+                std::cout << it1.first;
+                for (auto it2 : it1.second) std::cout << it2.toString() << std::endl;
+            }
     }
     void printTable();
 };

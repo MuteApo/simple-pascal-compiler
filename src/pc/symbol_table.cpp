@@ -45,28 +45,27 @@ TableItem* SymbolTable::findSymbol(string name, int kind) {
 }
 
 void SymbolTable::enterScope() {
-    currLevel++;
     printTable();
+    this->currLevel++;
 }
 void SymbolTable::leaveScope() {
-    this->popSymbol(this->ConstDeclMap, this->currLevel);
+    printTable();
+    this->popSymbol(this->ProcDeclMap, this->currLevel);
+    this->popSymbol(this->FuncDeclMap, this->currLevel);
     this->popSymbol(this->TypeDeclMap, this->currLevel);
     this->popSymbol(this->VarDeclMap, this->currLevel);
-    this->popSymbol(this->FuncDeclMap, this->currLevel);
-    this->popSymbol(this->ProcDeclMap, this->currLevel);
-    currLevel--;
-    printTable();
+    this->currLevel--;
 }
 
 void SymbolTable::printTable() {
-    cout << "current level: " << to_string(currLevel) << endl;
+    cout << "current level: " << to_string(this->currLevel) << endl;
     cout << "--------Proc--------" << endl;
-    this->printSymbol(ProcDeclMap);
+    this->printSymbol(this->ProcDeclMap);
     cout << "--------Func--------" << endl;
-    this->printSymbol(FuncDeclMap);
+    this->printSymbol(this->FuncDeclMap);
     cout << "--------Type--------" << endl;
-    this->printSymbol(TypeDeclMap);
+    this->printSymbol(this->TypeDeclMap);
     cout << "--------Var--------" << endl;
-    this->printSymbol(VarDeclMap);
+    this->printSymbol(this->VarDeclMap);
     cout << endl;
 }

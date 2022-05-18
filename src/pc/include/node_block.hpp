@@ -18,37 +18,29 @@ class BlockNode {
   private:
     bool is_global;
     // ConstDefListNode *const_defs;
-    TypeDefListNode *type_defs;
-    VarDefListNode *var_defs;
+    TypeDefListNode* type_defs;
+    VarDefListNode*  var_defs;
     // FuncDefListNode *func_defs;
     // StmtListNode *stmts;
 
     void gen_sym_tab(void) {
-        // if (const_defs != nullptr)
-        // const_defs->gen_sym_tab();
-        if (type_defs != nullptr)
-            type_defs->gen_sym_tab();
-        if (var_defs != nullptr)
-            var_defs->gen_sym_tab();
-        // if (func_defs != nullptr)
-        // func_defs->gen_sym_tab();
+        // if (const_defs != nullptr) const_defs->gen_sym_tab();
+        if (type_defs != nullptr) type_defs->gen_sym_tab();
+        if (var_defs != nullptr) var_defs->gen_sym_tab();
+        // if (func_defs != nullptr) func_defs->gen_sym_tab();
     }
+
     std::string gen_asm_code(void) {
-        std::string asm_code = "";
-        if (is_global)
-            asm_code += var_defs->gen_asm_def();
+        std::string asm_code = is_global ? var_defs->gen_asm_def() : "";
         // asm_code += func_defs->gen_asm_code();
         // asm_code += stmts->gen_asm_code();
         return asm_code;
     }
 
   public:
-    BlockNode(bool is_global, TypeDefListNode *type_defs = nullptr,
-              VarDefListNode *var_defs = nullptr) {
-        this->is_global = is_global;
-        this->type_defs = type_defs;
-        this->var_defs = var_defs;
-    }
+    BlockNode(bool is_g, TypeDefListNode* t_defs = nullptr, VarDefListNode* v_defs = nullptr)
+            : is_global(is_g), type_defs(t_defs), var_defs(v_defs) {}
+
     std::string visit(void) {
         std::string asm_code;
         symbol_table.enterScope();
