@@ -3,106 +3,100 @@
 
 #include "tree.hpp"
 #include "error_handler.hpp"
+#include "node_const.hpp"
 #include "node_type.hpp"
+#include "node_var.hpp"
 #include <list>
+#include <map>
 #include <string>
-#include <unordered_map>
-
-
-enum symbol_item_kind { symbol_const = 10001, symbol_type, symbol_var, symbol_proc_func };
 
 class TableItem {
   public:
-    int         level;
     std::string name;
-    int         kind;
-    int         line;
-    treeNode*   node;
+    int         level;  // nested level of the scope
 
-    symbol_item_kind item_kind;
-    TypeAttrNode*    type;
+    TableItem(std::string id, int lv) : name(id), level(lv) {}
 
-    TableItem(int lv, std::string nm, int k, treeNode* nd)
-            : level(lv), name(nm), kind(k), line(nd->getLine()), node(nd) {}
-    TableItem(std::string s, TypeAttrNode* t) : name(s), item_kind(symbol_type), type(t) {}
-    std::string toString() {
-        return "\t[name: " + name + "\tkind: " + enum2str(kind) + "\tlevel: " + to_string(level) +
-               "]";
+    std::string toString();
+};
+
+class ConstTableItem : public TableItem {
+  public:
+    ConstDefNode* const_def;
+
+    ConstTableItem(std::string id, int lv, ConstDefNode* const_)
+            : TableItem(id, lv), const_def(const_) {}
+
+    std::string toString();
+};
+
+class TypeTableItem : public TableItem {
+  public:
+    TypeAttrNode* type_attr;
+
+    TypeTableItem(std::string id, int lv, TypeAttrNode* type)
+            : TableItem(id, lv), type_attr(type) {}
+
+    std::string toString();
+};
+
+class VarTableItem : public TableItem {
+  public:
+    VarDefNode* var_def;
+    int         order;  // order in the scope of the same level
+
+    VarTableItem(std::string id, int lv, VarDefNode* var, int ord)
+            : TableItem(id, lv), var_def(var), order(ord) {}
+
+    bool operator<(const VarTableItem& rhs) const {
+        return level < rhs.level || level == rhs.level && order < rhs.order;
     }
+
+    std::string toString();
 };
 
 class SymbolTable {
   private:
-    const int MAXSIZE = 256;
-
     int currLevel;
 
-    std::unordered_map<std::string, std::list<TableItem>> ConstDeclMap;
-    std::unordered_map<std::string, std::list<TableItem>> TypeDeclMap;
-    std::unordered_map<std::string, std::list<TableItem>> VarDeclMap;
-    std::unordered_map<std::string, std::list<TableItem>> FuncDeclMap;
-    std::unordered_map<std::string, std::list<TableItem>> ProcDeclMap;
+    std::map<std::string, std::list<ConstTableItem>> ConstDeclMap;
+    std::map<std::string, std::list<TypeTableItem>>  TypeDeclMap;
+    std::map<std::string, std::list<VarTableItem>>   VarDeclMap;
+    // std::map<std::string, std::list<TableItem>> FuncDeclMap;
+    // std::map<std::string, std::list<TableItem>> ProcDeclMap;
+
+    void popConstSymbol();
+    void popTypeSymbol();
+    void popVarSymbol();
 
   public:
     errorHandler err;
 
-    SymbolTable() {
-        currLevel = 0;
-    }
+    SymbolTable() : currLevel(0) {}
 
-    int getLevel() {
-        return this->currLevel;
-    }
+    int getLevel();
 
-    /* old */
-    void addSymbol(treeNode* t, int kind);
+    int addSymbol(std::string id, ConstDefNode* const_);
+    int addSymbol(std::string id, TypeAttrNode* type);
+    int addSymbol(std::string id, VarDefNode* var, int ord);
 
-    int addSymbol(std::string id, TypeAttrNode* type) {
-        auto item = TypeDeclMap.find(id);
-        if (item == TypeDeclMap.end()) {
-            TypeDeclMap.insert(std::make_pair(id, std::list<TableItem>()));
-            item = TypeDeclMap.find(id);
-        }
-        if (!item->second.empty() && item->second.front().level >= this->currLevel)
-            return -1;
-        item->second.push_front(TableItem(id, type));
-        return 0;
-    }
+    ConstDefNode* findConstSymbol(std::string id);
+    TypeAttrNode* findTypeSymbol(std::string id);
+    VarDefNode*   findVarSymbol(std::string id);
 
-    /* old */
-    TableItem* findSymbol(std::string name, int kind);
+    std::vector<ConstDefNode*> getValidConsts();
+    std::vector<TypeAttrNode*> getValidTypes();
+    std::vector<VarDefNode*>   getValidVars();
 
-    TypeAttrNode* findSymbol(std::string id) {
-        auto item = TypeDeclMap.find(id);
-        return item == TypeDeclMap.end() ? nullptr : item->second.front().type;
-    }
+    std::set<VarTableItem>
+    getVarScope(const std::map<std::string, std::list<VarTableItem>>& decl_map, int level);
 
-    std::vector<TypeAttrNode*> getScope() {
-        std::vector<TypeAttrNode*> result;
-        result.clear();
-        for (auto it : TypeDeclMap)
-            if (it.second.front().level == this->currLevel)
-                result.push_back(it.second.front().type);
-        return result;
-    }
+    template <class T> void printSymbol(const std::map<std::string, std::list<T>>& decl_map);
 
-    void popSymbol(std::unordered_map<std::string, std::list<TableItem>>& decl_map, int level) {
-        for (auto& it : decl_map) {
-            if (!it.second.empty() && it.second.front().level == level)
-                it.second.pop_front();
-            if (it.second.empty())
-                decl_map.erase(it.first);
-        }
-    }
     void enterScope();
+
     void leaveScope();
 
-    void printSymbol(const std::unordered_map<std::string, std::list<TableItem>>& decl_map) {
-        for (auto it1 : decl_map) {
-            std::cout << it1.first;
-            for (auto it2 : it1.second) std::cout << it2.toString() << std::endl;
-        }
-    }
     void printTable();
 };
 
