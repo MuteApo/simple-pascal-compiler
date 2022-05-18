@@ -96,6 +96,10 @@ class TypeAttrNode {
     bool is_type_equ(TypeAttrNode* type, bool use_struct = true);
 
     std::string gen_asm_def(void);  // TODO
+
+    std::string toString() {
+        return "";
+    }
 };
 
 class BasicAttrNode {

@@ -1,8 +1,6 @@
 #ifndef _NODE_BLOCK_H_
 #define _NODE_BLOCK_H_
 
-#include <vector>
-
 #include "symbol_table.hpp"
 
 #include "node_expr.hpp"
@@ -10,9 +8,6 @@
 #include "node_stmt.hpp"
 #include "node_type.hpp"
 #include "node_var.hpp"
-
-std::vector<int> ar_lvars_length;
-std::vector<int> ar_args_length;
 
 class BlockNode {
   private:
