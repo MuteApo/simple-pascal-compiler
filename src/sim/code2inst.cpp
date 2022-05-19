@@ -24,6 +24,7 @@ uint8_t get_func7(uint32_t code) {
     uint32_t mask = (uint32_t)(0x7F) << 25;
     return (code & mask) >> 25;
 }
+
 // Bit 31 - Bit 20, 12 bits
 uint32_t get_i_type_imm(uint32_t code) {
     uint32_t result = get_func7(code) << 5;

@@ -2,8 +2,8 @@
 
 CC = g++
 CFLAG = -std=c++11 -Wall
-EXE = ../../bin/rvsim
-OBJ = ram.o ecall.o register.o code2inst.o cpu.o main.o 
+EXE = ../../bin/hex2bin
+OBJ = hex2bin.o
 
 all: $(EXE)
 

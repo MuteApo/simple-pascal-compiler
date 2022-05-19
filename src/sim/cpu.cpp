@@ -1,5 +1,5 @@
-#include <string>
 #include <iostream>
+#include <string>
 
 #include "include/code2inst.hpp"
 #include "include/ecall.hpp"
@@ -13,7 +13,8 @@ using namespace std;
 string exception_msg = "";
 
 // Only disassembly when exec is false
-bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string &inst_asm) {
+bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc,
+               string &inst_asm) {
     inst_asm = "";
     finish = skip_pc_inc = false;
     if (opcode_inst.count(get_opcode(inst)) == 0) {
@@ -37,21 +38,19 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
         }
         string alu_op = func3_alu_op.at(get_func3(inst));
         if (alu_op == "add_or_sub") {
-            if (get_func7(inst) == 0b0100000) {
-                if (opcode_inst.at(get_opcode(inst)) == alu_imm) {
-                    exception_msg = "[Illegal instruction]";
-                    inst_asm = "INOP";
-                    return false;
-                } else {
-                    inst_asm += "sub";
-                    result = src1 - src2;
-                }
+            if (opcode_inst.at(get_opcode(inst)) == alu_imm) {
+                inst_asm += "add";
+                result = src1 + src2;
             } else if (get_func7(inst) == 0b0000000) {
                 inst_asm += "add";
                 result = src1 + src2;
+            } else if (get_func7(inst) == 0b0100000) {
+                inst_asm += "sub";
+                result = src1 - src2;
             } else {
                 exception_msg = "[Illegal instruction]";
                 inst_asm = "INOP";
+                printf("%x", get_func7(inst));
                 return false;
             }
         } else {
@@ -109,13 +108,13 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
         if (mem_op_size == "b") {
             mem_data = read_ram_byte(addr, false);
         } else if (mem_op_size == "h") {
-            if(exec && (addr & 0b01)){
+            if (exec && (addr & 0b01)) {
                 exception_msg = "[Load address misaligned]";
                 return false;
             }
             mem_data = read_ram_halfword(addr, false);
         } else if (mem_op_size == "w") {
-            if(exec && (addr & 0b11)){
+            if (exec && (addr & 0b11)) {
                 exception_msg = "[Load address misaligned]";
                 return false;
             }
@@ -123,7 +122,7 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
         } else if (mem_op_size == "bu") {
             mem_data = read_ram_byte(addr, true);
         } else if (mem_op_size == "hu") {
-            if(exec && (addr & 0b01)){
+            if (exec && (addr & 0b01)) {
                 exception_msg = "[Load address misaligned]";
                 return false;
             }
@@ -138,6 +137,7 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
         if (func3_mem_size.count(get_func3(inst)) == 0) {
             exception_msg = "[Illegal instruction]";
             inst_asm = "INOP";
+            printf("%x", get_func3(inst));
             return false;
         }
         uint32_t offset = get_s_type_imm(inst);
@@ -157,19 +157,19 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
             inst_asm = "INOP";
             return false;
         } else if (mem_op_size == "b") {
-            if (exec){}
+            if (exec)
                 write_ram(addr, data, 1);
         } else if (mem_op_size == "h") {
-            if (exec){
-                if(addr & 0b01){
+            if (exec) {
+                if (addr & 0b01) {
                     exception_msg = "[Store address misaligned]";
                     return false;
                 }
                 write_ram(addr, data, 2);
             }
         } else if (mem_op_size == "w") {
-            if (exec){
-                if(addr & 0b11){
+            if (exec) {
+                if (addr & 0b11) {
                     exception_msg = "[Store address misaligned]";
                     return false;
                 }
@@ -194,21 +194,21 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
         inst_asm += " " + reg2alias(get_rs1(inst));
         inst_asm += ", " + reg2alias(get_rs2(inst));
         inst_asm += ", " + to_string((int32_t)pc_rel_offset);
-        if(branch_cond == "eq"){
+        if (branch_cond == "eq") {
             cond = src1 == src2;
-        }else if(branch_cond == "ne"){
+        } else if (branch_cond == "ne") {
             cond = src1 != src2;
-        }else if(branch_cond == "lt"){
+        } else if (branch_cond == "lt") {
             cond = (int32_t)src1 < (int32_t)src2;
-        }else if(branch_cond == "ltu"){
+        } else if (branch_cond == "ltu") {
             cond = src1 < src2;
-        }else if(branch_cond == "ge"){
+        } else if (branch_cond == "ge") {
             cond = (int32_t)src1 > (int32_t)src2;
-        }else if(branch_cond == "geu"){
+        } else if (branch_cond == "geu") {
             cond = src1 > src2;
         }
-        if(exec && cond){
-            if(target_pc & 0b11){
+        if (exec && cond) {
+            if (target_pc & 0b11) {
                 exception_msg = "[Instruction address misaligned]";
                 return false;
             }
@@ -227,18 +227,18 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
         inst_asm += "jal";
         inst_asm += " " + reg2alias(get_rd(inst));
         inst_asm += ", " + to_string((int32_t)get_j_type_imm(inst));
-        if(exec){
+        if (exec) {
             write_register(get_rd(inst), saved_pc);
-            if(target_pc & 0b11){
+            if (target_pc & 0b11) {
                 exception_msg = "[Instruction address misaligned]";
                 return false;
             }
-            if(!set_pc(target_pc)){
+            if (!set_pc(target_pc)) {
                 exception_msg = "[Instruction access fault]";
                 return false;
             }
             skip_pc_inc = true;
-        }     
+        }
         break;
     }
     case jalr: {
@@ -255,14 +255,14 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
         inst_asm += "jalr";
         inst_asm += " " + reg2alias(get_rd(inst));
         inst_asm += ", " + to_string((int32_t)target_pc_base);
-        inst_asm += '(' + reg2alias(get_rs1(inst)) +')';
-        if(exec){
+        inst_asm += '(' + reg2alias(get_rs1(inst)) + ')';
+        if (exec) {
             write_register(get_rd(inst), saved_pc);
-            if(target_pc & 0b11){
+            if (target_pc & 0b11) {
                 exception_msg = "[Instruction address misaligned]";
                 return false;
             }
-            if(!set_pc(target_pc)){
+            if (!set_pc(target_pc)) {
                 exception_msg = "[Instruction access fault]";
                 return false;
             }
@@ -275,7 +275,7 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
         inst_asm += "lui";
         inst_asm += " " + reg2alias(get_rd(inst));
         inst_asm += ", " + to_string((int32_t)imm);
-        if(exec)
+        if (exec)
             write_register(get_rd(inst), imm);
         break;
     }
@@ -284,13 +284,18 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
         inst_asm += "auipc";
         inst_asm += " " + reg2alias(get_rd(inst));
         inst_asm += ", " + to_string((int32_t)imm);
-        if(exec)
+        if (exec)
             write_register(get_rd(inst), imm + get_pc());
         break;
     }
     case sys: {
-        // TODO
-        finish = true;
+        if (inst & ~((uint32_t)0b1111111)) {
+            exception_msg = "[Instruction access fault]";
+            return false;
+        }
+        inst_asm = "ecall";
+        if (exec)
+            proc_ecall(finish);
         break;
     }
     }
@@ -348,7 +353,7 @@ bool step_cpu(bool &normal_exit) {
     if (!exec_inst(inst, true, normal_exit, skip_pc_inc, inst_asm))
         return false;
     if (!skip_pc_inc) {
-        if(!inc_pc()){
+        if (!inc_pc()) {
             exception_msg = "[Instruction access fault]";
             return false;
         }
@@ -358,7 +363,7 @@ bool step_cpu(bool &normal_exit) {
 
 bool run_cpu(uint32_t init_pc) {
     bool normal_exit = false, step_succ;
-    if(!set_pc(init_pc)){
+    if (!set_pc(init_pc)) {
         puts("[Instruction access fault]");
         return false;
     }
@@ -378,7 +383,7 @@ bool debug_cpu(uint32_t init_pc) {
     bool normal_exit = false, step_succ;
     bool brk, step = true;
     uint32_t brk_addr = 0;
-    if(!set_pc(init_pc)){
+    if (!set_pc(init_pc)) {
         puts("[Instruction access fault]");
         return false;
     }
@@ -392,20 +397,22 @@ bool debug_cpu(uint32_t init_pc) {
             puts(exception_msg.data());
             break;
         }
-        if(!step)
-            if(!brk) continue;
+        if (!step)
+            if (!brk)
+                continue;
         static string cmd = "";
-        while(1){
+        while (1) {
             printf("<Commands: s(step), v(view), b(breakpoint), q(quit)>\n");
             string cmd_buf;
             getline(cin, cmd_buf);
-            if(cmd_buf != "") cmd = cmd_buf;
-            if(cmd == "s" || cmd == "step"){
+            if (cmd_buf != "")
+                cmd = cmd_buf;
+            if (cmd == "s" || cmd == "step") {
                 step = true;
                 break;
-            }else if(cmd == "q" || cmd == "quit"){
+            } else if (cmd == "q" || cmd == "quit") {
                 return true;
-            }else if(cmd == "v" || cmd == "view"){
+            } else if (cmd == "v" || cmd == "view") {
                 printf("RAM Address in HEX:");
                 string addr_str;
                 getline(cin, addr_str);
@@ -414,14 +421,14 @@ bool debug_cpu(uint32_t init_pc) {
                 printf("0x%08X:0x%08X\n", addr, data);
                 printf("\n");
                 continue;
-            }else if(cmd == "b" || cmd == "breakpoint"){
+            } else if (cmd == "b" || cmd == "breakpoint") {
                 printf("Break next time at (in HEX):");
                 string addr_str;
                 getline(cin, addr_str);
                 brk_addr = strtol(addr_str.data(), NULL, 16);
                 step = false;
                 break;
-            }else{
+            } else {
                 printf("unknown command, retry\n");
                 continue;
             }
