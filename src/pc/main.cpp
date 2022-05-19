@@ -1,11 +1,18 @@
 #include "include/tree.hpp"
+#include "include/node_block.hpp"
+#include "include/node_const.hpp"
+#include "include/node_expr.hpp"
+#include "include/node_func.hpp"
+#include "include/node_stmt.hpp"
+#include "include/node_type.hpp"
+#include "include/node_var.hpp"
 #include "include/semantics.hpp"
 #include "parser.tab.h"
 #include <stdio.h>
 #include <string.h>
 
-int main(int argc, char* argv[]) {
-    FILE* viz_file = NULL;
+int main(int argc, char *argv[]) {
+    FILE *viz_file = NULL;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-i") == 0) {
             if (i + 1 >= argc || argv[i + 1][0] == '-') {
@@ -43,13 +50,13 @@ int main(int argc, char* argv[]) {
         }
     }
     yyparse();
-    semanticAnalyser sem = semanticAnalyser();
-    sem.analyseTree(root);
-    sem.st.printTable();
-    sem.err.printError();
+    // semanticAnalyser sem = semanticAnalyser();
+    // sem.analyseTree(root);
+    // sem.st.printTable();
+    // sem.err.printError();
     if (viz_file != NULL) {
         fprintf(viz_file, "digraph g {");
-        treeNode::traverse(viz_file, 0, root);
+        // treeNode::traverse(viz_file, 0, root);
         fprintf(viz_file, "}");
         fclose(viz_file);
     }

@@ -51,7 +51,7 @@ enum stmt_type {
     SK_Write,    // write(x,y), write to output
     SK_Writeln,  // writeln(x,y), write to output with an extra line feed
 };
-enum expr_eval_type {
+enum ExprEvalType {
     EK_None = 5001,
     /* arithmetic */
     EK_Add,   // a+b
@@ -59,7 +59,7 @@ enum expr_eval_type {
     EK_Mul,   // a*b
     EK_Div,   // a/b
     EK_Mod,   // a%b
-    EK_Sign,  // +-a
+    EK_Fdiv,  // a/b
     /* comparative */
     EK_Eq,  // =, equal to
     EK_Ne,  // <>, not equal to
@@ -76,9 +76,7 @@ enum expr_eval_type {
     EK_Shr,  // shr
     EK_In,   // in
     /* temporary(will be removed) */
-    EK_Literal,
-    EK_To,
-    EK_Downto
+    EK_Access
 };
 enum errorType {
     NO_PERIOD,        // 缺少句点

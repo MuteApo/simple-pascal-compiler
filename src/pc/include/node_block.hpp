@@ -2,6 +2,7 @@
 #define _NODE_BLOCK_H_
 
 class BlockNode;
+class ProgramNode;
 
 #include "node_expr.hpp"
 #include "node_func.hpp"
@@ -37,8 +38,19 @@ class BlockNode {
     BlockNode(bool              is_g,
               ConstDefListNode *c_defs = nullptr,
               TypeDefListNode  *t_defs = nullptr,
-              VarDefListNode   *v_defs = nullptr)
-            : is_global(is_g), const_defs(c_defs), type_defs(t_defs), var_defs(v_defs) {}
+              VarDefListNode   *v_defs = nullptr,
+              FuncDefListNode  *f_defs = nullptr,
+              StmtListNode     *s      = nullptr)
+            : is_global(is_g),
+              const_defs(c_defs),
+              type_defs(t_defs),
+              var_defs(v_defs),
+              func_defs(f_defs),
+              stmts(s) {}
+
+    void setGlobal() {
+        is_global = true;
+    }
 
     std::string visit(void) {
         std::string asm_code;
@@ -48,6 +60,18 @@ class BlockNode {
         symbol_table.leaveScope();
         return asm_code;
     }
+};
+
+class ProgramNode {
+  private:
+    std::string           name;
+    std::vector<IdNode *> id_list;
+    BlockNode            *block;
+
+  public:
+    ProgramNode(std::string id, BlockNode *b) : name(id), block(b) {}
+    ProgramNode(std::string id, std::vector<IdNode *> i_l, BlockNode *b)
+            : name(id), id_list(i_l), block(b) {}
 };
 
 #endif

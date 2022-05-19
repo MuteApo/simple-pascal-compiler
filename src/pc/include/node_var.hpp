@@ -4,6 +4,8 @@
 class VarDefNode;
 class VarDefListNode;
 
+#include "node_expr.hpp"
+#include "node_type.hpp"
 #include <string>
 #include <vector>
 
@@ -12,11 +14,11 @@ extern std::vector<int> ar_args_length;
 
 class VarDefNode {
   private:
-    std::string name;
-    std::string type_id;
+    std::string   name;
+    TypeAttrNode *type;
 
   public:
-    VarDefNode(std::string name, std::string type_id) : name(name), type_id(type_id) {}
+    VarDefNode(std::string id, TypeAttrNode *t) : name(id), type(t) {}
 
     // Find if "type_id" exists in variable symble table
     bool is_legal();
@@ -38,7 +40,23 @@ class VarDefListNode {
     std::vector<VarDefNode *> var_defs;
 
   public:
-    void append_var_def(VarDefNode *var_def);
+    VarDefListNode() {
+        var_defs.clear();
+    }
+
+    void addVarDef(VarDefNode *var_def) {
+        var_defs.push_back(var_def);
+    }
+
+    void addVarDef(IdListNode *ids, TypeAttrNode *type);
+
+    std::vector<VarDefNode *> &getVarList() {
+        return var_defs;
+    }
+
+    void mergeVarDefList(VarDefListNode *defs) {
+        for (VarDefNode *def : defs->getVarList()) addVarDef(def);
+    }
 
     bool gen_sym_tab(void);
 

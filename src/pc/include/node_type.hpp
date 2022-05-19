@@ -4,6 +4,7 @@
 class TypeDefNode;
 class TypeDefListNode;
 class TypeAttrNode;
+class TypeAttrListNode;
 class BasicAttrNode;
 class OrdAttrNode;
 class SubrangeAttrNode;
@@ -13,6 +14,8 @@ class SetAttrNode;
 class ArrayAttrNode;
 class RecordAttrNode;
 
+#include "node_expr.hpp"
+#include "node_var.hpp"
 #include <set>
 #include <string>
 #include <vector>
@@ -44,7 +47,11 @@ class TypeDefListNode {
     std::vector<TypeDefNode *> type_defs;
 
   public:
-    void append_type_def(TypeDefNode *type_def) {
+    TypeDefListNode() {
+        type_defs.clear();
+    }
+
+    void addTypeDef(TypeDefNode *type_def) {
         type_defs.push_back(type_def);
     }
 
@@ -88,6 +95,10 @@ class TypeAttrNode {
     TypeAttrNode(StructAttrNode *attr_node)
             : TypeAttrNode(structured, "", nullptr, nullptr, attr_node) {}
 
+    std::string getId() {
+        return type_id;
+    }
+
     int get_length(void);
 
     // -1: Fail to get the offset
@@ -104,6 +115,23 @@ class TypeAttrNode {
 
     std::string toString() {
         return "";
+    }
+};
+
+class TypeAttrListNode {
+    std::vector<TypeAttrNode *> type_attrs;
+
+  public:
+    TypeAttrListNode() {
+        type_attrs.clear();
+    }
+
+    void addTypeAttr(TypeAttrNode *type_attr) {
+        type_attrs.push_back(type_attr);
+    }
+
+    std::vector<TypeAttrNode *> getAttrList() {
+        return type_attrs;
     }
 };
 
@@ -136,10 +164,9 @@ class OrdAttrNode {
     friend class ArrayAttrNode;
 
   public:
-    OrdAttrNode(int lower_bound, int upper_bound);
-    OrdAttrNode(char lower_bound, char upper_bound);
-    OrdAttrNode(std::vector<std::string> ids);
-    ~OrdAttrNode();
+    OrdAttrNode(SubrangeAttrNode *s_a)
+            : is_subrange(true), subrange_attr(s_a), enum_attr(nullptr) {}
+    OrdAttrNode(EnumAttrNode *e_a) : is_subrange(false), subrange_attr(nullptr), enum_attr(e_a) {}
 
     int get_length(void);
 
@@ -153,17 +180,12 @@ class OrdAttrNode {
 
 class SubrangeAttrNode {
   private:
-    bool is_int_bound;
-    int  bounds[2] = {0};  // Integer or Char
+    // bool      is_int_bound;
+    ExprNode *low_bound, *up_bound;  // Integer or Char
     friend class OrdAttrNode;
 
-  private:
-    SubrangeAttrNode(int lower_bound, int upper_bound) : is_int_bound(true) {
-        bounds[0] = lower_bound, bounds[1] = upper_bound;
-    }
-    SubrangeAttrNode(char lower_bound, char upper_bound) : is_int_bound(false) {
-        bounds[0] = lower_bound, bounds[1] = upper_bound;
-    }
+  public:
+    SubrangeAttrNode(ExprNode *lb, ExprNode *ub) : low_bound(lb), up_bound(ub) {}
 
     int get_length(void);
 
@@ -178,11 +200,11 @@ class SubrangeAttrNode {
 
 class EnumAttrNode {
   private:
-    std::vector<std::string> identifiers;  // enum translates identifier to integer
+    std::vector<ExprNode *> items;
     friend class OrdAttrNode;
 
   public:
-    EnumAttrNode(std::vector<std::string> ids) : identifiers(ids) {}
+    EnumAttrNode(std::vector<ExprNode *> i) : items(i) {}
 
     int get_length(void);
 
@@ -205,8 +227,8 @@ class StructAttrNode {
     friend class RecordAttrNode;
 
   public:
-    StructAttrNode(std::vector<TypeAttrNode *> it, TypeAttrNode *et);
-    ~StructAttrNode();
+    StructAttrNode(ArrayAttrNode *a_a) : type(array), array_attr(a_a) {}
+    StructAttrNode(RecordAttrNode *r_a) : type(record), record_attr(r_a) {}
 
     int get_length(void);
 
@@ -243,14 +265,12 @@ class ArrayAttrNode {
     bool is_type_equ(ArrayAttrNode *type);
 };
 
-class RecordAttrNode {  // TODO how to design it
+class RecordAttrNode {
   private:
-    std::vector<std::string>    identifiers;
-    std::vector<TypeAttrNode *> types;
+    std::vector<VarDefNode *> defs;
 
   public:
-    RecordAttrNode(std::vector<std::string> ids, std::vector<TypeAttrNode *> ts)
-            : identifiers(ids), types(ts) {}
+    RecordAttrNode(std::vector<VarDefNode *> d) : defs(d) {}
 
     int get_dim();
 

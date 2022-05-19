@@ -161,12 +161,12 @@ class typeRecord : public nodeValue {
 
 class treeNode {
   private:
-    int                    uid;        // used for graphviz
-    std::vector<treeNode*> child;      // vector of children
-    treeNode*              sibling;    // pointer to sibling
-    int                    line_no;    // line number
-    int                    node_kind;  // node kind
-    nodeValue*             value;      // node value
+    int                     uid;        // used for graphviz
+    std::vector<treeNode *> child;      // vector of children
+    treeNode               *sibling;    // pointer to sibling
+    int                     line_no;    // line number
+    int                     node_kind;  // node kind
+    nodeValue              *value;      // node value
 
   public:
     treeNode(int nk, int ln) : node_kind(nk), line_no(ln) {
@@ -175,36 +175,34 @@ class treeNode {
         sibling = nullptr;
         value   = nullptr;
     }
-    treeNode(treeNode* tn1, treeNode* tn2, int nk, int ln) : treeNode(nk, ln) {
+    treeNode(treeNode *tn1, treeNode *tn2, int nk, int ln) : treeNode(nk, ln) {
         addChild(tn1);
         addChild(tn2);
     }
 
-    std::vector<treeNode*>& getChild() {
+    std::vector<treeNode *> &getChild() {
         return child;
     }
-    void addChild(treeNode* c) {
-        if (c != nullptr)
-            child.push_back(c);
+    void addChild(treeNode *c) {
+        if (c != nullptr) child.push_back(c);
     }
-    treeNode* firstChild() {
+    treeNode *firstChild() {
         return child.front();
     }
 
-    treeNode* getSibling() {
+    treeNode *getSibling() {
         return sibling;
     }
-    void setSibling(treeNode* s) {
-        if (s != nullptr)
-            sibling = s;
+    void setSibling(treeNode *s) {
+        if (s != nullptr) sibling = s;
     }
-    treeNode* lastSibling() {
-        treeNode* t = this;
+    treeNode *lastSibling() {
+        treeNode *t = this;
         while (t->getSibling() != nullptr) t = t->getSibling();
         return t;
     }
     /* add tn2 to the end of the sibling linked-list started at tn1 */
-    static treeNode* linkSibling(treeNode* tn1, treeNode* tn2) {
+    static treeNode *linkSibling(treeNode *tn1, treeNode *tn2) {
         if (tn1 != nullptr) {
             tn1->lastSibling()->setSibling(tn2);
             return tn1;
@@ -223,10 +221,10 @@ class treeNode {
         return s;
     }
 
-    nodeValue* getValue() {
+    nodeValue *getValue() {
         return value;
     }
-    void setValue(nodeValue* v) {
+    void setValue(nodeValue *v) {
         value = v;
     }
     void setValue(int i, typeKind t = TK_Int) {
@@ -244,9 +242,8 @@ class treeNode {
                (value == nullptr ? "" : "\\n" + value->toString());
     }
 
-    static void traverse(FILE* file, int d, treeNode* t) {
-        if (t == nullptr)
-            return;
+    static void traverse(FILE *file, int d, treeNode *t) {
+        if (t == nullptr) return;
 
         // std::cout << "$" << t->uid << " " << t->toString() << " "
         //           << (t->value == nullptr ? "" : t->value->toString()) << std::endl;
@@ -262,13 +259,13 @@ class treeNode {
                     t->child[i]->uid);
 
         /* draw child relationship in blue */
-        for (treeNode* c : t->child) {
+        for (treeNode *c : t->child) {
             fprintf(file, "\tnode%d -> node%d [color=blue];\n", t->uid, c->uid);
             traverse(file, d + 1, c);
         }
 
         /* draw sibling relationship in red, if exists */
-        treeNode* s = t->getSibling();
+        treeNode *s = t->getSibling();
         if (s != nullptr) {
             fprintf(file, "\t{rank=same; node%d -> node%d [color=red];}\n", t->uid, s->uid);
             traverse(file, d, s);
@@ -276,6 +273,6 @@ class treeNode {
     }
 };
 
-extern treeNode* root;
+// extern treeNode* root;
 
 #endif

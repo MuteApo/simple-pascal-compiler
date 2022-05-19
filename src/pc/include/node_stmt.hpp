@@ -13,7 +13,9 @@ class ForStmtNode;
 class WhileStmtNode;
 class RepeatStmtNode;
 class CaseStmtNode;
+class CaseListNode;
 class SwitchStmtNode;
+class FuncStmtNode;
 
 class StmtNode {
   private:
@@ -25,6 +27,7 @@ class StmtNode {
     WhileStmtNode  *while_stmt;
     RepeatStmtNode *repeat_stmt;
     SwitchStmtNode *switch_stmt;
+    FuncStmtNode   *func_stmt;
 
   public:
     StmtNode(stmt_type       t,
@@ -34,7 +37,8 @@ class StmtNode {
              ForStmtNode    *f_s,
              WhileStmtNode  *w_s,
              RepeatStmtNode *r_s,
-             SwitchStmtNode *s_s)
+             SwitchStmtNode *s_s,
+             FuncStmtNode   *p_s)
             : type(t),
               compound_stmt(c_s),
               assign_stmt(a_s),
@@ -42,21 +46,32 @@ class StmtNode {
               for_stmt(f_s),
               while_stmt(w_s),
               repeat_stmt(r_s),
-              switch_stmt(s_s) {}
+              switch_stmt(s_s),
+              func_stmt(p_s) {}
     StmtNode(StmtListNode *c_s)
-            : StmtNode(SK_Compound, c_s, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr) {}
+            : StmtNode(
+                  SK_Compound, c_s, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr) {
+    }
     StmtNode(AssignStmtNode *a_s)
-            : StmtNode(SK_Assign, nullptr, a_s, nullptr, nullptr, nullptr, nullptr, nullptr) {}
+            : StmtNode(
+                  SK_Assign, nullptr, a_s, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr) {}
     StmtNode(IfStmtNode *i_s)
-            : StmtNode(SK_If, nullptr, nullptr, i_s, nullptr, nullptr, nullptr, nullptr) {}
+            : StmtNode(SK_If, nullptr, nullptr, i_s, nullptr, nullptr, nullptr, nullptr, nullptr) {}
     StmtNode(ForStmtNode *f_s)
-            : StmtNode(SK_For, nullptr, nullptr, nullptr, f_s, nullptr, nullptr, nullptr) {}
+            : StmtNode(SK_For, nullptr, nullptr, nullptr, f_s, nullptr, nullptr, nullptr, nullptr) {
+    }
     StmtNode(WhileStmtNode *w_s)
-            : StmtNode(SK_While, nullptr, nullptr, nullptr, nullptr, w_s, nullptr, nullptr) {}
+            : StmtNode(
+                  SK_While, nullptr, nullptr, nullptr, nullptr, w_s, nullptr, nullptr, nullptr) {}
     StmtNode(RepeatStmtNode *r_s)
-            : StmtNode(SK_While, nullptr, nullptr, nullptr, nullptr, nullptr, r_s, nullptr) {}
+            : StmtNode(
+                  SK_While, nullptr, nullptr, nullptr, nullptr, nullptr, r_s, nullptr, nullptr) {}
     StmtNode(SwitchStmtNode *s_s)
-            : StmtNode(SK_While, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, s_s) {}
+            : StmtNode(
+                  SK_While, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, s_s, nullptr) {}
+    StmtNode(FuncStmtNode *p_s)
+            : StmtNode(
+                  SK_While, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, p_s) {}
 
     std::string gen_asm_code();
 };
@@ -66,7 +81,11 @@ class StmtListNode {
     std::vector<StmtNode *> stmts;
 
   public:
-    void append_stmt(StmtNode *stmt) {
+    StmtListNode() {
+        stmts.clear();
+    }
+
+    void addStmt(StmtNode *stmt) {
         stmts.push_back(stmt);
     }
 
@@ -90,12 +109,12 @@ class AssignStmtNode {
 
 class IfStmtNode {
   private:
-    ExprNode     *expr;
-    StmtListNode *then_part;
-    StmtListNode *else_part;
+    ExprNode *expr;
+    StmtNode *then_part;
+    StmtNode *else_part;
 
   public:
-    IfStmtNode(ExprNode *e, StmtListNode *t_p, StmtListNode *e_p = nullptr)
+    IfStmtNode(ExprNode *e, StmtNode *t_p, StmtNode *e_p = nullptr)
             : expr(e), then_part(t_p), else_part(e_p) {}
 
     std::string gen_asm_code();
@@ -103,54 +122,83 @@ class IfStmtNode {
 
 class ForStmtNode {  // TODO
   private:
-    std::string   name;
-    ExprNode     *start_expr;
-    ExprNode     *end_expr;
-    StmtListNode *body_part;
+    std::string name;
+    bool        is_to;
+    ExprNode   *start_expr;
+    ExprNode   *end_expr;
+    StmtNode   *body_part;
 
   public:
+    ForStmtNode(std::string id, bool is_t, ExprNode *s_e, ExprNode *e_e, StmtNode *b_p)
+            : name(id), is_to(is_t), start_expr(s_e), end_expr(e_e), body_part(b_p) {}
 };
 
 class WhileStmtNode {
   private:
-    ExprNode     *condition;
-    StmtListNode *body_part;
+    ExprNode *condition;
+    StmtNode *body_part;
 
   public:
-    WhileStmtNode(ExprNode *c, StmtListNode *b_p) : condition(c), body_part(b_p) {}
+    WhileStmtNode(ExprNode *c, StmtNode *b_p) : condition(c), body_part(b_p) {}
 
     std::string gen_asm_code();
 };
 
 class RepeatStmtNode {
   private:
-    ExprNode     *condition;
     StmtListNode *body_part;
+    ExprNode     *condition;
 
   public:
-    RepeatStmtNode(ExprNode *c, StmtListNode *b_p) : condition(c), body_part(b_p) {}
+    RepeatStmtNode(StmtListNode *b_p, ExprNode *c) : body_part(b_p), condition(c) {}
 
     std::string gen_asm_code();
 };
 
 class CaseStmtNode {
   private:
-    ConstDefListNode *const_list;
-    StmtListNode     *body_part;
+    ConstListNode *const_list;
+    StmtNode      *body_part;
 
   public:
-    CaseStmtNode(ConstDefListNode *c_l, StmtListNode *b_p) : const_list(c_l), body_part(b_p) {}
+    CaseStmtNode(ConstListNode *c_l, StmtNode *b_p) : const_list(c_l), body_part(b_p) {}
 
     std::string gen_asm_code();
 };
 
-class SwitchStmtNode {
+class CaseListNode {
   private:
-    ExprNode                   *condition;
     std::vector<CaseStmtNode *> case_list;
 
   public:
-    SwitchStmtNode(ExprNode *c, std::vector<CaseStmtNode *> c_l) : condition(c), case_list(c_l) {}
+    CaseListNode() {
+        case_list.clear();
+    }
+
+    void addCase(CaseStmtNode *c) {
+        case_list.push_back(c);
+    }
+
+    std::vector<CaseStmtNode *> &getCaseList() {
+        return case_list;
+    }
+};
+
+class SwitchStmtNode {
+  private:
+    ExprNode     *condition;
+    CaseListNode *case_list;
+
+  public:
+    SwitchStmtNode(ExprNode *c, CaseListNode *c_l) : condition(c), case_list(c_l) {}
+};
+
+class FuncStmtNode {
+  private:
+    FuncNode *func;
+
+  public:
+    FuncStmtNode(FuncNode *f) : func(f) {}
 };
 
 #endif

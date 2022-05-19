@@ -3,6 +3,7 @@
 
 class ConstDefNode;
 class ConstDefListNode;
+class ConstListNode;
 
 #include "node_expr.hpp"
 #include "symbol_table.hpp"
@@ -10,15 +11,11 @@ class ConstDefListNode;
 
 class ConstDefNode {
   private:
-    std::string  name;
-    LiteralNode *value;
+    std::string name;
+    ExprNode   *value;
 
   public:
-    ConstDefNode(std::string id) : name(id) {}
-
-    template <class T> T get_value() {
-        return value->get_value<T>();
-    }
+    ConstDefNode(std::string id, ExprNode *v) : name(id), value(v) {}
 
     void add_to_symtbl();
 
@@ -32,13 +29,35 @@ class ConstDefListNode {
     std::vector<ConstDefNode *> const_defs;
 
   public:
-    void append_const_def(ConstDefNode *const_def) {
+    ConstDefListNode() {
+        const_defs.clear();
+    }
+
+    void addConstDef(ConstDefNode *const_def) {
         const_defs.push_back(const_def);
     }
 
     bool gen_sym_tab(void);
 
     std::string gen_asm_def(void);
+};
+
+class ConstListNode {
+  private:
+    std::vector<ExprNode *> const_list;
+
+  public:
+    ConstListNode() {
+        const_list.clear();
+    }
+
+    void addConst(ExprNode *const_expr) {
+        const_list.push_back(const_expr);
+    }
+
+    std::vector<ExprNode *> &getConstList() {
+        return const_list;
+    }
 };
 
 #endif

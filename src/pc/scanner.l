@@ -4,6 +4,13 @@
 %{
 #include "include/defs.hpp"
 #include "include/tree.hpp"
+#include "include/node_const.hpp"
+#include "include/node_type.hpp"
+#include "include/node_var.hpp"
+#include "include/node_func.hpp"
+#include "include/node_stmt.hpp"
+#include "include/node_expr.hpp"
+#include "include/node_block.hpp"
 #include "parser.tab.h"
 #include <cstdio>
 
