@@ -64,9 +64,9 @@ uint32_t get_j_type_imm(uint32_t code) {
     uint32_t result = 0, temp;
     uint16_t bit_20, part_19_12, bit_11, part_10_1;
     temp = get_u_type_imm(code);
-    part_10_1 = (result & (0x3FF << 9)) >> 9;
+    part_10_1 = (temp & (0x3FF << 9)) >> 9;
     bit_11 = (temp & (0x1 << 8)) >> 8;
-    part_19_12 = result & 0xFF;
+    part_19_12 = temp & 0xFF;
     bit_20 = (temp & (0x1 << 19)) >> 19;
     result |= part_10_1 << 1;
     result |= bit_11 << 11;

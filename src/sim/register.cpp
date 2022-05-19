@@ -39,15 +39,13 @@ bool write_register(unsigned char id, uint32_t data) {
 }
 
 string reg2alias(unsigned char id) {
-    if (id > 31)
-        return "illegal";
     if (id >= 5 && id <= 7) {
         return "t" + to_string(id - 5);
     } else if (id >= 28 && id <= 31) {
         return "t" + to_string(id - 28 + 3);
     } else if (id >= 8 && id <= 9) {
         if (id == 8)
-            return "s0/fp";
+            return "fp"; // aka s0
         return "s1";
     } else if (id >= 18 && id <= 27) {
         return "s" + to_string(id - 18 + 2);
@@ -65,5 +63,7 @@ string reg2alias(unsigned char id) {
         return "gp";
     case 4:
         return "tp";
+    default: // id > 31
+        return "illegal";
     }
 }

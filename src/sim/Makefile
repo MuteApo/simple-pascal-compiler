@@ -1,6 +1,7 @@
 .PHONY: all clean
 
 CC = g++
+CFLAG = -std=c++11 -Wall
 EXE = rvsim
 OBJ = ram.o ecall.o register.o code2inst.o cpu.o main.o 
 
@@ -10,7 +11,7 @@ $(EXE): $(OBJ)
 	$(CC) -o $@ $^
 
 %o: %cpp
-	$(CC) -c $<
+	$(CC) $(CFLAG) -c $<
 
 clean:
 	$(shell rm *.o $(EXE))

@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
             ram_size = strtol(argv[i + 1], NULL, 16);
+            ram_size &= ~((uint32_t)0b11);
             i += 1;
         } else if (strcmp(argv[i], "-b") == 0) {
             if (i + 1 >= argc || argv[i + 1][0] == '-') {
@@ -35,13 +36,15 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
             load_base = strtol(argv[i + 1], NULL, 16);
+            load_base &= ~((uint32_t)0b11); // Align to 1 word
             i += 1;
         } else if (strcmp(argv[i], "-r") == 0) {
             if (i + 1 >= argc || argv[i + 1][0] == '-') {
                 printf("missing address after '-r'\n");
                 return 1;
             }
-            strtol(argv[i + 1], NULL, 16);
+            init_pc = strtol(argv[i + 1], NULL, 16);
+            init_pc &= ~((uint32_t)0b11);
             i += 1;
         } else if (strcmp(argv[i], "-h") == 0) {
             printf("Simple RISC-V VM Simulator, version 0.1\n");
@@ -58,7 +61,10 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
-    init_ram(binary_file, load_base, ram_size);
+    if(!init_ram(binary_file, load_base, ram_size)){
+        printf("RAM size is too small\n");
+        return 1;
+    }
     fclose(binary_file);
     if (debug_flag)
         return (debug_cpu(init_pc) == false);
