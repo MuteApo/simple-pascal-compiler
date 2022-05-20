@@ -34,8 +34,10 @@ void init_asm(uint32_t init_stack_top) {
     }
     fprintf(asm_file, ".text\n");
     fprintf(asm_file, "init:\n");
-    uint32_t low_12_bits = init_stack_top & 0xFFFFF;
-    uint32_t high_20_bits = (init_stack_top & ~(uint32_t)0xFFFFF) >> 12;
+    int32_t low_12_bits = init_stack_top & 0xFFF;
+    if (low_12_bits & 0x800)
+        low_12_bits |= ~0xFFF;
+    int32_t high_20_bits = (init_stack_top - low_12_bits) >> 12;
     fprintf(asm_file, "\tlui sp, %d\n", high_20_bits);
     fprintf(asm_file, "\taddi sp, sp, %d\n", low_12_bits);
 }
@@ -75,20 +77,25 @@ string get_reg_xchg(uchar dst_reg, uchar src_reg) {
     return res;
 }
 
-string get_basic_calc(string operation, bool is_unsigned, bool use_imm_src2,
-                      int32_t imm) {
+string get_load_imm(int32_t imm) {
+    string res = "";
+    int32_t low_12_bits = imm & 0xFFF;
+    if (low_12_bits & 0x800)
+        low_12_bits |= ~0xFFF;
+    int32_t high_20_bits = (imm - low_12_bits) >> 12;
+    res += "lui t1, " + to_string(high_20_bits) + "\n";
+    res += "addi t1, t1, " + to_string(low_12_bits) + "\n";
+    return res;
+}
+
+string get_basic_calc(string operation, bool is_unsigned) {
     string res = "";
     if (operation == "not") {
         operation = "xor";
-        use_imm_src2 = true;
-        imm = 0xFFFFFFFF;
-    }
-    if (use_imm_src2) {
-        uint32_t low_12_bits = imm & 0xFFFFF;
-        uint32_t high_20_bits = ((uint32_t)imm & ~(uint32_t)0xFFFFF) >> 12;
-        res += "addi t2, t2, 0\n";
-        res += "lui t2, " + to_string(high_20_bits) + "\n";
-        res += "addi t2, t0, " + to_string(low_12_bits) + "\n";
+        res += get_reg_xchg(s1, t1);
+        res += get_load_imm(0xFFFFFFFF);
+        res += get_reg_xchg(t2, t1);
+        res += get_reg_xchg(t1, s1);
     }
     if (operation == "add" || operation == "sub") {
         if (operation == "add")
@@ -99,9 +106,9 @@ string get_basic_calc(string operation, bool is_unsigned, bool use_imm_src2,
             // add: t0 < t1 + t2, overflow
             // sub: t1 < t2, overflow
             if (operation == "add")
-                res += "bgeu t0, t1, 24\n";
+                res += "bgeu t0, t1, 28\n";
             else
-                res += "bgeu t1 ,t2, 24\n";
+                res += "bgeu t1 ,t2, 28\n";
             res += "addi a0, x0, 2\n";
             res += "la a1, @msg_unsigned_overflow\n";
             res += "ecall\n";
@@ -118,7 +125,7 @@ string get_basic_calc(string operation, bool is_unsigned, bool use_imm_src2,
                 res += "slt t4, t0, t1\n";
             else
                 res += "slt t4, t1, t0\n";
-            res += "beq t3, t4, 24\n";
+            res += "beq t3, t4, 28\n";
             res += "addi a0, x0, 2\n";
             res += "la a1, @msg_signed_overflow\n";
             res += "ecall\n";
@@ -147,18 +154,18 @@ string get_basic_calc(string operation, bool is_unsigned, bool use_imm_src2,
         if (is_unsigned) {
             if (operation == "mul") {
                 res += "addi t0, x0, 0\n";
-                res += "beq t2, x0, 40\n";
+                res += "beq t2, x0, 44\n";
                 res += "addi t3, t0, 0\n";
                 res += "add t0, t0, t1\n";
-                res += "bgeu t0, t3, 20\n";
-                res += "la a1, @msg_unsigned_overflow\n";
+                res += "bgeu t0, t3, 24\n";
+                res += "la a1, @msg_unsigned_overflow\n"; // two instructions
                 res += "ecall\n";
                 res += "addi a0, x0, 0\n";
                 res += "ecall\n";
-                res += "subi t2, t2, 1\n";
-                res += "beq x0, x0, -36\n";
+                res += "addi t2, t2, -1\n";
+                res += "beq x0, x0, -40\n";
             } else if (operation == "div" || operation == "mod") {
-                res += "bne t2, x0, 20\n";
+                res += "bne t2, x0, 24\n";
                 res += "la a1, @msg_div_zero\n";
                 res += "ecall\n";
                 res += "addi a0, x0, 0\n";
@@ -170,7 +177,7 @@ string get_basic_calc(string operation, bool is_unsigned, bool use_imm_src2,
                 res += "beq x0, x0, -12\n";
                 res += "beq t1, x0, 12\n";
                 res += "add t1, t1, t2\n"; // Compensite for over-sub
-                res += "subi t0, t0, 1\n";
+                res += "addi t0, t0, -1\n";
                 if (operation == "mod") // Return remainder rather than quotient
                     res += "addi t0, t1, 0";
             }
@@ -183,13 +190,13 @@ string get_basic_calc(string operation, bool is_unsigned, bool use_imm_src2,
                 res += "slt s1, t1, 0\n";
             }
             res += "beq t3, x0, 8\n";
-            res += "subi t1, t1, 0\n"; // t1 = -t1, never overflow
+            res += "sub t1, x0, t1\n"; // t1 = -t1, never overflow
             res += "beq t4, x0, 8\n";
-            res += "subi t1, t2, 0\n";              // t2 = -t2
+            res += "sub t2, x0, t2\n";              // t2 = -t2
             res += get_basic_calc(operation, true); // do unsigned mul/div/mod
             res += "beq s1, x0, 28\n";
             res += "sub t0, x0, t0\n";
-            res += "blt t0, x0, 20\n";
+            res += "blt t0, x0, 24\n";
             res += "la a1, @msg_signed_overflow\n";
             res += "ecall\n";
             res += "addi a0, x0, 0\n";
@@ -198,10 +205,8 @@ string get_basic_calc(string operation, bool is_unsigned, bool use_imm_src2,
     } else if (operation == "neg") { // No overflow check
         res += "sub t0, x0, t1\n";
     } else if (operation == "cmp_le") {
-        res += get_basic_calc("cmp_gt", is_unsigned);
         res += get_reg_xchg(t1, t0);
-        // Logical "NOT" for Single Bit
-        res += get_basic_calc("xor", true, true, 0x1);
+        res += get_basic_calc("cmp_ge", is_unsigned);
     } else if (operation == "cmp_gt") {
         res += get_reg_xchg(t1, t2);
         res += get_basic_calc("cmp_lt", is_unsigned);
@@ -228,8 +233,6 @@ string get_basic_calc(string operation, bool is_unsigned, bool use_imm_src2,
     }
     return res;
 }
-
-
 
 /************************** Memory Load-Store **************************/
 // Always load memory cell to t1, and write t0 to memory cell
@@ -262,8 +265,8 @@ string get_mem_copy(uint32_t dst_offset, uint32_t src_offset, uint32_t size,
 // func/proc's perem/retval is always in stack
 // func/proc's Activation Record:
 // ------------------------------ (High Address)
-// |          List of           | {Leftest in arg list is at lowest addr,}
-// |         Parameters         | {and field of arg is stored reversly}
+// |          List of           | {Leftest in arg list is at lowest addr}
+// |         Parameters         |
 // ------------------------------
 // |        Return Value        | {4 bytes, only for func, BasicRealType}
 // ------------------------------
@@ -332,7 +335,7 @@ bool write_segment(string snippet, bool data_seg) {
         return false;
     for (int i = 0; i < snippet.length(); i++) {
         if (i == 0)
-            printf("\t");
+            fprintf(asm_file, "\t");
         fprintf(asm_file, "%c", snippet[i]);
         if (snippet[i] == '\n' && i != snippet.length() - 1)
             fprintf(asm_file, "\t");
