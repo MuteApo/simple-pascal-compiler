@@ -3,6 +3,7 @@
 
 #include "error_handler.hpp"
 #include "node_const.hpp"
+#include "node_func.hpp"
 #include "node_type.hpp"
 #include "node_var.hpp"
 #include <list>
@@ -23,8 +24,7 @@ class ConstTableItem : public TableItem {
   public:
     ConstDefNode *const_def;
 
-    ConstTableItem(std::string id, int lv, ConstDefNode *const_)
-            : TableItem(id, lv), const_def(const_) {}
+    ConstTableItem(std::string id, int lv, ConstDefNode *c_d) : TableItem(id, lv), const_def(c_d) {}
 
     std::string toString();
 };
@@ -33,8 +33,7 @@ class TypeTableItem : public TableItem {
   public:
     TypeAttrNode *type_attr;
 
-    TypeTableItem(std::string id, int lv, TypeAttrNode *type)
-            : TableItem(id, lv), type_attr(type) {}
+    TypeTableItem(std::string id, int lv, TypeAttrNode *t_a) : TableItem(id, lv), type_attr(t_a) {}
 
     std::string toString();
 };
@@ -44,12 +43,21 @@ class VarTableItem : public TableItem {
     VarDefNode *var_def;
     int         order;  // order in the scope of the same level
 
-    VarTableItem(std::string id, int lv, VarDefNode *var, int ord)
-            : TableItem(id, lv), var_def(var), order(ord) {}
+    VarTableItem(std::string id, int lv, VarDefNode *v_d, int ord)
+            : TableItem(id, lv), var_def(v_d), order(ord) {}
 
     bool operator<(const VarTableItem &rhs) const {
         return level < rhs.level || level == rhs.level && order < rhs.order;
     }
+
+    std::string toString();
+};
+
+class FuncTableItem : public TableItem {
+  public:
+    FuncDefNode *func_def;
+
+    FuncTableItem(std::string id, int lv, FuncDefNode *f_d) : TableItem(id, lv), func_def(f_d) {}
 
     std::string toString();
 };
@@ -61,12 +69,12 @@ class SymbolTable {
     std::map<std::string, std::list<ConstTableItem>> ConstDeclMap;
     std::map<std::string, std::list<TypeTableItem>>  TypeDeclMap;
     std::map<std::string, std::list<VarTableItem>>   VarDeclMap;
-    // std::map<std::string, std::list<TableItem>> FuncDeclMap;
-    // std::map<std::string, std::list<TableItem>> ProcDeclMap;
+    std::map<std::string, std::list<FuncTableItem>>  FuncDeclMap;
 
     void popConstSymbol();
     void popTypeSymbol();
     void popVarSymbol();
+    void popFuncSymbol();
 
   public:
     errorHandler err;
@@ -75,20 +83,22 @@ class SymbolTable {
 
     int getLevel();
 
-    int addSymbol(std::string id, ConstDefNode *const_);
-    int addSymbol(std::string id, TypeAttrNode *type);
-    int addSymbol(std::string id, VarDefNode *var, int ord);
+    bool addSymbol(std::string id, ConstDefNode *c_d);
+    bool addSymbol(std::string id, TypeAttrNode *t_a);
+    bool addSymbol(std::string id, VarDefNode *v_d, int ord);
+    bool addSymbol(std::string id, FuncDefNode *f_d);
 
     ConstDefNode *findConstSymbol(std::string id);
     TypeAttrNode *findTypeSymbol(std::string id);
     VarDefNode   *findVarSymbol(std::string id);
+    FuncDefNode  *findFuncSymbol(std::string id);
 
     std::vector<ConstDefNode *> getValidConsts();
     std::vector<TypeAttrNode *> getValidTypes();
     std::vector<VarDefNode *>   getValidVars();
+    std::vector<FuncDefNode *>  getValidFuncs();
 
-    std::set<VarTableItem>
-    getVarScope(const std::map<std::string, std::list<VarTableItem>> &decl_map, int level);
+    std::set<VarTableItem> getVarScope(int level);
 
     template <class T> void printSymbol(const std::map<std::string, std::list<T>> &decl_map);
 

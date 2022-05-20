@@ -5,6 +5,10 @@ bool VarDefNode::is_legal() {
     return symbol_table.findTypeSymbol(type->getId()) != nullptr;
 }
 
+bool VarDefNode::gen_sym_tab(int ord) {
+    return symbol_table.addSymbol(name, this, ord);
+}
+
 int VarDefNode::get_length(void) {
     TypeAttrNode *type_def = symbol_table.findTypeSymbol(type->getId());
     if (type_def == nullptr) return -1;
@@ -25,14 +29,15 @@ std::string VarDefNode::gen_viz_code() {
 }
 
 bool VarDefListNode::gen_sym_tab(void) {
-    bool succeed      = true;
+    bool result       = true;
     int  lvars_length = 0;
+    int  ord          = 0;
     for (VarDefNode *var : var_defs) {
-        succeed &= var->gen_sym_tab();
+        result &= var->gen_sym_tab(ord++);
         lvars_length += var->get_length();
     }
     ar_lvars_length.push_back(lvars_length);
-    return succeed;
+    return result;
 }
 
 void VarDefListNode::addVarDef(IdListNode *ids, TypeAttrNode *type) {

@@ -32,7 +32,7 @@ class ConstDefNode {
         return result;
     }
 
-    void add_to_symtbl();
+    bool gen_sym_tab();
 
     std::string toString() {
         return "";
@@ -66,7 +66,11 @@ class ConstDefListNode {
         return result;
     }
 
-    bool gen_sym_tab(void);
+    bool gen_sym_tab() {
+        bool result = true;
+        for (ConstDefNode *def : const_defs) result &= def->gen_sym_tab();
+        return result;
+    }
 
     std::string gen_asm_def(void);
 };

@@ -38,3 +38,12 @@ std::string StmtNode::gen_viz_code() {
     }
     return result;
 }
+
+std::string CaseStmtNode::gen_viz_code() {
+    std::string result = vizNode(uid, "CaseStmtNode");
+    result += vizChildEdge(uid, const_list->getUid());
+    result += const_list->gen_viz_code();
+    result += vizChildEdge(uid, body_part->getUid());
+    result += body_part->gen_viz_code();
+    return result;
+}

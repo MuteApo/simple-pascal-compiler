@@ -1,9 +1,8 @@
 #include "include/node_type.hpp"
 #include "include/symbol_table.hpp"
 
-int TypeDefNode::gen_sym_tab(void) {
+bool TypeDefNode::gen_sym_tab() {
     return symbol_table.addSymbol(name, type);
-    // TODO: insert all enum identifier to const symtbl
 }
 
 std::string TypeDefNode::gen_viz_code() {

@@ -14,4 +14,10 @@ template <class T> std::string to_string(T v) {
     return oss.str();
 }
 
+template <class T> std::string to_hexstr(T v) {
+    std::ostringstream oss;
+    oss << std::showbase << std::uppercase << std::hex << (0xFFFFFFFF & (unsigned long long)v);
+    return oss.str();
+}
+
 #endif
