@@ -67,9 +67,10 @@ int main(int argc, char *argv[]) {
             printf("Simple RISC-V Assembler, version 0.1\n");
             printf("-i <file> Use <file> as source input (default: stdin)\n");
             printf("-o <file> Place the HEX text output into <file> (default: "
-                   "target.hex)");
-            printf("-s Print symbol table during assembling");
+                   "target.hex)\n");
+            printf("-s Print symbol table during assembling\n");
             printf("-h Show this information\n");
+            return 0;
         } else {
             printf("unrecognized command line option %s\n", argv[i]);
             return 1;

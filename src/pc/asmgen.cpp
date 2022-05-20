@@ -5,7 +5,7 @@
 
 using namespace std;
 
-typedef unsigned char uchar;
+#include "include/asmgen.hpp"
 
 bool in_code_segment;
 bool in_data_segment;
@@ -17,7 +17,7 @@ static map<string, string> internal_msg = {
     {"msg_unsigned_overflow", "illegal: unsigned arithmetic overflow"},
     {"msg_out_of_bounds", "illegal: access out of bounds"}};
 
-bool start_asm(std::string filename, uint32_t init_stack_top = 0x1FFFF) {
+bool start_asm(std::string filename, uint32_t init_stack_top) {
     if (asm_file != NULL)
         return false;
     in_code_segment = in_data_segment = false;
@@ -33,8 +33,8 @@ void add_internal(uint32_t init_stack_top) {
     fprintf(asm_file, ".data\n");
     map<string, string>::iterator p = internal_msg.begin();
     while (p != internal_msg.end()) {
-        fprintf(asm_file, "@%s:\n", p->first);
-        fprintf(asm_file, "\t.asciiz \"%s\"\n", p->second);
+        fprintf(asm_file, "@%s:\n", p->first.data());
+        fprintf(asm_file, "\t.asciiz \"%s\"\n", p->second.data());
         fprintf(asm_file, "\t.align 4\n");
         p++;
     }
@@ -118,8 +118,8 @@ string get_stmt_case() {}
 // `Atom` Calculation is for Integer
 // sub, mul, div, mod and neg is implement by software for strict overflow check
 
-string get_complex_calc(string complex_op, bool is_unsigned = true,
-                        bool use_imm_src2 = false, int32_t imm = 0) {
+string get_complex_calc(string complex_op, bool is_unsigned, bool use_imm_src2,
+                        int32_t imm) {
     string res = "";
     if (complex_op == "mul") {
 
@@ -135,8 +135,8 @@ string get_complex_calc(string complex_op, bool is_unsigned = true,
     return res;
 }
 
-string get_basic_calc(string basic_op, bool is_unsigned = true,
-                      bool use_imm_src2 = false, int32_t imm = 0) {
+string get_basic_calc(string basic_op, bool is_unsigned, bool use_imm_src2,
+                      int32_t imm) {
     string res = "";
     if (basic_op == "not") {
         basic_op = "xor";
@@ -217,10 +217,10 @@ string get_copy_globl2local(uint32_t dst_offset, string globl_name,
 // dir = 1: write, from reg to mem
 // is_signed: only for read operation
 string get_local_access(uint32_t offset, uint32_t size, bool dir,
-                        bool is_signed = false) {}
+                        bool is_signed) {}
 
 string get_globl_access(string name, uint32_t offset, uint32_t size, bool dir,
-                        bool is_signed = false) {}
+                        bool is_signed) {}
 
 /********************** Function or Procedure Call **********************/
 

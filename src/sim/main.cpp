@@ -6,12 +6,27 @@
 
 using namespace std;
 
+void display_help(void) {
+    printf("Simple RISC-V VM Simulator, version 0.1\n");
+    printf("Usage: rvsim <binary> (<options>)\n");
+    printf("-d Start up simulation with debug window\n");
+    printf("-s <size> Set maximum RAM <size> from 0x0\n");
+    printf("-b <addr> Load binary into base <addr> (HEX, default: 0x0)\n");
+    printf("-r <addr> Set PC to <addr> when reset (HEX, default: 0x0)\n");
+    printf("-h Show this information\n");
+}
+
 int main(int argc, char *argv[]) {
     uint32_t load_base = 0, ram_size = -1, init_pc = 0;
     bool debug_flag = false;
-    if (argc < 2 || argv[1][0] == '-') {
-        printf("missing binary filename\n");
-        return 1;
+    if (argc <= 2) {
+        if (argc == 2 && strcmp(argv[1], "-h") == 0) {
+            display_help();
+            return 0;
+        } else {
+            printf("missing binary filename\n");
+            return 1;
+        }
     }
     string binary_filename = string(argv[1]);
     FILE *binary_file = fopen(binary_filename.data(), "rb");
@@ -47,21 +62,13 @@ int main(int argc, char *argv[]) {
             init_pc &= ~((uint32_t)0b11);
             i += 1;
         } else if (strcmp(argv[i], "-h") == 0) {
-            printf("Simple RISC-V VM Simulator, version 0.1\n");
-            printf("Usage: rvsim <binary> (<options>)\n");
-            printf("-d Start up simulation with debug mode\n");
-            printf("-s <size> Set maximum RAM <size> from 0x0\n");
-            printf(
-                "-b <addr> Load binary into base <addr> (HEX, default: 0x0)\n");
-            printf(
-                "-r <addr> Set PC to <addr> when reset (HEX, default: 0x0)\n");
-            printf("-h Show this information\n");
+            display_help();
         } else {
             printf("unrecognized command line option %s\n", argv[i]);
             return 1;
         }
     }
-    if(!init_ram(binary_file, load_base, ram_size)){
+    if (!init_ram(binary_file, load_base, ram_size)) {
         printf("RAM size is too small\n");
         return 1;
     }

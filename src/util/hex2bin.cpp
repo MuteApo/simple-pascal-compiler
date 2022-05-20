@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
             i += 1;
         } else if (strcmp(argv[i], "-h") == 0) {
             printf("HEX Vector Text File to Binary File Converter\n");
-            printf("HEX vector can be 1, 2, 4 bytes wide");
+            printf("HEX vector can be 1, 2, 4 bytes wide\n");
             printf("Binary is in little-endian\n");
             printf("Please put each vector in a line\n");
             printf("-i <file> Use text <file> as input (default: stdin)\n");

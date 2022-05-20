@@ -11,7 +11,7 @@
 // J-Type: jal, I-Type: jalr
 // U-Type: lui auipc
 
-typedef enum opcode_type {
+typedef enum {
     alu_reg = 101, // R-Type Format
     alu_imm,       // I-Type Format
     load,          // I-Type Format
@@ -22,7 +22,8 @@ typedef enum opcode_type {
     lui,           // U-Type Format
     auipc,         // U-Type Format
     sys            // I-Type Format
-};
+} opcode_type;
+
 const std::map<opcode_type, uint8_t> inst_opcode = {
     {alu_reg, 0b0110011}, {alu_imm, 0b0010011}, {store, 0b0100011},
     {load, 0b0000011},    {branch, 0b1100011},  {lui, 0b0110111},
