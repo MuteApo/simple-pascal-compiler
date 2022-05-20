@@ -1,115 +1,132 @@
 #include "include/symbol_table.hpp"
-using namespace std;
 
 SymbolTable symbol_table;
 
-string TableItem::toString() {
+std::string TableItem::toString() {
     return "<TableItem Root Class>";
 }
-string ConstTableItem::toString() {
-    return "\t[name: " + name + "\tlevel: " + to_string(level) +
-           "\tconst: " + const_def->toString() + "]";
+std::string ConstTableItem::toString() {
+    return "\t[level: " + to_string(level) + "]";
 }
-string TypeTableItem::toString() {
-    return "\t[name: " + name + "\tlevel: " + to_string(level) +
-           "\ttype: " + type_attr->toString() + "]";
+std::string TypeTableItem::toString() {
+    return "\t[level: " + to_string(level) + "]";
 }
-string VarTableItem::toString() {
-    return "\t[name: " + name + "\tlevel: " + to_string(level) + "\torder: " + to_string(order) +
-           "\tvar: " + var_def->toString() + "]";
+std::string VarTableItem::toString() {
+    return "\t[level: " + to_string(level) + "\torder: " + to_string(order) + "]";
+}
+std::string FuncTableItem::toString() {
+    return "\t[level: " + to_string(level) + "]";
 }
 
 int SymbolTable::getLevel() {
     return currLevel;
 }
 
-int SymbolTable::addSymbol(string id, ConstDefNode* const_) {
+bool SymbolTable::addSymbol(std::string id, ConstDefNode *c_d) {
     auto item = ConstDeclMap.find(id);
     if (item == ConstDeclMap.end()) {
-        ConstDeclMap.insert(make_pair(id, list<ConstTableItem>()));
+        ConstDeclMap.insert(make_pair(id, std::list<ConstTableItem>()));
         item = ConstDeclMap.find(id);
     }
-    if (!item->second.empty() && item->second.front().level >= currLevel) return -1;
-    item->second.push_front(ConstTableItem(id, currLevel, const_));
-    return 0;
+    if (!item->second.empty() && item->second.front().level >= currLevel) return false;
+    item->second.push_front(ConstTableItem(id, currLevel, c_d));
+    return true;
 }
-int SymbolTable::addSymbol(string id, TypeAttrNode* type) {
+bool SymbolTable::addSymbol(std::string id, TypeAttrNode *t_a) {
     auto item = TypeDeclMap.find(id);
     if (item == TypeDeclMap.end()) {
-        TypeDeclMap.insert(make_pair(id, list<TypeTableItem>()));
+        TypeDeclMap.insert(make_pair(id, std::list<TypeTableItem>()));
         item = TypeDeclMap.find(id);
     }
-    if (!item->second.empty() && item->second.front().level >= currLevel) return -1;
-    item->second.push_front(TypeTableItem(id, currLevel, type));
-    return 0;
+    if (!item->second.empty() && item->second.front().level >= currLevel) return false;
+    item->second.push_front(TypeTableItem(id, currLevel, t_a));
+    return true;
 }
-int SymbolTable::addSymbol(string id, VarDefNode* var, int ord) {
+bool SymbolTable::addSymbol(std::string id, VarDefNode *v_d, int ord) {
     auto item = VarDeclMap.find(id);
     if (item == VarDeclMap.end()) {
-        VarDeclMap.insert(make_pair(id, list<VarTableItem>()));
+        VarDeclMap.insert(make_pair(id, std::list<VarTableItem>()));
         item = VarDeclMap.find(id);
     }
-    if (!item->second.empty() && item->second.front().level >= currLevel) return -1;
-    item->second.push_front(VarTableItem(id, currLevel, var, ord));
-    return 0;
+    if (!item->second.empty() && item->second.front().level >= currLevel) return false;
+    item->second.push_front(VarTableItem(id, currLevel, v_d, ord));
+    return true;
+}
+bool SymbolTable::addSymbol(std::string id, FuncDefNode *f_d) {
+    auto item = FuncDeclMap.find(id);
+    if (item == FuncDeclMap.end()) {
+        FuncDeclMap.insert(make_pair(id, std::list<FuncTableItem>()));
+        item = FuncDeclMap.find(id);
+    }
+    if (!item->second.empty() && item->second.front().level >= currLevel) return false;
+    item->second.push_front(FuncTableItem(id, currLevel, f_d));
+    return true;
 }
 
 void SymbolTable::popConstSymbol() {
-    for (auto& it : ConstDeclMap)
+    for (auto &it : ConstDeclMap)
         if (!it.second.empty())
             if (it.second.front().level == currLevel) it.second.pop_front();
 }
 void SymbolTable::popTypeSymbol() {
-    for (auto& it : TypeDeclMap)
+    for (auto &it : TypeDeclMap)
         if (!it.second.empty())
             if (it.second.front().level == currLevel) it.second.pop_front();
 }
 void SymbolTable::popVarSymbol() {
-    for (auto& it : VarDeclMap)
+    for (auto &it : VarDeclMap)
+        if (!it.second.empty())
+            if (it.second.front().level == currLevel) it.second.pop_front();
+}
+void SymbolTable::popFuncSymbol() {
+    for (auto &it : FuncDeclMap)
         if (!it.second.empty())
             if (it.second.front().level == currLevel) it.second.pop_front();
 }
 
-ConstDefNode* SymbolTable::findConstSymbol(string id) {
+ConstDefNode *SymbolTable::findConstSymbol(std::string id) {
     auto item = ConstDeclMap.find(id);
     return item == ConstDeclMap.end() ? nullptr : item->second.front().const_def;
 }
-TypeAttrNode* SymbolTable::findTypeSymbol(string id) {
+TypeAttrNode *SymbolTable::findTypeSymbol(std::string id) {
     auto item = TypeDeclMap.find(id);
     return item == TypeDeclMap.end() ? nullptr : item->second.front().type_attr;
 }
-VarDefNode* SymbolTable::findVarSymbol(string id) {
+VarDefNode *SymbolTable::findVarSymbol(std::string id) {
     auto item = VarDeclMap.find(id);
     return item == VarDeclMap.end() ? nullptr : item->second.front().var_def;
 }
+FuncDefNode *SymbolTable::findFuncSymbol(std::string id) {
+    auto item = FuncDeclMap.find(id);
+    return item == FuncDeclMap.end() ? nullptr : item->second.front().func_def;
+}
 
-vector<ConstDefNode*> SymbolTable::getValidConsts() {
-    vector<ConstDefNode*> result;
+std::vector<ConstDefNode *> SymbolTable::getValidConsts() {
+    std::vector<ConstDefNode *> result;
     result.clear();
     for (auto it : ConstDeclMap)
         if (it.second.front().level == currLevel) result.push_back(it.second.front().const_def);
     return result;
 }
-vector<TypeAttrNode*> SymbolTable::getValidTypes() {
-    vector<TypeAttrNode*> result;
+std::vector<TypeAttrNode *> SymbolTable::getValidTypes() {
+    std::vector<TypeAttrNode *> result;
     result.clear();
     for (auto it : TypeDeclMap)
         if (it.second.front().level == currLevel) result.push_back(it.second.front().type_attr);
     return result;
 }
-vector<VarDefNode*> SymbolTable::getValidVars() {
-    vector<VarDefNode*> result;
+std::vector<VarDefNode *> SymbolTable::getValidVars() {
+    std::vector<VarDefNode *> result;
     result.clear();
     for (auto it : VarDeclMap)
         if (it.second.front().level == currLevel) result.push_back(it.second.front().var_def);
     return result;
 }
 
-set<VarTableItem> SymbolTable::getVarScope(const map<string, list<VarTableItem>>& decl_map,
-                                           int                                    level) {
-    set<VarTableItem> result;
+std::set<VarTableItem> SymbolTable::getVarScope(int level) {
+    std::set<VarTableItem> result;
     result.clear();
-    for (auto it1 : decl_map) {
+    for (auto it1 : VarDeclMap) {
         if (it1.second.empty() || it1.second.front().level < level) continue;
         for (auto it2 : it1.second)
             if (it2.level == level) {
@@ -120,11 +137,12 @@ set<VarTableItem> SymbolTable::getVarScope(const map<string, list<VarTableItem>>
     return result;
 }
 
-template <class T> void SymbolTable::printSymbol(const map<string, list<T>>& decl_map) {
+template <class T>
+void SymbolTable::printSymbol(const std::map<std::string, std::list<T>> &decl_map) {
     for (auto it1 : decl_map)
         if (!it1.second.empty()) {
-            cout << it1.first;
-            for (auto it2 : it1.second) cout << it2.toString() << endl;
+            std::cout << it1.first;
+            for (auto it2 : it1.second) std::cout << it2.toString() << std::endl;
         }
 }
 
@@ -134,20 +152,23 @@ void SymbolTable::enterScope() {
 }
 
 void SymbolTable::leaveScope() {
-    // printTable();
+    printTable();
     popConstSymbol();
     popTypeSymbol();
     popVarSymbol();
+    popFuncSymbol();
     currLevel--;
 }
 
 void SymbolTable::printTable() {
-    cout << "current level: " << to_string(currLevel) << endl;
-    cout << "--------Const--------" << endl;
+    std::cout << "current level: " << to_string(currLevel) << std::endl;
+    std::cout << "--------Const--------" << std::endl;
     printSymbol<ConstTableItem>(ConstDeclMap);
-    cout << "--------Type--------" << endl;
+    std::cout << "--------Type--------" << std::endl;
     printSymbol<TypeTableItem>(TypeDeclMap);
-    cout << "--------Var--------" << endl;
+    std::cout << "--------Var--------" << std::endl;
     printSymbol<VarTableItem>(VarDeclMap);
-    cout << endl;
+    std::cout << "--------Func--------" << std::endl;
+    printSymbol<FuncTableItem>(FuncDeclMap);
+    std::cout << std::endl;
 }

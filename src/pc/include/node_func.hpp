@@ -1,6 +1,8 @@
 #ifndef _NODE_FUNC_H_
 #define _NODE_FUNC_H_
 
+class ParamDefNode;
+class ParamDefListNode;
 class FuncDefNode;
 class FuncDefListNode;
 
@@ -11,31 +13,35 @@ class FuncDefListNode;
 
 class ParamDefNode {
   private:
-    int           uid;
-    bool          is_ref;
-    std::string   name;
-    TypeAttrNode *type;
+    int         uid;
+    bool        is_ref;
+    VarDefNode *var_def;
 
   public:
     ParamDefNode(bool is_r, std::string id, TypeAttrNode *t)
-            : uid(++global_uid), is_ref(is_r), name(id), type(t) {}
+            : uid(++global_uid), is_ref(is_r), var_def(new VarDefNode(id, t)) {}
+    ~ParamDefNode() {
+        if (var_def != nullptr) delete var_def;
+    }
 
     int getUid() {
         return uid;
     }
 
     std::string getNodeInfo() {
-        std::string result = "ParamDefNode\n" + name;
+        std::string result = "ParamDefNode";
         if (is_ref) result += "(ref)";
         return result;
     }
 
     std::string gen_viz_code() {
         std::string result = vizNode(uid, getNodeInfo());
-        result += vizChildEdge(uid, type->getUid());
-        result += type->gen_viz_code();
+        result += vizChildEdge(uid, var_def->getUid());
+        result += var_def->gen_viz_code();
         return result;
     }
+
+    bool gen_sym_tab();
 };
 
 class ParamDefListNode {
@@ -66,6 +72,12 @@ class ParamDefListNode {
 
     void mergeParamDefList(ParamDefListNode *defs) {
         for (ParamDefNode *def : defs->getParamList()) addParamDef(def);
+    }
+
+    bool gen_sym_tab() {
+        bool result = true;
+        for (ParamDefNode *def : param_defs) result &= def->gen_sym_tab();
+        return result;
     }
 
     std::string gen_viz_code() {
@@ -107,7 +119,9 @@ class FuncDefNode {
         return uid;
     }
 
-    std::string gen_asm_code(void);
+    bool gen_sym_tab();
+
+    std::string gen_asm_code();
 
     std::string gen_viz_code();
 };
@@ -129,6 +143,8 @@ class FuncDefListNode {
     void addFunc(FuncDefNode *func_def) {
         func_defs.push_back(func_def);
     }
+
+    bool gen_sym_tab();
 
     std::string gen_asm_code();
 

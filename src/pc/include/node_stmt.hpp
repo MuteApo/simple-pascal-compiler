@@ -81,7 +81,9 @@ class StmtNode {
         return uid;
     }
 
-    std::string gen_asm_code();
+    std::string gen_asm_code() {
+        return "";
+    }
 
     std::string gen_viz_code();
 };
@@ -282,14 +284,7 @@ class CaseStmtNode {
 
     std::string gen_asm_code();
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "CaseStmtNode");
-        result += vizChildEdge(uid, const_list->getUid());
-        result += const_list->gen_viz_code();
-        result += vizChildEdge(uid, body_part->getUid());
-        result += body_part->gen_viz_code();
-        return result;
-    }
+    std::string gen_viz_code();
 };
 
 class CaseListNode {

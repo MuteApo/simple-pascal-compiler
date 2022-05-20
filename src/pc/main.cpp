@@ -60,5 +60,6 @@ int main(int argc, char *argv[]) {
         fprintf(viz_file, "%s", root->gen_viz_code().c_str());
         fclose(viz_file);
     }
+    root->visit();
     return 0;
 }

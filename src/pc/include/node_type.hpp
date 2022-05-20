@@ -46,7 +46,7 @@ class TypeDefNode {
         return uid;
     }
 
-    int gen_sym_tab(void);
+    bool gen_sym_tab();
 
     std::string gen_viz_code();
 };
@@ -79,9 +79,9 @@ class TypeDefListNode {
     }
 
     bool gen_sym_tab() {
-        bool succeed = true;
-        for (TypeDefNode *type : type_defs) succeed &= type->gen_sym_tab();
-        return succeed;
+        bool result = true;
+        for (TypeDefNode *type : type_defs) result &= type->gen_sym_tab();
+        return result;
     }
 };
 

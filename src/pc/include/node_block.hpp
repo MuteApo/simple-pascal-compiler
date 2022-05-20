@@ -24,19 +24,9 @@ class BlockNode {
     FuncDefListNode  *func_defs;
     StmtListNode     *stmts;
 
-    void gen_sym_tab(void) {
-        if (const_defs != nullptr) const_defs->gen_sym_tab();
-        if (type_defs != nullptr) type_defs->gen_sym_tab();
-        if (var_defs != nullptr) var_defs->gen_sym_tab();
-        // if (func_defs != nullptr) func_defs->gen_sym_tab();
-    }
+    void gen_sym_tab();
 
-    std::string gen_asm_code(void) {
-        std::string asm_code = is_global ? var_defs->gen_asm_def() : "";
-        // asm_code += func_defs->gen_asm_code();
-        asm_code += stmts->gen_asm_code();
-        return asm_code;
-    }
+    std::string gen_asm_code();
 
   public:
     BlockNode(bool              is_g,
@@ -63,14 +53,7 @@ class BlockNode {
 
     std::string gen_viz_code();
 
-    std::string visit(void) {
-        std::string asm_code;
-        symbol_table.enterScope();
-        gen_sym_tab();
-        asm_code = gen_asm_code();
-        symbol_table.leaveScope();
-        return asm_code;
-    }
+    std::string visit();
 };
 
 class ProgramNode {
@@ -103,6 +86,10 @@ class ProgramNode {
             result += block->gen_viz_code();
         }
         return "digraph G {\n" + result + "}";
+    }
+
+    std::string visit() {
+        return block != nullptr ? block->visit() : "";
     }
 };
 

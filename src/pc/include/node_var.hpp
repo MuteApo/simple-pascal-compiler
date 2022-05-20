@@ -28,13 +28,18 @@ class VarDefNode {
         return uid;
     }
 
+    std::string getName() {
+        return name;
+    }
+
+    TypeAttrNode *getType() {
+        return type;
+    }
+
     // Find if "type_id" exists in variable symble table
     bool is_legal();
 
-    bool gen_sym_tab() {
-        // TODO:How to create a var symtbl item?
-        return false;
-    }
+    bool gen_sym_tab(int ord);
 
     int get_length(void);
 
@@ -75,7 +80,7 @@ class VarDefListNode {
         for (VarDefNode *def : defs->getVarList()) addVarDef(def);
     }
 
-    bool gen_sym_tab(void);
+    bool gen_sym_tab();
 
     std::string gen_asm_def(void);
 
