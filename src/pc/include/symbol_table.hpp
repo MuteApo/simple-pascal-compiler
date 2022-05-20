@@ -1,7 +1,6 @@
 #ifndef _SYMBOLTABLE_H
 #define _SYMBOLTABLE_H
 
-#include "tree.hpp"
 #include "error_handler.hpp"
 #include "node_const.hpp"
 #include "node_type.hpp"
@@ -22,9 +21,9 @@ class TableItem {
 
 class ConstTableItem : public TableItem {
   public:
-    ConstDefNode* const_def;
+    ConstDefNode *const_def;
 
-    ConstTableItem(std::string id, int lv, ConstDefNode* const_)
+    ConstTableItem(std::string id, int lv, ConstDefNode *const_)
             : TableItem(id, lv), const_def(const_) {}
 
     std::string toString();
@@ -32,9 +31,9 @@ class ConstTableItem : public TableItem {
 
 class TypeTableItem : public TableItem {
   public:
-    TypeAttrNode* type_attr;
+    TypeAttrNode *type_attr;
 
-    TypeTableItem(std::string id, int lv, TypeAttrNode* type)
+    TypeTableItem(std::string id, int lv, TypeAttrNode *type)
             : TableItem(id, lv), type_attr(type) {}
 
     std::string toString();
@@ -42,13 +41,13 @@ class TypeTableItem : public TableItem {
 
 class VarTableItem : public TableItem {
   public:
-    VarDefNode* var_def;
+    VarDefNode *var_def;
     int         order;  // order in the scope of the same level
 
-    VarTableItem(std::string id, int lv, VarDefNode* var, int ord)
+    VarTableItem(std::string id, int lv, VarDefNode *var, int ord)
             : TableItem(id, lv), var_def(var), order(ord) {}
 
-    bool operator<(const VarTableItem& rhs) const {
+    bool operator<(const VarTableItem &rhs) const {
         return level < rhs.level || level == rhs.level && order < rhs.order;
     }
 
@@ -76,22 +75,22 @@ class SymbolTable {
 
     int getLevel();
 
-    int addSymbol(std::string id, ConstDefNode* const_);
-    int addSymbol(std::string id, TypeAttrNode* type);
-    int addSymbol(std::string id, VarDefNode* var, int ord);
+    int addSymbol(std::string id, ConstDefNode *const_);
+    int addSymbol(std::string id, TypeAttrNode *type);
+    int addSymbol(std::string id, VarDefNode *var, int ord);
 
-    ConstDefNode* findConstSymbol(std::string id);
-    TypeAttrNode* findTypeSymbol(std::string id);
-    VarDefNode*   findVarSymbol(std::string id);
+    ConstDefNode *findConstSymbol(std::string id);
+    TypeAttrNode *findTypeSymbol(std::string id);
+    VarDefNode   *findVarSymbol(std::string id);
 
-    std::vector<ConstDefNode*> getValidConsts();
-    std::vector<TypeAttrNode*> getValidTypes();
-    std::vector<VarDefNode*>   getValidVars();
+    std::vector<ConstDefNode *> getValidConsts();
+    std::vector<TypeAttrNode *> getValidTypes();
+    std::vector<VarDefNode *>   getValidVars();
 
     std::set<VarTableItem>
-    getVarScope(const std::map<std::string, std::list<VarTableItem>>& decl_map, int level);
+    getVarScope(const std::map<std::string, std::list<VarTableItem>> &decl_map, int level);
 
-    template <class T> void printSymbol(const std::map<std::string, std::list<T>>& decl_map);
+    template <class T> void printSymbol(const std::map<std::string, std::list<T>> &decl_map);
 
     void enterScope();
 

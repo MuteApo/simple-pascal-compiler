@@ -2,18 +2,25 @@
 #include "include/symbol_table.hpp"
 
 int TypeDefNode::gen_sym_tab(void) {
-    return symbol_table.addSymbol(this->identifier, this->type);
+    return symbol_table.addSymbol(name, type);
     // TODO: insert all enum identifier to const symtbl
 }
 
+std::string TypeDefNode::gen_viz_code() {
+    std::string result = vizNode(uid, "TypeDefNode\n" + name);
+    result += vizChildEdge(uid, type->getUid());
+    result += type->gen_viz_code();
+    return result;
+}
+
 int TypeAttrNode::get_length(void) {
-    switch (this->root_type) {
-        case basic: return this->basic_attr->get_length();
-        case ordinal: return this->ord_attr->get_length();
-        case structured: return this->struct_attr->get_length();
+    switch (root_type) {
+        case basic: return basic_attr->get_length();
+        case ordinal: return ord_attr->get_length();
+        case structured: return struct_attr->get_length();
         case pointer: return BASIC_PTR_LEN;
         case type_identifier: {
-            TypeAttrNode *lut_this = symbol_table.findTypeSymbol(this->type_id);
+            TypeAttrNode *lut_this = symbol_table.findTypeSymbol(type_id);
             if (lut_this == nullptr)
                 return -1;  // Type identifer not found in all scope
             else
@@ -35,14 +42,14 @@ int TypeAttrNode::get_offset(std::string member) {
 
 bool TypeAttrNode::is_type_equ(TypeAttrNode *type, bool use_struct) {
     if (!use_struct) return this == type;
-    if (type->root_type != this->root_type) return false;
-    switch (this->root_type) {
-        case basic: return this->basic_attr->is_type_equ(type);
-        case ordinal: return this->ord_attr->is_type_equ(type);
-        case structured: return this->struct_attr->is_type_equ(type);
+    if (type->root_type != root_type) return false;
+    switch (root_type) {
+        case basic: return basic_attr->is_type_equ(type);
+        case ordinal: return ord_attr->is_type_equ(type);
+        case structured: return struct_attr->is_type_equ(type);
         case pointer: return type->root_type == pointer;
         case type_identifier: {
-            TypeAttrNode *lut_this = symbol_table.findTypeSymbol(this->type_id);
+            TypeAttrNode *lut_this = symbol_table.findTypeSymbol(type_id);
             TypeAttrNode *lut_type = symbol_table.findTypeSymbol(type->type_id);
             return lut_this->is_type_equ(lut_type);
         }
@@ -50,12 +57,37 @@ bool TypeAttrNode::is_type_equ(TypeAttrNode *type, bool use_struct) {
     return false;
 }
 
-basic_type_kind BasicAttrNode::get_type(void) {
-    return this->type;
+std::string TypeAttrNode::getNodeInfo() {
+    std::string result = "TypeAttrNode\n";
+    if (root_type == type_identifier) return result + type_id;
+    return result;
+}
+
+std::string TypeAttrNode::gen_viz_code() {
+    std::string result = vizNode(uid, getNodeInfo());
+    switch (root_type) {
+        case basic:
+            result += vizChildEdge(uid, basic_attr->getUid());
+            result += basic_attr->gen_viz_code();
+            break;
+        case ordinal:
+            result += vizChildEdge(uid, ord_attr->getUid());
+            result += ord_attr->gen_viz_code();
+            break;
+        case structured:
+            result += vizChildEdge(uid, struct_attr->getUid());
+            result += struct_attr->gen_viz_code();
+            break;
+    }
+    return result;
+}
+
+basic_type_kind BasicAttrNode::getType() {
+    return type;
 }
 
 int BasicAttrNode::get_length(void) {
-    switch (this->type) {
+    switch (type) {
         case boolean: return BASIC_BOOL_LEN;
         case integer: return BASIC_INT_LEN;
         case real: return BASIC_REAL_LEN;
@@ -72,18 +104,18 @@ int BasicAttrNode::get_offset(void) {
 
 bool BasicAttrNode::is_type_equ(TypeAttrNode *type) {
     if (type->root_type != basic) return false;
-    return this->is_type_equ(type->basic_attr);
+    return is_type_equ(type->basic_attr);
 }
 bool BasicAttrNode::is_type_equ(BasicAttrNode *type) {
     return type->type == this->type;
 }
 
 int OrdAttrNode::get_length(void) {
-    return this->is_subrange ? this->subrange_attr->get_length() : this->enum_attr->get_length();
+    return is_subrange ? subrange_attr->get_length() : enum_attr->get_length();
 }
 
 int OrdAttrNode::get_size(void) {
-    return this->is_subrange ? this->subrange_attr->get_size() : this->enum_attr->get_size();
+    return is_subrange ? subrange_attr->get_size() : enum_attr->get_size();
 }
 
 int OrdAttrNode::get_offset(void) {
@@ -92,14 +124,24 @@ int OrdAttrNode::get_offset(void) {
 
 bool OrdAttrNode::is_type_equ(TypeAttrNode *type) {
     if (type->root_type != ordinal) return false;
-    return this->is_type_equ(type->ord_attr);
+    return is_type_equ(type->ord_attr);
 }
 bool OrdAttrNode::is_type_equ(OrdAttrNode *type) {
-    if (type->is_subrange && this->is_subrange)
-        return this->subrange_attr->is_type_equ(type->subrange_attr);
-    if (!type->is_subrange && !this->is_subrange)
-        return this->enum_attr->is_type_equ(type->enum_attr);
+    if (type->is_subrange && is_subrange) return subrange_attr->is_type_equ(type->subrange_attr);
+    if (!type->is_subrange && !is_subrange) return enum_attr->is_type_equ(type->enum_attr);
     return false;
+}
+
+std::string OrdAttrNode::gen_viz_code() {
+    std::string result = vizNode(uid, "OrdAttrNode");
+    if (is_subrange) {
+        result += vizChildEdge(uid, subrange_attr->getUid());
+        result += subrange_attr->gen_viz_code();
+    } else {
+        result += vizChildEdge(uid, enum_attr->getUid());
+        result += enum_attr->gen_viz_code();
+    }
+    return result;
 }
 
 int SubrangeAttrNode::get_length(void) {
@@ -116,14 +158,23 @@ int SubrangeAttrNode::get_offset(void) {
 
 bool SubrangeAttrNode::is_type_equ(TypeAttrNode *type) {
     if (type->root_type != ordinal) return false;
-    return this->is_type_equ(type->ord_attr);
+    return is_type_equ(type->ord_attr);
 }
 bool SubrangeAttrNode::is_type_equ(OrdAttrNode *type) {
     if (!type->is_subrange) return false;
-    return this->is_type_equ(type->subrange_attr);
+    return is_type_equ(type->subrange_attr);
 }
 bool SubrangeAttrNode::is_type_equ(SubrangeAttrNode *type) {
     return false;  // TODO
+}
+
+std::string SubrangeAttrNode::gen_viz_code() {
+    std::string result = vizNode(uid, "SubrangeAttrNode");
+    result += vizChildEdge(uid, low_bound->getUid());
+    result += low_bound->gen_viz_code();
+    result += vizChildEdge(uid, up_bound->getUid());
+    result += up_bound->gen_viz_code();
+    return result;
 }
 
 int EnumAttrNode::get_length(void) {
@@ -131,7 +182,7 @@ int EnumAttrNode::get_length(void) {
 }
 
 int EnumAttrNode::get_size(void) {
-    return this->items.size();
+    return items.size();
 }
 
 int EnumAttrNode::get_offset(void) {
@@ -140,22 +191,27 @@ int EnumAttrNode::get_offset(void) {
 
 bool EnumAttrNode::is_type_equ(TypeAttrNode *type) {
     if (type->root_type != ordinal) return false;
-    return this->is_type_equ(type->ord_attr);
+    return is_type_equ(type->ord_attr);
 }
 bool EnumAttrNode::is_type_equ(OrdAttrNode *type) {
     if (type->is_subrange) return false;
-    return this->is_type_equ(type->enum_attr);
+    return is_type_equ(type->enum_attr);
 }
 bool EnumAttrNode::is_type_equ(EnumAttrNode *type) {
     return false;  // TODO
 }
 
-int StructAttrNode::get_length(void) {
-    switch (this->type) {
-        case array: return this->array_attr->get_length();
-        case record: return this->record_attr->get_length();
+std::string EnumAttrNode::gen_viz_code() {
+    std::string result = vizNode(uid, "EnumAttrNode");
+    for (ExprNode *expr : items) {
+        result += vizChildEdge(uid, expr->getUid());
+        result += expr->gen_viz_code();
     }
-    return -1;
+    return result;
+}
+
+int StructAttrNode::get_length(void) {
+    return is_array ? array_attr->get_length() : record_attr->get_length();
 }
 
 int StructAttrNode::get_offset(void) {
@@ -163,24 +219,27 @@ int StructAttrNode::get_offset(void) {
 }
 
 bool StructAttrNode::is_type_equ(TypeAttrNode *type) {
-    switch (this->type) {
-        case array: return this->array_attr->is_type_equ(type);
-        case record: return this->record_attr->is_type_equ(type);
+    return is_array ? array_attr->is_type_equ(type) : record_attr->is_type_equ(type);
+}
+
+std::string StructAttrNode::gen_viz_code() {
+    std::string result = vizNode(uid, "StructAttrNode");
+    if (is_array) {
+        result += vizChildEdge(uid, array_attr->getUid());
+        result += array_attr->gen_viz_code();
+    } else {
+        result += vizChildEdge(uid, record_attr->getUid());
+        result += record_attr->gen_viz_code();
     }
-    return false;
+    return result;
 }
 
 int ArrayAttrNode::get_dim() {
-    return this->index_type.size();
+    return index_type->getDim();
 }
 
 int ArrayAttrNode::get_length(void) {
-    int result = this->element_type->get_length();
-    for (TypeAttrNode *type : this->index_type) {
-        if (type->root_type != ordinal) return -1;
-        result *= type->ord_attr->get_size();
-    }
-    return result;
+    return -1;  // TODO
 }
 
 int ArrayAttrNode::get_offset(void) {
@@ -189,18 +248,14 @@ int ArrayAttrNode::get_offset(void) {
 
 bool ArrayAttrNode::is_type_equ(TypeAttrNode *type) {
     if (type->root_type != structured) return false;
-    return this->is_type_equ(type->struct_attr);
+    return is_type_equ(type->struct_attr);
 }
 bool ArrayAttrNode::is_type_equ(StructAttrNode *type) {
-    if (type->type != array) return false;
-    return this->is_type_equ(type->array_attr);
+    if (!type->is_array) return false;
+    return is_type_equ(type->array_attr);
 }
 bool ArrayAttrNode::is_type_equ(ArrayAttrNode *type) {
-    if (type->get_dim() != this->get_dim()) return false;
-    if (!this->element_type->is_type_equ(type->element_type)) return false;
-    for (int i = 0; i < this->index_type.size(); i++)
-        if (!this->index_type.at(i)->is_type_equ(type->index_type.at(i))) return false;
-    return true;
+    return false;  // TODO
 }
 
 int RecordAttrNode::get_dim() {
@@ -217,12 +272,19 @@ int RecordAttrNode::get_offset(void) {
 
 bool RecordAttrNode::is_type_equ(TypeAttrNode *type) {
     if (type->root_type != structured) return false;
-    return this->is_type_equ(type->struct_attr);
+    return is_type_equ(type->struct_attr);
 }
 bool RecordAttrNode::is_type_equ(StructAttrNode *type) {
-    if (type->type != record) return false;
-    return this->is_type_equ(type->record_attr);
+    if (type->is_array) return false;
+    return is_type_equ(type->record_attr);
 }
 bool RecordAttrNode::is_type_equ(RecordAttrNode *type) {
     return false;  // TODO
+}
+
+std::string RecordAttrNode::gen_viz_code() {
+    std::string result = vizNode(uid, "RecordAttrNode");
+    result += vizChildEdge(uid, defs->getUid());
+    result += defs->gen_viz_code();
+    return result;
 }

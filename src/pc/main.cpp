@@ -1,4 +1,3 @@
-#include "include/tree.hpp"
 #include "include/node_block.hpp"
 #include "include/node_const.hpp"
 #include "include/node_expr.hpp"
@@ -6,10 +5,13 @@
 #include "include/node_stmt.hpp"
 #include "include/node_type.hpp"
 #include "include/node_var.hpp"
-#include "include/semantics.hpp"
+// #include "include/semantics.hpp"
 #include "parser.tab.h"
-#include <stdio.h>
-#include <string.h>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+
+extern ProgramNode *root;
 
 int main(int argc, char *argv[]) {
     FILE *viz_file = NULL;
@@ -55,9 +57,7 @@ int main(int argc, char *argv[]) {
     // sem.st.printTable();
     // sem.err.printError();
     if (viz_file != NULL) {
-        fprintf(viz_file, "digraph g {");
-        // treeNode::traverse(viz_file, 0, root);
-        fprintf(viz_file, "}");
+        fprintf(viz_file, "%s", root->gen_viz_code().c_str());
         fclose(viz_file);
     }
     return 0;

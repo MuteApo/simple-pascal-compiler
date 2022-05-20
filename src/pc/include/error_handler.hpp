@@ -2,7 +2,9 @@
 #define _ERRORHANDLER_H
 
 #include "defs.hpp"
-#include "tree.hpp"
+#include <iostream>
+#include <string>
+#include <vector>
 
 class errorRecord {
   private:
@@ -11,16 +13,13 @@ class errorRecord {
     int         line;
 
   public:
-    errorRecord(errorType e, std::string n, int l)
-            : err_type(e), name(n), line(l) {}
+    errorRecord(errorType e, std::string n, int l) : err_type(e), name(n), line(l) {}
     std::string toString() {
         switch (err_type) {
             case UNDEFINED:
-                return "line " + to_string(line) + ": Undefined identifier \"" +
-                       name + "\"";
+                return "line " + std::to_string(line) + ": Undefined identifier \"" + name + "\"";
             case REDEFINE:
-                return "line " + to_string(line) + ": Duplicate identifier \"" +
-                       name + "\"";
+                return "line " + std::to_string(line) + ": Duplicate identifier \"" + name + "\"";
         }
         return "";
     }
@@ -38,11 +37,13 @@ class errorHandler {
     std::string toString() {
         std::string s = "";
         for (int i = 0; i < errors.size(); i++) {
-            s = s + "[" + to_string(i) + "]" + errors[i].toString() + "\n";
+            s = s + "[" + std::to_string(i) + "]" + errors[i].toString() + "\n";
         }
         return s;
     }
-    void printError() { std::cout << toString() << std::endl; }
+    void printError() {
+        std::cout << toString() << std::endl;
+    }
 };
 
 #endif

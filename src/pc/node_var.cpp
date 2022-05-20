@@ -17,8 +17,11 @@ std::string VarDefNode::gen_asm_def(void) {
     return type_def->gen_asm_def();
 }
 
-std::string VarDefNode::toString() {
-    return "[" + name + type->getId() + "]";
+std::string VarDefNode::gen_viz_code() {
+    std::string result = vizNode(uid, "VarDefNode\n" + name);
+    result += vizChildEdge(uid, type->getUid());
+    result += type->gen_viz_code();
+    return result;
 }
 
 bool VarDefListNode::gen_sym_tab(void) {
