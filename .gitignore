@@ -1,5 +1,5 @@
+.DS_Store
 .vscode
-bin/pc
 bin/tree.png
 bin/tree.viz
 src/pc/lex.yy.c
@@ -8,3 +8,4 @@ src/pc/parser.tab.c
 src/pc/parser.tab.h
 src/pc/scanner.yy.c
 src/pc/*.o
+src/sim/*.o

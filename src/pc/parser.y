@@ -41,6 +41,7 @@ ProgramNode *root = nullptr;
     StructAttrNode *struct_attr_node;
     ArrayAttrNode *array_attr_node;
     RecordAttrNode *record_attr_node;
+    PtrAttrNode *ptr_attr_node;
     VarDefListNode *var_def_list_node;
     VarDefNode *var_def_node;
     FuncDefListNode *func_def_list_node;
@@ -110,6 +111,7 @@ ProgramNode *root = nullptr;
 %type <ord_attr_node> OrdTypeDef
 %type <struct_attr_node> StructTypeDef
 %type <array_attr_node> ArrayTypeDef
+%type <ptr_attr_node> PtrTypeDef
 %type <record_attr_node> RecordTypeDef
 %type <var_def_list_node> VarDeclPart VarDeclList VarDecl
 %type <func_def_list_node> ProcAndFuncDeclPart
@@ -127,14 +129,13 @@ ProgramNode *root = nullptr;
 %type <case_stmt_node> Case
 %type <func_stmt_node> FuncStmt
 %type <expr_list_node> ArgList IndexList
-%type <expr_node> Expr Term Factor Item Id SignedLiteral Literal Arg VarAccess Accessible
+%type <expr_node> Arg Expr Term Factor Item VarAccess Accessible Id SignedLiteral Literal
 %type <id_list_node> IdList
 %type <func_node> FuncExpr
 %type <expr_eval_type> Sign
 
-%type <node>    SetTypeDef  StringTypeDef
-%type <node>   PtrTypeDef       
-%type <node>   WithStmt   ReadStmt WriteStmt
+%type <node> SetTypeDef StringTypeDef     
+%type <node> WithStmt ReadStmt WriteStmt
 
 %start Program
 
@@ -239,9 +240,9 @@ RecordTypeDef: WSYM_RECORD VarDeclList WSYM_END {
 }
 
 PtrTypeDef: SYM_HAT BasicRealType {
-    $$ = nullptr;    // TODO
+    $$ = new PtrAttrNode($2);
 }| SYM_HAT Id {
-    $$ = nullptr;    // TODO
+    $$ = new PtrAttrNode($2->getIdNode()->getName());
 }
 
 OrdTypeDef: SYM_LPAR ConstList SYM_RPAR {
@@ -293,17 +294,17 @@ VarDecl: IdList SYM_COL Type{
 }
 
 VarAccess: Accessible SYM_HAT {
-    $$ = nullptr;    // TODO
-}| Accessible SYM_DOT Id {
-    $$ = new ExprNode(EK_Access, $1, $3);
+    $$ = new ExprNode(EK_Address, $1, nullptr);
 }| Accessible SYM_LSBKT IndexList SYM_RSBKT {
+    $$ = new ExprNode($1, $3);
+}| Accessible SYM_DOT Id {
     $$ = new ExprNode(EK_Access, $1, $3);
 }
 
 Accessible: VarAccess {
     $$ = $1;
 }| Id {
-    $$ = $1;
+    $$ = new ExprNode(new VarAccessNode(va_id, $1->getIdNode()->getName()));
 }
 
 IndexList: IndexList SYM_COMMA Expr {

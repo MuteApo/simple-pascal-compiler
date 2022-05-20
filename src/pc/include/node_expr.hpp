@@ -45,7 +45,7 @@ class ExprNode {
               func_attr(f_a) {}
     ExprNode(ExprEvalType et, ExprNode *op1_, ExprNode *op2_)
             : ExprNode(el_nonleaf, et, op1_, op2_, nullptr, nullptr, nullptr, nullptr) {}
-    ExprNode(ExprEvalType et, ExprNode *op1_, ExprListNode *ops);
+    ExprNode(ExprNode *op1_, ExprListNode *ops);
     ExprNode(LiteralNode *l_a)
             : ExprNode(el_literal, EK_None, nullptr, nullptr, l_a, nullptr, nullptr, nullptr) {}
     ExprNode(VarAccessNode *v_a_a)
@@ -113,18 +113,17 @@ class LiteralNode {
     std::string gen_asm_code(void);
 };
 
-enum var_access_type { va_pointer = 40001, va_array, va_record };
+enum var_access_type { va_id = 40001, va_pointer, va_array, va_record };
 class VarAccessNode {
   private:
-    var_access_type         type;
-    std::string             name;
-    std::vector<ExprNode *> index_list;   // array
-    std::string             member_name;  // record
+    var_access_type type;
+    std::string     name;
+    ExprListNode   *index_list;   // array
+    std::string     member_name;  // record
 
   public:
-    VarAccessNode(std::string id) : name(id) {}
-    VarAccessNode(std::string id, std::vector<ExprNode *> indices)
-            : name(id), index_list(indices) {}
+    VarAccessNode(var_access_type t, std::string id) : type(t), name(id) {}
+    VarAccessNode(std::string id, ExprListNode *indices) : name(id), index_list(indices) {}
     VarAccessNode(std::string id, std::string m_id) : name(id), member_name(m_id) {}
 
     std::string gen_asm_code(void);

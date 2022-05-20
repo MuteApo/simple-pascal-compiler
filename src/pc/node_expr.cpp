@@ -1,9 +1,9 @@
 #include "include/node_expr.hpp"
 #include "include/symbol_table.hpp"
 
-ExprNode::ExprNode(ExprEvalType et, ExprNode *op1_, ExprListNode *ops)
-        : ExprNode(el_nonleaf, et, op1_, nullptr, nullptr, nullptr, nullptr, nullptr) {
-    for (ExprNode *op2_ : ops->getExprList()) op1 = new ExprNode(et, op1, op2_);
+ExprNode::ExprNode(ExprNode *op1_, ExprListNode *ops)
+        : ExprNode(el_nonleaf, EK_Access, op1_, nullptr, nullptr, nullptr, nullptr, nullptr) {
+    for (ExprNode *op2_ : ops->getExprList()) op1 = new ExprNode(EK_Access, op1, op2_);
 }
 
 LiteralNode::LiteralNode(bool is_n, BasicAttrNode *t, bool bv, int iv, double dv, char cv)

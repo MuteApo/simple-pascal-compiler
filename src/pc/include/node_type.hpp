@@ -13,6 +13,7 @@ class StructAttrNode;
 class SetAttrNode;
 class ArrayAttrNode;
 class RecordAttrNode;
+class PtrAttrNode;
 
 #include "node_expr.hpp"
 #include "node_var.hpp"
@@ -281,6 +282,17 @@ class RecordAttrNode {
     bool is_type_equ(TypeAttrNode *type);
     bool is_type_equ(StructAttrNode *type);
     bool is_type_equ(RecordAttrNode *type);
+};
+
+class PtrAttrNode {
+  private:
+    bool           is_basic_type;
+    BasicAttrNode *basic_attr;
+    std::string    name;
+
+  public:
+    PtrAttrNode(BasicAttrNode *b_a) : is_basic_type(true), basic_attr(b_a), name("") {}
+    PtrAttrNode(std::string id) : is_basic_type(false), basic_attr(nullptr), name(id) {}
 };
 
 #endif
