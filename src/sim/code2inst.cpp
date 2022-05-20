@@ -4,13 +4,14 @@
 #include "include/code2inst.hpp"
 
 /******************** Supported RV32I Instruction ********************/
-// I-Type: addi slti sltiu andi ori xori slli srli srai lb lh lw lbu lhu ecall
+// I-Type: addi slti sltiu andi ori xori slli srli srai lb lh lw lbu lhu
 // R-Type: add sub slt sltu and or xor sll srl sra S-Type: sb sh sw
 // B-Type: beq bne blt bltu bge bgeu
 // J-Type: jal, I-Type: jalr
 // U-Type: lui auipc
-// Bit 6 - Bit 0, 7 bits
+// Miscellaneous:  ecall
 
+// Bit 6 - Bit 0, 7 bits
 uint8_t get_opcode(uint32_t code) { return code & 0x7F; }
 
 // Bit 14 - Bit 12, 3 bits

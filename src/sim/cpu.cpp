@@ -274,7 +274,7 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc,
         uint32_t imm = get_u_type_imm(inst) << 12;
         inst_asm += "lui";
         inst_asm += " " + reg2alias(get_rd(inst));
-        inst_asm += ", " + to_string((int32_t)imm);
+        inst_asm += ", " + to_string((int32_t)get_u_type_imm(inst));
         if (exec)
             write_register(get_rd(inst), imm);
         break;
@@ -283,7 +283,7 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc,
         uint32_t imm = get_u_type_imm(inst) << 12;
         inst_asm += "auipc";
         inst_asm += " " + reg2alias(get_rd(inst));
-        inst_asm += ", " + to_string((int32_t)imm);
+        inst_asm += ", " + to_string((int32_t)get_u_type_imm(inst));
         if (exec)
             write_register(get_rd(inst), imm + get_pc());
         break;
