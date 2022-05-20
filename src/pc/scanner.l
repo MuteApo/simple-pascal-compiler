@@ -3,7 +3,6 @@
 
 %{
 #include "include/defs.hpp"
-#include "include/tree.hpp"
 #include "include/node_const.hpp"
 #include "include/node_type.hpp"
 #include "include/node_var.hpp"
@@ -89,10 +88,10 @@ Identifier {Letter}({Letter}|{Digit})*
 (?i:end) { return WSYM_END; }
 (?i:for) { return WSYM_FOR; }
 (?i:function) { return WSYM_FUNCTION; }
-(?i:goto) { return WSYM_GOTO; }
+(?i:goto) { /* return WSYM_GOTO; */ }
 (?i:if) { return WSYM_IF; }
 (?i:in) { return WSYM_IN; }
-(?i:label) { return WSYM_LABEL; }
+(?i:label) { /* return WSYM_LABEL; */ }
 (?i:mod) { return WSYM_MOD; }
 (?i:nil) { return WSYM_NIL; }
 (?i:not) { return WSYM_NOT; }

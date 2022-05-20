@@ -1,6 +1,5 @@
 %{
 #include "include/defs.hpp"
-#include "include/tree.hpp"
 #include "include/node_const.hpp"
 #include "include/node_type.hpp"
 #include "include/node_var.hpp"
@@ -26,7 +25,6 @@ ProgramNode *root = nullptr;
     double dval;
     char cval;
     char *sval;
-    treeNode *node;
     ProgramNode *prog_node;
     BlockNode *block_node;
     ConstDefListNode *const_def_list_node;
@@ -84,7 +82,7 @@ ProgramNode *root = nullptr;
 %token <expr_eval_type> WSYM_AND WSYM_DIV WSYM_IN WSYM_MOD WSYM_NOT WSYM_OR WSYM_SHL WSYM_SHR WSYM_XOR
 %token WSYM_ARRAY WSYM_BEGIN WSYM_CASE WSYM_CONST
 %token WSYM_DO WSYM_DOWNTO WSYM_ELSE WSYM_END
-%token WSYM_FOR WSYM_FUNCTION WSYM_GOTO WSYM_IF WSYM_LABEL
+%token WSYM_FOR WSYM_FUNCTION WSYM_IF
 %token WSYM_NIL WSYM_OF
 %token WSYM_PROCEDURE WSYM_PROGRAM WSYM_RECORD WSYM_REPEAT
 %token WSYM_SET WSYM_THEN WSYM_TO WSYM_TYPE
@@ -134,8 +132,8 @@ ProgramNode *root = nullptr;
 %type <func_node> FuncExpr
 %type <expr_eval_type> Sign
 
-%type <node> SetTypeDef StringTypeDef     
-%type <node> WithStmt ReadStmt WriteStmt
+%type <type_def_node> SetTypeDef StringTypeDef     
+%type <stmt_node> WithStmt ReadStmt WriteStmt
 
 %start Program
 
@@ -216,7 +214,7 @@ SetTypeDef: WSYM_SET WSYM_OF OrdTypeDef {
 }
 
 ArrayTypeDef: WSYM_ARRAY SYM_LSBKT IndexTypeList SYM_RSBKT WSYM_OF Type {
-    $$ = new ArrayAttrNode($3->getAttrList(), $6);
+    $$ = new ArrayAttrNode($3, $6);
 }
 
 IndexTypeList: IndexTypeList SYM_COMMA Type {
@@ -236,7 +234,7 @@ StringTypeDef: SID_STRING {
 }
 
 RecordTypeDef: WSYM_RECORD VarDeclList WSYM_END {
-    $$ = new RecordAttrNode($2->getVarList());
+    $$ = new RecordAttrNode($2);
 }
 
 PtrTypeDef: SYM_HAT BasicRealType {
@@ -304,7 +302,7 @@ VarAccess: Accessible SYM_HAT {
 Accessible: VarAccess {
     $$ = $1;
 }| Id {
-    $$ = new ExprNode(new VarAccessNode(va_id, $1->getIdNode()->getName()));
+    $$ = new ExprNode(new VarAccessNode(va_id, $1->getIdNode()));
 }
 
 IndexList: IndexList SYM_COMMA Expr {
@@ -372,13 +370,13 @@ Item: Literal {
 }| Id {
     $$ = $1;
 }| Sign Item {
-    $$ = new ExprNode($1, nullptr, $2); 
-}| WSYM_NOT Item {
-    $$ = new ExprNode(EK_Not, nullptr, $2); 
-}| SYM_LPAR Expr SYM_RPAR {
-    $$ = $2;
+    $$ = new ExprNode($1, $2, nullptr); 
 }| FuncExpr {
     $$ = new ExprNode($1);
+}| WSYM_NOT Item {
+    $$ = new ExprNode(EK_Not, $2, nullptr); 
+}| SYM_LPAR Expr SYM_RPAR {
+    $$ = $2;
 }
 
 FuncExpr: Id SYM_LPAR ArgList SYM_RPAR {
@@ -478,10 +476,10 @@ CompoundStmt: WSYM_BEGIN StmtList WSYM_END {
 }
 
 StmtList: StmtList Stmt SYM_SEMI {
-    $$ = $1;
+    $$ = $1 == nullptr ? new StmtListNode() : $1;
     $$->addStmt($2);
 }| {
-    $$ = new StmtListNode();
+    $$ = nullptr;
 }
 
 /************************* Rules of Const *************************/
@@ -523,7 +521,7 @@ ConstList: ConstList SYM_COMMA Id {
 SignedLiteral: Literal {
     $$ = $1;
 }| Sign Literal {
-    $$ = new ExprNode($1, nullptr, $2); 
+    $$ = new ExprNode($1, $2, nullptr); 
 }
 
 Sign: SYM_ADD {
@@ -547,19 +545,19 @@ Literal: VAL_INT {
 }| VAL_STRING {
     $$ = nullptr;   // TODO
 }| VAL_CHAR {
-    $$ = new ExprNode(new LiteralNode($1));
+    $$ = new ExprNode(new LiteralNode($1[1]));
 }
 
 /************************* Rules of Proc&Stmt *************************/
 
 ProcAndFuncDeclPart: ProcAndFuncDeclPart ProcDecl SYM_SEMI {
-    $$ = $1;
+    $$ = $1 == nullptr ? new FuncDefListNode() : $1;
     $$->addFunc($2);
 }| ProcAndFuncDeclPart FuncDecl SYM_SEMI {
-    $$ = $1;
+    $$ = $1 == nullptr ? new FuncDefListNode() : $1;
     $$->addFunc($2);
 }| {
-    $$ = new FuncDefListNode();
+    $$ = nullptr;
 }
 
 ProcDecl: WSYM_PROCEDURE Id SYM_SEMI Block {

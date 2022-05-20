@@ -2,19 +2,20 @@ program test;
 {Comment A}
 const
     z = 233;
+    yy = 'y';
 type
     week = (Mon, Tues, Wed, Thur, Fri);
     digit = 0..9;
-    y = set of (A, E, I, O, U);
-var
-    d: string;
-    d1: string[233];
-    d2: string[z];
-    k: array [1..10, char] of record
-        i: set of digit;
+    y = record
+        {i: set of digit;}
         u: week;
-        v: ^integer;
+        {v: ^integer;}
     end;
+var
+    d: integer;
+    e: real;
+    f: week;
+    k: array [1..10, char] of integer;
 function ff: week;
 begin
 
@@ -24,5 +25,5 @@ begin
     x := k[1, 'a'].v;
 end;
 begin
-    
+    y := 1;
 end.

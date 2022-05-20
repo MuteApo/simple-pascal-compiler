@@ -10,9 +10,13 @@ class ProgramNode;
 #include "node_type.hpp"
 #include "node_var.hpp"
 #include "symbol_table.hpp"
+#include "viz.hpp"
+
+extern int global_uid;
 
 class BlockNode {
   private:
+    int               uid;
     bool              is_global;
     ConstDefListNode *const_defs;
     TypeDefListNode  *type_defs;
@@ -41,16 +45,23 @@ class BlockNode {
               VarDefListNode   *v_defs = nullptr,
               FuncDefListNode  *f_defs = nullptr,
               StmtListNode     *s      = nullptr)
-            : is_global(is_g),
+            : uid(++global_uid),
+              is_global(is_g),
               const_defs(c_defs),
               type_defs(t_defs),
               var_defs(v_defs),
               func_defs(f_defs),
               stmts(s) {}
 
+    int getUid() {
+        return uid;
+    }
+
     void setGlobal() {
         is_global = true;
     }
+
+    std::string gen_viz_code();
 
     std::string visit(void) {
         std::string asm_code;
@@ -64,14 +75,35 @@ class BlockNode {
 
 class ProgramNode {
   private:
+    int                   uid;
     std::string           name;
     std::vector<IdNode *> id_list;
     BlockNode            *block;
 
   public:
-    ProgramNode(std::string id, BlockNode *b) : name(id), block(b) {}
+    ProgramNode(std::string id, BlockNode *b) : uid(++global_uid), name(id), block(b) {}
     ProgramNode(std::string id, std::vector<IdNode *> i_l, BlockNode *b)
-            : name(id), id_list(i_l), block(b) {}
+            : uid(++global_uid), name(id), id_list(i_l), block(b) {}
+
+    int getUid() {
+        return uid;
+    }
+
+    std::string getNodeInfo() {
+        std::string result = "ProgramNode\n" + name + "(";
+        if (id_list.size()) result += id_list.at(0)->getName();
+        for (int i = 1; i < id_list.size(); i++) result += "," + id_list.at(i)->getName();
+        return result + ")";
+    }
+
+    std::string gen_viz_code() {
+        std::string result = vizNode(uid, getNodeInfo());
+        if (block != nullptr) {
+            result += vizChildEdge(uid, block->getUid());
+            result += block->gen_viz_code();
+        }
+        return "digraph G {\n" + result + "}";
+    }
 };
 
 #endif

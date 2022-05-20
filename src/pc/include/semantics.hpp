@@ -11,7 +11,7 @@ class semanticAnalyser {
     semanticAnalyser() {}
     semanticAnalyser(SymbolTable s, errorHandler e) : st(s), err(e) {}
 
-    void analyseTree(treeNode* t);
+    // void analyseTree(treeNode* t);
     void check_decl(std::string name, int kind, int line);
 
     // void check_redecl(treeNode* t){
