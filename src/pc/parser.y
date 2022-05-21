@@ -292,17 +292,17 @@ VarDecl: IdList SYM_COL Type{
 }
 
 VarAccess: Accessible SYM_HAT {
-    $$ = new ExprNode(EK_Address, $1, nullptr);
+    $$ = new ExprNode(new VarAccessNode($1));
 }| Accessible SYM_LSBKT IndexList SYM_RSBKT {
-    $$ = new ExprNode($1, $3);
+    $$ = new ExprNode(new VarAccessNode($1, $3));
 }| Accessible SYM_DOT Id {
-    $$ = new ExprNode(EK_Access, $1, $3);
+    $$ = new ExprNode(new VarAccessNode($1, $3));
 }
 
 Accessible: VarAccess {
     $$ = $1;
 }| Id {
-    $$ = new ExprNode(new VarAccessNode(va_id, $1->getIdNode()));
+    $$ = $1;
 }
 
 IndexList: IndexList SYM_COMMA Expr {

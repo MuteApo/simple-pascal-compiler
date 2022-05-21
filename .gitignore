@@ -2,12 +2,13 @@
 .vscode
 bin/as
 bin/pc
-bin/tree.svg
 bin/tree.viz
 src/pc/lex.yy.c
 src/pc/parser.output
 src/pc/parser.tab.c
 src/pc/parser.tab.h
 src/pc/scanner.yy.c
+src/as/*.o
 src/pc/*.o
 src/sim/*.o
+src/util/*.o

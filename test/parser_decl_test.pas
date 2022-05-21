@@ -15,8 +15,9 @@ type
 var
     d: integer;
     e: real;
+    k: array [digit, char] of week;
     f: y;
-    k: array [char, digit] of week;
+
 function ff: week;
 
 function fff: real;
@@ -25,13 +26,16 @@ type
 begin
 
 end;
+
 begin
 
 end;
+
 procedure gg(var x: integer; q: digit);
 begin
     x := k[1, 'a'].v;
 end;
+
 begin
     y := 1;
 end.

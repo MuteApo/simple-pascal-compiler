@@ -1,16 +1,6 @@
 #include "include/node_expr.hpp"
 #include "include/symbol_table.hpp"
 
-ExprNode::ExprNode(ExprNode *op1_, ExprListNode *ops)
-        : ExprNode(el_nonleaf, EK_Access, op1_, nullptr, nullptr, nullptr, nullptr, nullptr) {
-    ExprNode *tmp = op1_;
-    for (ExprNode *op2_ : ops->getExprList()) {
-        op1 = tmp;
-        tmp = new ExprNode(EK_Access, op1, op2_);
-        op2 = op2_;
-    }
-}
-
 std::string ExprNode::getNodeInfo() {
     std::string result = "ExprNode\n";
     if (node_type == el_nonleaf) result += enum2str(eval_type);
@@ -104,20 +94,22 @@ template <class T> T LiteralNode::get_value() {
 }
 
 std::string VarAccessNode::getNodeInfo() {
-    std::string result = "VarAccessNode\n" + name->getName();
+    std::string result = "VarAccessNode\n";
     if (type == va_pointer) result += "^";
     return result;
 }
 
 std::string VarAccessNode::gen_viz_code() {
     std::string result = vizNode(uid, getNodeInfo());
+    result += vizChildEdge(uid, host->getUid(), "host", "Host Name");
+    result += host->gen_viz_code();
     if (type == va_array) {
-        result += vizChildEdge(uid, index_list->getUid(), "array", "Array");
+        result += vizChildEdge(uid, index_list->getUid(), "array index", "Array Index");
         result += index_list->gen_viz_code();
     }
     if (type == va_record) {
-        result += vizChildEdge(uid, member_name->getUid(), "record", "Record");
-        result += member_name->gen_viz_code();
+        result += vizChildEdge(uid, member->getUid(), "record field", "Record Field");
+        result += member->gen_viz_code();
     }
     return result;
 }
