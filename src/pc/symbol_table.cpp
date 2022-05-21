@@ -6,16 +6,16 @@ std::string TableItem::toString() {
     return "<TableItem Root Class>";
 }
 std::string ConstTableItem::toString() {
-    return "\t[level: " + to_string(level) + "]";
+    return name + "\t[level: " + to_string(level) + "]";
 }
 std::string TypeTableItem::toString() {
-    return "\t[level: " + to_string(level) + "]";
+    return name + "\t[level: " + to_string(level) + "]";
 }
 std::string VarTableItem::toString() {
-    return "\t[level: " + to_string(level) + "\torder: " + to_string(order) + "]";
+    return name + "\t[level: " + to_string(level) + "\torder: " + to_string(order) + "]";
 }
 std::string FuncTableItem::toString() {
-    return "\t[level: " + to_string(level) + "]";
+    return name + "\t[level: " + to_string(level) + "]";
 }
 
 int SymbolTable::getLevel() {
@@ -122,6 +122,13 @@ std::vector<VarDefNode *> SymbolTable::getValidVars() {
         if (it.second.front().level == currLevel) result.push_back(it.second.front().var_def);
     return result;
 }
+std::vector<FuncDefNode *> SymbolTable::getValidFuncs() {
+    std::vector<FuncDefNode *> result;
+    result.clear();
+    for (auto it : FuncDeclMap)
+        if (it.second.front().level == currLevel) result.push_back(it.second.front().func_def);
+    return result;
+}
 
 std::set<VarTableItem> SymbolTable::getVarScope(int level) {
     std::set<VarTableItem> result;
@@ -139,19 +146,21 @@ std::set<VarTableItem> SymbolTable::getVarScope(int level) {
 
 template <class T>
 void SymbolTable::printSymbol(const std::map<std::string, std::list<T>> &decl_map) {
+    std::set<T> symbols;
     for (auto it1 : decl_map)
-        if (!it1.second.empty()) {
-            std::cout << it1.first;
-            for (auto it2 : it1.second) std::cout << it2.toString() << std::endl;
-        }
+        if (!it1.second.empty())
+            for (auto it2 : it1.second) symbols.insert(it2);
+    for (auto symbol : symbols) std::cout << symbol.toString() << std::endl;
 }
 
 void SymbolTable::enterScope() {
+    std::cout << "Before Enter Scope, ";
     printTable();
     currLevel++;
 }
 
 void SymbolTable::leaveScope() {
+    std::cout << "Before Leave Scope, ";
     printTable();
     popConstSymbol();
     popTypeSymbol();
@@ -162,13 +171,13 @@ void SymbolTable::leaveScope() {
 
 void SymbolTable::printTable() {
     std::cout << "current level: " << to_string(currLevel) << std::endl;
-    std::cout << "--------Const--------" << std::endl;
+    std::cout << "--------------Const--------------" << std::endl;
     printSymbol<ConstTableItem>(ConstDeclMap);
-    std::cout << "--------Type--------" << std::endl;
+    std::cout << "--------------Type---------------" << std::endl;
     printSymbol<TypeTableItem>(TypeDeclMap);
-    std::cout << "--------Var--------" << std::endl;
+    std::cout << "--------------Var----------------" << std::endl;
     printSymbol<VarTableItem>(VarDeclMap);
-    std::cout << "--------Func--------" << std::endl;
+    std::cout << "--------------Func---------------" << std::endl;
     printSymbol<FuncTableItem>(FuncDeclMap);
     std::cout << std::endl;
 }

@@ -41,7 +41,7 @@ class ParamDefNode {
         return result;
     }
 
-    bool gen_sym_tab();
+    bool gen_sym_tab(int order);
 };
 
 class ParamDefListNode {
@@ -76,7 +76,8 @@ class ParamDefListNode {
 
     bool gen_sym_tab() {
         bool result = true;
-        for (ParamDefNode *def : param_defs) result &= def->gen_sym_tab();
+        int  ord    = 0;
+        for (ParamDefNode *def : param_defs) result &= def->gen_sym_tab(ord++);
         return result;
     }
 
@@ -118,6 +119,8 @@ class FuncDefNode {
     int getUid() {
         return uid;
     }
+
+    bool hasDecl();
 
     bool gen_sym_tab();
 

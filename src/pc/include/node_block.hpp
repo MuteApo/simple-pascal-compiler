@@ -51,6 +51,14 @@ class BlockNode {
         is_global = true;
     }
 
+    bool hasDecl() {
+        if (const_defs != nullptr) return true;
+        if (type_defs != nullptr) return true;
+        if (var_defs != nullptr) return true;
+        if (func_defs != nullptr) return true;
+        return false;
+    }
+
     std::string gen_viz_code();
 
     std::string visit();
@@ -73,10 +81,13 @@ class ProgramNode {
     }
 
     std::string getNodeInfo() {
-        std::string result = "ProgramNode\n" + name + "(";
-        if (id_list.size()) result += id_list.at(0)->getName();
-        for (int i = 1; i < id_list.size(); i++) result += "," + id_list.at(i)->getName();
-        return result + ")";
+        std::string result = "ProgramNode\n" + name;
+        if (id_list.size()) {
+            result += "(" + id_list.at(0)->getName();
+            for (int i = 1; i < id_list.size(); i++) result += "," + id_list.at(i)->getName();
+            return result + ")";
+        }
+        return result;
     }
 
     std::string gen_viz_code() {
