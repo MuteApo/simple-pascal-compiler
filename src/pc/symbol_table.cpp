@@ -154,6 +154,16 @@ ExprNode *SymbolTable::translateConstId(ExprNode *id) {
     return const_def->getValue();
 }
 
+TypeAttrNode *SymbolTable::translateTypeId(TypeAttrNode *id) {
+    if (id->getType() != type_identifier) return id;
+    TypeAttrNode *type_attr = findTypeSymbol(id->getName());
+    if (type_attr == nullptr) {
+        // TODO syntax error: symbol not found
+        return nullptr;
+    }
+    return type_attr;
+}
+
 template <class T>
 void SymbolTable::printSymbol(const std::map<std::string, std::list<T>> &decl_map) {
     std::set<T> symbols;

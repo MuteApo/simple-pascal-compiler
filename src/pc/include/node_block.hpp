@@ -85,7 +85,7 @@ class ProgramNode {
     std::string gen_viz_code() {
         std::string result = vizNode(uid, getNodeInfo());
         if (block != nullptr) {
-            result += vizChildEdge(uid, block->getUid());
+            result += vizChildEdge(uid, block->getUid(), "block", "Program Block");
             result += block->gen_viz_code();
         }
         return "digraph G {\n" + result + "}";

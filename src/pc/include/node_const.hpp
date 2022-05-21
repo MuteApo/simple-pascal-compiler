@@ -58,9 +58,12 @@ class ConstDefListNode {
 
     std::string gen_viz_code() {
         std::string result = vizNode(uid, "ConstDefListNode");
-        for (ConstDefNode *def : const_defs) {
-            result += vizChildEdge(uid, def->getUid());
-            result += def->gen_viz_code();
+        for (int i = 0; i < const_defs.size(); i++) {
+            result += vizChildEdge(uid,
+                                   const_defs.at(i)->getUid(),
+                                   "constdef" + to_string(i + 1),
+                                   "Const Definition " + to_string(i + 1));
+            result += const_defs.at(i)->gen_viz_code();
         }
         return result;
     }

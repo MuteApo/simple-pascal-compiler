@@ -1,11 +1,21 @@
 #include "include/node_var.hpp"
 #include "include/symbol_table.hpp"
 
+VarDefNode::VarDefNode(std::string id, TypeAttrNode *t)
+        : uid(++global_uid), name(id), type(t), is_type_id(t->getType() == type_identifier) {}
+
+void VarDefNode::translateId() {
+    type = symbol_table.translateTypeId(type);
+    type->translateId();
+}
+
 bool VarDefNode::is_legal() {
     return symbol_table.findTypeSymbol(type->getName()) != nullptr;
 }
 
 bool VarDefNode::gen_sym_tab(int ord) {
+    type = symbol_table.translateTypeId(type);
+    type->translateId();
     return symbol_table.addSymbol(name, this, ord);
 }
 
@@ -23,8 +33,8 @@ std::string VarDefNode::gen_asm_def(void) {
 
 std::string VarDefNode::gen_viz_code() {
     std::string result = vizNode(uid, "VarDefNode\n" + name);
-    result += vizChildEdge(uid, type->getUid());
-    result += type->gen_viz_code();
+    result += vizChildEdge(uid, type->getUid(), "vardef", "Variable Definition");
+    if (!is_type_id) result += type->gen_viz_code();
     return result;
 }
 
@@ -42,6 +52,10 @@ bool VarDefListNode::gen_sym_tab(void) {
 
 void VarDefListNode::addVarDef(IdListNode *ids, TypeAttrNode *type) {
     for (IdNode *id : ids->getIdList()) addVarDef(new VarDefNode(id->getName(), type));
+}
+
+void VarDefListNode::translateId() {
+    for (VarDefNode *var : var_defs) var->translateId();
 }
 
 std::string VarDefListNode::gen_asm_def(void) {

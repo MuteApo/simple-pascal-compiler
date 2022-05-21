@@ -12,7 +12,7 @@ bool ParamDefNode::gen_sym_tab(int order) {
 
 std::string ParamDefNode::gen_viz_code() {
     std::string result = vizNode(uid, getNodeInfo());
-    result += vizChildEdge(uid, var_def->getUid());
+    result += vizChildEdge(uid, var_def->getUid(), "paramdef", "Parameter Definition");
     result += var_def->gen_viz_code();
     return result;
 }
@@ -39,15 +39,18 @@ bool FuncDefNode::gen_sym_tab() {
 std::string FuncDefNode::gen_viz_code() {
     std::string result = vizNode(uid, "FuncDefNode\n" + name);
     if (is_func) {
-        result += vizChildEdge(uid, retval_type->getUid());
+        result += vizChildEdge(uid, retval_type->getUid(), "retval", "Return Value Type");
         result += retval_type->gen_viz_code();
     }
     if (param_defs != nullptr) {
-        result += vizChildEdge(uid, param_defs->getUid());
+        result += vizChildEdge(uid, param_defs->getUid(), "params", "Type of Parameters");
         result += param_defs->gen_viz_code();
     }
     if (block != nullptr) {
-        result += vizChildEdge(uid, block->getUid());
+        result += vizChildEdge(uid,
+                               block->getUid(),
+                               "block",
+                               std::string(is_func ? "Function" : "Procedure") + " Block");
         result += block->gen_viz_code();
     }
     return result;

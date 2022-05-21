@@ -21,27 +21,27 @@ std::string ExprNode::gen_viz_code() {
     std::string result = vizNode(uid, getNodeInfo());
     switch (node_type) {
         case el_nonleaf:
-            result += vizChildEdge(uid, op1->getUid());
+            result += vizChildEdge(uid, op1->getUid(), "op1", "Operand 1");
             result += op1->gen_viz_code();
             if (op2 != nullptr) {
-                result += vizChildEdge(uid, op2->getUid());
+                result += vizChildEdge(uid, op2->getUid(), "op2", "Operand 2");
                 result += op2->gen_viz_code();
             }
             break;
         case el_literal:
-            result += vizChildEdge(uid, literal_attr->getUid());
+            result += vizChildEdge(uid, literal_attr->getUid(), "literal", "Literal");
             result += literal_attr->gen_viz_code();
             break;
         case el_var_access:
-            result += vizChildEdge(uid, var_access_attr->getUid());
+            result += vizChildEdge(uid, var_access_attr->getUid(), "var access", "Variable Access");
             result += var_access_attr->gen_viz_code();
             break;
         case el_id:
-            result += vizChildEdge(uid, id_attr->getUid());
+            result += vizChildEdge(uid, id_attr->getUid(), "id", "Identifier");
             result += id_attr->gen_viz_code();
             break;
         case el_fun_call:
-            result += vizChildEdge(uid, func_attr->getUid());
+            result += vizChildEdge(uid, func_attr->getUid(), "fun call", "Function Call");
             result += func_attr->gen_viz_code();
             break;
     }
@@ -112,11 +112,11 @@ std::string VarAccessNode::getNodeInfo() {
 std::string VarAccessNode::gen_viz_code() {
     std::string result = vizNode(uid, getNodeInfo());
     if (type == va_array) {
-        result += vizChildEdge(uid, index_list->getUid());
+        result += vizChildEdge(uid, index_list->getUid(), "array", "Array");
         result += index_list->gen_viz_code();
     }
     if (type == va_record) {
-        result += vizChildEdge(uid, member_name->getUid());
+        result += vizChildEdge(uid, member_name->getUid(), "record", "Record");
         result += member_name->gen_viz_code();
     }
     return result;

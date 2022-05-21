@@ -111,9 +111,12 @@ class ExprListNode {
 
     std::string gen_viz_code() {
         std::string result = vizNode(uid, "ExprListNode");
-        for (ExprNode *expr : exprs) {
-            result += vizChildEdge(uid, expr->getUid());
-            result += expr->gen_viz_code();
+        for (int i = 0; i < exprs.size(); i++) {
+            result += vizChildEdge(uid,
+                                   exprs.at(i)->getUid(),
+                                   "expr" + to_string(i + 1),
+                                   "Expression " + to_string(i + 1));
+            result += exprs.at(i)->gen_viz_code();
         }
         return result;
     }
@@ -258,7 +261,7 @@ class FuncNode {
     std::string gen_viz_code() {
         std::string result = vizNode(uid, getNodeInfo());
         if (arg_list != nullptr) {
-            result += vizChildEdge(uid, arg_list->getUid());
+            result += vizChildEdge(uid, arg_list->getUid(), "args", "Arguments of Function Call");
             result += arg_list->gen_viz_code();
         }
         return result;

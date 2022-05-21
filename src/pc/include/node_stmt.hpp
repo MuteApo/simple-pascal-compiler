@@ -264,9 +264,12 @@ class CaseListNode {
 
     std::string gen_viz_code() {
         std::string result = vizNode(uid, "CaseListNode");
-        for (CaseStmtNode *stmt : case_list) {
-            result += vizChildEdge(uid, stmt->getUid());
-            result += stmt->gen_viz_code();
+        for (int i = 0; i < case_list.size(); i++) {
+            result += vizChildEdge(uid,
+                                   case_list.at(i)->getUid(),
+                                   "case" + to_string(i + 1),
+                                   "Case " + to_string(i + 1));
+            result += case_list.at(i)->gen_viz_code();
         }
         return result;
     }

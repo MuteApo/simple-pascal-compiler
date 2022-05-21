@@ -36,11 +36,12 @@ typedef enum { boolean = 201, integer, real, character } basic_type_kind;
 class TypeDefNode {
   private:
     int           uid;
+    bool          is_type_id;
     std::string   name;
     TypeAttrNode *type;
 
   public:
-    TypeDefNode(std::string id, TypeAttrNode *t) : uid(++global_uid), name(id), type(t) {}
+    TypeDefNode(std::string id, TypeAttrNode *t);
 
     int getUid() {
         return uid;
@@ -71,9 +72,12 @@ class TypeDefListNode {
 
     std::string gen_viz_code() {
         std::string result = vizNode(uid, "TypeDefListNode");
-        for (TypeDefNode *def : type_defs) {
-            result += vizChildEdge(uid, def->getUid());
-            result += def->gen_viz_code();
+        for (int i = 0; i < type_defs.size(); i++) {
+            result += vizChildEdge(uid,
+                                   type_defs.at(i)->getUid(),
+                                   "typedef" + to_string(i + 1),
+                                   "Type Definition " + to_string(i + 1));
+            result += type_defs.at(i)->gen_viz_code();
         }
         return result;
     }
@@ -128,7 +132,11 @@ class TypeAttrNode {
         return name;
     }
 
-    void translteId();
+    type_kind getType() {
+        return root_type;
+    }
+
+    void translateId();
 
     int get_length(void);
 
@@ -156,10 +164,12 @@ class TypeAttrNode {
 class TypeAttrListNode {
   private:
     int                         uid;
+    std::vector<bool>           is_type_id;
     std::vector<TypeAttrNode *> type_attrs;
 
   public:
     TypeAttrListNode() : uid(++global_uid) {
+        is_type_id.clear();
         type_attrs.clear();
     }
 
@@ -167,13 +177,16 @@ class TypeAttrListNode {
         return uid;
     }
 
-    void addTypeAttr(TypeAttrNode *type_attr) {
-        type_attrs.push_back(type_attr);
-    }
-
     int getDim() {
         return type_attrs.size();
     }
+
+    void addTypeAttr(TypeAttrNode *type_attr) {
+        is_type_id.push_back(type_attr->getType() == type_identifier);
+        type_attrs.push_back(type_attr);
+    }
+
+    void translateId();
 
     std::vector<TypeAttrNode *> getAttrList() {
         return type_attrs;
@@ -181,9 +194,12 @@ class TypeAttrListNode {
 
     std::string gen_viz_code() {
         std::string result = vizNode(uid, "TypeAttrListNode");
-        for (TypeAttrNode *def : type_attrs) {
-            result += vizChildEdge(uid, def->getUid());
-            result += def->gen_viz_code();
+        for (int i = 0; i < type_attrs.size(); i++) {
+            result += vizChildEdge(uid,
+                                   type_attrs.at(i)->getUid(),
+                                   "index" + to_string(i + 1),
+                                   "Type of Index " + to_string(i + 1));
+            if (!is_type_id.at(i)) result += type_attrs.at(i)->gen_viz_code();
         }
         return result;
     }
@@ -278,7 +294,7 @@ class SubrangeAttrNode {
         return uid;
     }
 
-    void translateBoundId();
+    void translateId();
 
     int get_length(void);
 
@@ -337,6 +353,8 @@ class StructAttrNode {
         return uid;
     }
 
+    void translateId();
+
     int get_length(void);
 
     int get_offset(void);
@@ -357,17 +375,19 @@ class SetAttrNode {  // TODO
 class ArrayAttrNode {
   private:
     int               uid;
+    bool              is_ele_type_id;
     TypeAttrListNode *index_type;
     TypeAttrNode     *element_type;
     friend class StructAttrNode;
 
   public:
-    ArrayAttrNode(TypeAttrListNode *it, TypeAttrNode *et)
-            : uid(++global_uid), index_type(it), element_type(et) {}
+    ArrayAttrNode(TypeAttrListNode *it, TypeAttrNode *et);
 
     int getUid() {
         return uid;
     }
+
+    void translateId();
 
     int get_dim();
 
@@ -379,10 +399,10 @@ class ArrayAttrNode {
 
     std::string gen_viz_code() {
         std::string result = vizNode(uid, "ArrayAttrNode");
-        result += vizChildEdge(uid, index_type->getUid());
+        result += vizChildEdge(uid, index_type->getUid(), "indices", "Type of Indices ");
         result += index_type->gen_viz_code();
-        result += vizChildEdge(uid, element_type->getUid());
-        result += element_type->gen_viz_code();
+        result += vizChildEdge(uid, element_type->getUid(), "element", "Type of Element");
+        if (!is_ele_type_id) result += element_type->gen_viz_code();
         return result;
     }
 };
@@ -398,6 +418,8 @@ class RecordAttrNode {
     int getUid() {
         return uid;
     }
+
+    void translateId();
 
     int get_dim();
 

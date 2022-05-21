@@ -20,23 +20,23 @@ std::string BlockNode::gen_asm_code() {
 std::string BlockNode::gen_viz_code(void) {
     std::string result = vizNode(uid, "BlockNode");
     if (const_defs != nullptr) {
-        result += vizChildEdge(uid, const_defs->getUid());
+        result += vizChildEdge(uid, const_defs->getUid(), "const", "Const Part");
         result += const_defs->gen_viz_code();
     }
     if (type_defs != nullptr) {
-        result += vizChildEdge(uid, type_defs->getUid());
+        result += vizChildEdge(uid, type_defs->getUid(), "type", "Type Part");
         result += type_defs->gen_viz_code();
     }
     if (var_defs != nullptr) {
-        result += vizChildEdge(uid, var_defs->getUid());
+        result += vizChildEdge(uid, var_defs->getUid(), "var", "Var Part");
         result += var_defs->gen_viz_code();
     }
     if (func_defs != nullptr) {
-        result += vizChildEdge(uid, func_defs->getUid());
+        result += vizChildEdge(uid, func_defs->getUid(), "func", "Function/Procedure Part");
         result += func_defs->gen_viz_code();
     }
     if (stmts != nullptr) {
-        result += vizChildEdge(uid, stmts->getUid());
+        result += vizChildEdge(uid, stmts->getUid(), "stmts", "Statement Part");
         result += stmts->gen_viz_code();
     }
     return result;

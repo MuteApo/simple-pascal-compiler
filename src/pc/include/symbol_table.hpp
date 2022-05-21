@@ -113,7 +113,8 @@ class SymbolTable {
 
     std::set<VarTableItem> getVarScope(int level);
 
-    ExprNode *translateConstId(ExprNode *id);
+    ExprNode     *translateConstId(ExprNode *id);
+    TypeAttrNode *translateTypeId(TypeAttrNode *id);
 
     template <class T> void printSymbol(const std::map<std::string, std::list<T>> &decl_map);
 

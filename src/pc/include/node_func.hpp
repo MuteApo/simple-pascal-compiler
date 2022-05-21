@@ -71,9 +71,12 @@ class ParamDefListNode {
 
     std::string gen_viz_code() {
         std::string result = vizNode(uid, "ParamDefListNode");
-        for (ParamDefNode *def : param_defs) {
-            result += vizChildEdge(uid, def->getUid());
-            result += def->gen_viz_code();
+        for (int i = 0; i < param_defs.size(); i++) {
+            result += vizChildEdge(uid,
+                                   param_defs.at(i)->getUid(),
+                                   "param" + to_string(i + 1),
+                                   "Type of Param " + to_string(i + 1));
+            result += param_defs.at(i)->gen_viz_code();
         }
         return result;
     }
@@ -141,9 +144,12 @@ class FuncDefListNode {
 
     std::string gen_viz_code() {
         std::string result = vizNode(uid, "FuncDefListNode");
-        for (FuncDefNode *def : func_defs) {
-            result += vizChildEdge(uid, def->getUid());
-            result += def->gen_viz_code();
+        for (int i = 0; i < func_defs.size(); i++) {
+            result += vizChildEdge(uid,
+                                   func_defs.at(i)->getUid(),
+                                   "func" + to_string(i + 1),
+                                   "Function " + to_string(i + 1));
+            result += func_defs.at(i)->gen_viz_code();
         }
         return result;
     }

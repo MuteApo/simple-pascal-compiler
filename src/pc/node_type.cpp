@@ -1,24 +1,29 @@
 #include "include/node_type.hpp"
 #include "include/symbol_table.hpp"
 
+TypeDefNode::TypeDefNode(std::string id, TypeAttrNode *t)
+        : uid(++global_uid), name(id), type(t), is_type_id(t->getType() == type_identifier) {}
+
 bool TypeDefNode::gen_sym_tab() {
-    type->translteId();
+    type = symbol_table.translateTypeId(type);
+    type->translateId();
     return symbol_table.addSymbol(name, type);
 }
 
 std::string TypeDefNode::gen_viz_code() {
     std::string result = vizNode(uid, "TypeDefNode\n" + name);
-    result += vizChildEdge(uid, type->getUid());
-    result += type->gen_viz_code();
+    result += vizChildEdge(uid, type->getUid(), "typedef", "Type Definition");
+    if (!is_type_id) result += type->gen_viz_code();
     return result;
 }
 
-void TypeAttrNode::translteId() {
+void TypeAttrNode::translateId() {
     switch (root_type) {
-        case ordinal:
-            ord_attr->translateId();
-            break;
-            // TODO
+        case basic: break;    // nothing to do
+        case pointer: break;  // nothing to do
+        case ordinal: ord_attr->translateId(); break;
+        case structured: struct_attr->translateId(); break;
+        case type_identifier: break;  // done in upper level
     }
 }
 
@@ -76,19 +81,32 @@ std::string TypeAttrNode::gen_viz_code() {
     std::string result = vizNode(uid, getNodeInfo());
     switch (root_type) {
         case basic:
-            result += vizChildEdge(uid, basic_attr->getUid());
+            result += vizChildEdge(uid, basic_attr->getUid(), "basic", "Basic Type");
             result += basic_attr->gen_viz_code();
             break;
         case ordinal:
-            result += vizChildEdge(uid, ord_attr->getUid());
+            result += vizChildEdge(uid, ord_attr->getUid(), "ordinal", "Ordinal Type");
             result += ord_attr->gen_viz_code();
             break;
         case structured:
-            result += vizChildEdge(uid, struct_attr->getUid());
+            result += vizChildEdge(uid, struct_attr->getUid(), "struct", "Structured Type");
             result += struct_attr->gen_viz_code();
+            break;
+        case pointer:
+            // TODO: any actions?
+            break;
+        case type_identifier:
+            // TODO: any actions?
             break;
     }
     return result;
+}
+
+void TypeAttrListNode::translateId() {
+    for (int i = 0; i < type_attrs.size(); i++) {
+        type_attrs.at(i) = symbol_table.translateTypeId(type_attrs.at(i));
+        type_attrs.at(i)->translateId();
+    }
 }
 
 basic_type_kind BasicAttrNode::getType() {
@@ -116,7 +134,7 @@ bool BasicAttrNode::is_type_equ(BasicAttrNode *type) {
 }
 
 void OrdAttrNode::translateId() {
-    if (is_subrange) subrange_attr->translateBoundId();
+    if (is_subrange) subrange_attr->translateId();
 }
 
 int OrdAttrNode::get_length(void) {
@@ -140,10 +158,10 @@ bool OrdAttrNode::is_type_equ(OrdAttrNode *type) {
 std::string OrdAttrNode::gen_viz_code() {
     std::string result = vizNode(uid, "OrdAttrNode");
     if (is_subrange) {
-        result += vizChildEdge(uid, subrange_attr->getUid());
+        result += vizChildEdge(uid, subrange_attr->getUid(), "subrange", "Subrange Type");
         result += subrange_attr->gen_viz_code();
     } else {
-        result += vizChildEdge(uid, enum_attr->getUid());
+        result += vizChildEdge(uid, enum_attr->getUid(), "enum", "Enumerated Type");
         result += enum_attr->gen_viz_code();
     }
     return result;
@@ -156,7 +174,7 @@ SubrangeAttrNode::SubrangeAttrNode(ExprNode *lb, ExprNode *ub)
           is_low_id(lb->getExprType() == el_id),
           is_up_id(ub->getExprType() == el_id) {}
 
-void SubrangeAttrNode::translateBoundId() {
+void SubrangeAttrNode::translateId() {
     low_bound = symbol_table.translateConstId(low_bound);
     up_bound  = symbol_table.translateConstId(up_bound);
 }
@@ -174,8 +192,6 @@ int SubrangeAttrNode::get_offset(void) {
 }
 
 bool SubrangeAttrNode::is_type_equ(SubrangeAttrNode *type) {
-    // translateBoundId();
-    // type->translateBoundId();
     if (!low_bound->is_value_equ(type->low_bound)) return false;
     if (!up_bound->is_value_equ(type->up_bound)) return false;
     return true;
@@ -221,6 +237,13 @@ std::string EnumAttrNode::getNodeInfo() {
     return result + ")";
 }
 
+void StructAttrNode::translateId() {
+    if (is_array)
+        array_attr->translateId();
+    else
+        record_attr->translateId();
+}
+
 int StructAttrNode::get_length(void) {
     return is_array ? array_attr->get_length() : record_attr->get_length();
 }
@@ -238,13 +261,25 @@ bool StructAttrNode::is_type_equ(StructAttrNode *type) {
 std::string StructAttrNode::gen_viz_code() {
     std::string result = vizNode(uid, "StructAttrNode");
     if (is_array) {
-        result += vizChildEdge(uid, array_attr->getUid());
+        result += vizChildEdge(uid, array_attr->getUid(), "array", "Array Type");
         result += array_attr->gen_viz_code();
     } else {
-        result += vizChildEdge(uid, record_attr->getUid());
+        result += vizChildEdge(uid, record_attr->getUid(), "record", "Record Type");
         result += record_attr->gen_viz_code();
     }
     return result;
+}
+
+ArrayAttrNode::ArrayAttrNode(TypeAttrListNode *it, TypeAttrNode *et)
+        : uid(++global_uid),
+          index_type(it),
+          element_type(et),
+          is_ele_type_id(et->getType() == type_identifier) {}
+
+void ArrayAttrNode::translateId() {
+    element_type = symbol_table.translateTypeId(element_type);
+    element_type->translateId();
+    index_type->translateId();
 }
 
 int ArrayAttrNode::get_dim() {
@@ -264,8 +299,12 @@ bool ArrayAttrNode::is_type_equ(ArrayAttrNode *type) {
     return index_type->is_type_equ(type->index_type);
 }
 
+void RecordAttrNode::translateId() {
+    defs->translateId();
+}
+
 int RecordAttrNode::get_dim() {
-    return -1;  // TODO
+    return defs->getDim();
 }
 
 int RecordAttrNode::get_length(void) {
