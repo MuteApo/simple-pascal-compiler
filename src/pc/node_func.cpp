@@ -1,13 +1,21 @@
 #include "include/node_func.hpp"
 
-bool ParamDefNode::gen_sym_tab() {
-    return symbol_table.addSymbol(var_def->getName(), var_def, -1);
+bool ParamDefNode::gen_sym_tab(int order) {
+    return symbol_table.addSymbol(var_def->getName(), var_def, order);
+}
+
+bool FuncDefNode::hasDecl() {
+    if (param_defs != nullptr) return true;
+    if (block->hasDecl()) return true;
+    return false;
 }
 
 bool FuncDefNode::gen_sym_tab() {
     symbol_table.addSymbol(name, this);
+    if (hasDecl()) symbol_table.enterScope();
     if (param_defs != nullptr) param_defs->gen_sym_tab();
     block->visit();
+    if (hasDecl()) symbol_table.leaveScope();
     return true;
 }
 
@@ -30,10 +38,6 @@ std::string FuncDefNode::gen_viz_code() {
 
 bool FuncDefListNode::gen_sym_tab() {
     bool result = true;
-    for (FuncDefNode *def : func_defs) {
-        symbol_table.enterScope();
-        result &= def->gen_sym_tab();
-        symbol_table.leaveScope();
-    }
+    for (FuncDefNode *def : func_defs) result &= def->gen_sym_tab();
     return result;
 }

@@ -26,6 +26,10 @@ class ConstTableItem : public TableItem {
 
     ConstTableItem(std::string id, int lv, ConstDefNode *c_d) : TableItem(id, lv), const_def(c_d) {}
 
+    bool operator<(const ConstTableItem &rhs) const {
+        return level < rhs.level || level == rhs.level && name < rhs.name;
+    }
+
     std::string toString();
 };
 
@@ -34,6 +38,10 @@ class TypeTableItem : public TableItem {
     TypeAttrNode *type_attr;
 
     TypeTableItem(std::string id, int lv, TypeAttrNode *t_a) : TableItem(id, lv), type_attr(t_a) {}
+
+    bool operator<(const TypeTableItem &rhs) const {
+        return level < rhs.level || level == rhs.level && name < rhs.name;
+    }
 
     std::string toString();
 };
@@ -59,6 +67,10 @@ class FuncTableItem : public TableItem {
 
     FuncTableItem(std::string id, int lv, FuncDefNode *f_d) : TableItem(id, lv), func_def(f_d) {}
 
+    bool operator<(const FuncTableItem &rhs) const {
+        return level < rhs.level || level == rhs.level && name < rhs.name;
+    }
+
     std::string toString();
 };
 
@@ -79,7 +91,7 @@ class SymbolTable {
   public:
     errorHandler err;
 
-    SymbolTable() : currLevel(0) {}
+    SymbolTable() : currLevel(-1) {}
 
     int getLevel();
 
