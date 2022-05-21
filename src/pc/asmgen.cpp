@@ -241,24 +241,62 @@ string get_basic_calc(string operation, bool is_unsigned) {
 // dir = 0: load, from mem to reg(t0)
 // dir = 1: write, from reg(t1) to mem
 // is_signed: only for read operation
-string get_mem_access(int32_t offset, uint32_t size, bool dir, bool is_signed,
-                      bool is_globl, string name) {
+
+string get_mem_access(uchar size, bool dir, bool is_signed) {
+    string res = "";
     if (size == 1) {
-
+        if (!dir) {
+            if (is_signed)
+                res += "lb t0, 0(t0)\n";
+            else
+                res += "lbu t0, 0(t0)\n";
+        } else {
+            res += "sb t1, 0(t0)\n";
+        }
     } else if (size == 2) {
-
+        if (!dir) {
+            if (is_signed)
+                res += "lh t0, 0(t0)\n";
+            else
+                res += "lhu t0, 0(t0)\n";
+        } else {
+            res += "sh t1, 0(t0)\n";
+        }
     } else if (size == 4) {
-
+        if (!dir)
+            res += "lw t0, 0(t0)\n";
+        else
+            res += "sw t1, 0(t0)\n";
     } else {
         printf("size %d is illegal in single memory access\n", size);
     }
+    return res;
+}
+
+string get_mem_access(int32_t stk_pos, int32_t offset, uchar size, bool dir,
+                      bool is_signed) {
+    string res = "";
+    res += get_load_imm(stk_pos + offset);
+    res += "add t0, t0, sp\n";
+    res += get_mem_access(size, dir, is_signed);
+    return res;
+}
+
+string get_mem_access(string name, int32_t offset, uchar size, bool dir,
+                      bool is_signed) {
+    string res = "";
+    res += get_load_imm(offset);
+    res += "la t1, " + name + "\n";
+    res += "add t0, t0, t1\n";
+    res += get_mem_access(size, dir, is_signed);
+    return res;
 }
 
 // Copy func/proc perameters before func/proc call
-// mode = 0: global to local
-// mode = 1: local to local
-string get_mem_copy(uint32_t dst_offset, uint32_t src_offset, uint32_t size,
-                    string src_name, bool mode) {}
+string get_mem_copy(uint32_t dst_stk_pos, uint32_t src_stk_pos,
+                    uint32_t length) {}
+
+string get_mem_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {}
 
 /********************** Function or Procedure Call **********************/
 
@@ -344,8 +382,6 @@ bool write_segment(string snippet, bool data_seg) {
 }
 
 void get_define_global(string name, vector<uchar> field_size) {
-    // enter_segment(true);
-
     fprintf(asm_file, "%s:\n", name.data());
 
     fprintf(asm_file, "\t.align 4\n");
