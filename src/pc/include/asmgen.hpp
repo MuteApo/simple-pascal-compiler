@@ -14,13 +14,16 @@ std::string get_reg_xchg(uchar dst_reg, uchar src_reg);
 
 std::string get_basic_calc(std::string operation, bool is_unsigned = true);
 
-std::string get_mem_access(int32_t offset, uint32_t size, bool dir,
-                           bool is_signed, bool is_globl = false,
-                           std::string name = "");
+std::string get_mem_access(int32_t stk_pos, int32_t offset, uchar size,
+                           bool dir, bool is_signed);
 
-std::string get_mem_copy(uint32_t dst_offset, uint32_t src_offset,
-                         uint32_t size, std::string src_name = "",
-                         bool mode = true);
+std::string get_mem_access(std::string name, int32_t offset, uchar size,
+                           bool dir, bool is_signed);
+
+string get_mem_copy(uint32_t dst_stk_pos, uint32_t src_stk_pos,
+                    uint32_t length);
+
+string get_mem_copy(uint32_t dst_stk_pos, string src_name, uint32_t length);
 
 bool start_asm(std::string filename, uint32_t init_stack_top = 0x1FFFF);
 
