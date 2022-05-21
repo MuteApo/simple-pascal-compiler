@@ -144,6 +144,16 @@ std::set<VarTableItem> SymbolTable::getVarScope(int level) {
     return result;
 }
 
+ExprNode *SymbolTable::translateConstId(ExprNode *id) {
+    if (id->getExprType() != el_id) return id;
+    ConstDefNode *const_def = findConstSymbol(id->getIdNode()->getName());
+    if (const_def == nullptr) {
+        // TODO syntax error: symbol not found
+        return nullptr;
+    }
+    return const_def->getValue();
+}
+
 template <class T>
 void SymbolTable::printSymbol(const std::map<std::string, std::list<T>> &decl_map) {
     std::set<T> symbols;

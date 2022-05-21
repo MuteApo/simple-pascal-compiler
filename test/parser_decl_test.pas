@@ -5,7 +5,7 @@ const
     yy = 'y';
 type
     week = (Mon, Tues, Wed, Thur, Fri);
-    digit = 0..9;
+    digit = 0..z;
     y = record
         {i: set of digit;}
         u: week;

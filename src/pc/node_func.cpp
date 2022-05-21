@@ -1,7 +1,24 @@
 #include "include/node_func.hpp"
 
+ParamDefNode::ParamDefNode(bool is_r, std::string id, TypeAttrNode *t)
+        : uid(++global_uid), is_ref(is_r), var_def(new VarDefNode(id, t)) {}
+ParamDefNode::~ParamDefNode() {
+    if (var_def != nullptr) delete var_def;
+}
+
 bool ParamDefNode::gen_sym_tab(int order) {
     return symbol_table.addSymbol(var_def->getName(), var_def, order);
+}
+
+std::string ParamDefNode::gen_viz_code() {
+    std::string result = vizNode(uid, getNodeInfo());
+    result += vizChildEdge(uid, var_def->getUid());
+    result += var_def->gen_viz_code();
+    return result;
+}
+
+void ParamDefListNode::addParamDef(bool is_ref, IdListNode *ids, TypeAttrNode *type) {
+    for (IdNode *id : ids->getIdList()) addParamDef(new ParamDefNode(is_ref, id->getName(), type));
 }
 
 bool FuncDefNode::hasDecl() {

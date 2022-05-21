@@ -56,10 +56,10 @@ int main(int argc, char *argv[]) {
     // sem.analyseTree(root);
     // sem.st.printTable();
     // sem.err.printError();
+    root->visit();
     if (viz_file != NULL) {
         fprintf(viz_file, "%s", root->gen_viz_code().c_str());
         fclose(viz_file);
     }
-    root->visit();
     return 0;
 }

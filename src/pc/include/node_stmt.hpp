@@ -14,6 +14,7 @@ class FuncStmtNode;
 
 #include "defs.hpp"
 #include "node_const.hpp"
+#include "viz.hpp"
 #include <string>
 #include <vector>
 
@@ -112,14 +113,7 @@ class StmtListNode {
         return asm_code;
     }
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "StmtListNode");
-        for (StmtNode *stmt : stmts) {
-            result += vizChildEdge(uid, stmt->getUid());
-            result += stmt->gen_viz_code();
-        }
-        return result;
-    }
+    std::string gen_viz_code();
 };
 
 class AssignStmtNode {
@@ -137,14 +131,7 @@ class AssignStmtNode {
 
     std::string gen_asm_code();
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "AssignStmtNode");
-        result += vizChildEdge(uid, dst->getUid());
-        result += dst->gen_viz_code();
-        result += vizChildEdge(uid, src->getUid());
-        result += src->gen_viz_code();
-        return result;
-    }
+    std::string gen_viz_code();
 };
 
 class IfStmtNode {
@@ -164,21 +151,10 @@ class IfStmtNode {
 
     std::string gen_asm_code();
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "IfStmtNode");
-        result += vizChildEdge(uid, expr->getUid());
-        result += expr->gen_viz_code();
-        result += vizChildEdge(uid, then_part->getUid());
-        result += then_part->gen_viz_code();
-        if (else_part != nullptr) {
-            result += vizChildEdge(uid, else_part->getUid());
-            result += else_part->gen_viz_code();
-        }
-        return result;
-    }
+    std::string gen_viz_code();
 };
 
-class ForStmtNode {  // TODO
+class ForStmtNode {
   private:
     int         uid;
     std::string name;
@@ -205,16 +181,7 @@ class ForStmtNode {  // TODO
         return result + (is_to ? "\n→" : "\n←");
     }
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, getNodeInfo());
-        result += vizChildEdge(uid, start_expr->getUid());
-        result += start_expr->gen_viz_code();
-        result += vizChildEdge(uid, end_expr->getUid());
-        result += end_expr->gen_viz_code();
-        result += vizChildEdge(uid, body_part->getUid());
-        result += body_part->gen_viz_code();
-        return result;
-    }
+    std::string gen_viz_code();
 };
 
 class WhileStmtNode {
@@ -232,14 +199,7 @@ class WhileStmtNode {
 
     std::string gen_asm_code();
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "WhileStmtNode");
-        result += vizChildEdge(uid, condition->getUid());
-        result += condition->gen_viz_code();
-        result += vizChildEdge(uid, body_part->getUid());
-        result += body_part->gen_viz_code();
-        return result;
-    }
+    std::string gen_viz_code();
 };
 
 class RepeatStmtNode {
@@ -258,14 +218,7 @@ class RepeatStmtNode {
 
     std::string gen_asm_code();
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "RepeatStmtNode");
-        result += vizChildEdge(uid, body_part->getUid());
-        result += body_part->gen_viz_code();
-        result += vizChildEdge(uid, condition->getUid());
-        result += condition->gen_viz_code();
-        return result;
-    }
+    std::string gen_viz_code();
 };
 
 class CaseStmtNode {
@@ -333,14 +286,7 @@ class SwitchStmtNode {
         return uid;
     }
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "SwitchStmtNode");
-        result += vizChildEdge(uid, condition->getUid());
-        result += condition->gen_viz_code();
-        result += vizChildEdge(uid, case_list->getUid());
-        result += case_list->gen_viz_code();
-        return result;
-    }
+    std::string gen_viz_code();
 };
 
 class FuncStmtNode {
@@ -355,12 +301,7 @@ class FuncStmtNode {
         return uid;
     }
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "FuncStmtNode");
-        result += vizChildEdge(uid, func->getUid());
-        result += func->gen_viz_code();
-        return result;
-    }
+    std::string gen_viz_code();
 };
 
 #endif

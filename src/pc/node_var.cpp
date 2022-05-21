@@ -2,7 +2,7 @@
 #include "include/symbol_table.hpp"
 
 bool VarDefNode::is_legal() {
-    return symbol_table.findTypeSymbol(type->getId()) != nullptr;
+    return symbol_table.findTypeSymbol(type->getName()) != nullptr;
 }
 
 bool VarDefNode::gen_sym_tab(int ord) {
@@ -10,13 +10,13 @@ bool VarDefNode::gen_sym_tab(int ord) {
 }
 
 int VarDefNode::get_length(void) {
-    TypeAttrNode *type_def = symbol_table.findTypeSymbol(type->getId());
+    TypeAttrNode *type_def = symbol_table.findTypeSymbol(type->getName());
     if (type_def == nullptr) return -1;
     return type_def->get_length();
 }
 
 std::string VarDefNode::gen_asm_def(void) {
-    TypeAttrNode *type_def = symbol_table.findTypeSymbol(type->getId());
+    TypeAttrNode *type_def = symbol_table.findTypeSymbol(type->getName());
     if (type_def == nullptr) return "";
     return type_def->gen_asm_def();
 }

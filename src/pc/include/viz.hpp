@@ -6,7 +6,7 @@
 
 std::string vizNode(int uid, std::string info);
 
-std::string vizChildEdge(int fa_uid, int son_uid);
+std::string vizChildEdge(int fa_uid, int son_uid, std::string info = "", std::string tip = "");
 
 template <class T> std::string to_string(T v) {
     std::ostringstream oss;

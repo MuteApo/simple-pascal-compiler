@@ -1,6 +1,8 @@
 .DS_Store
 .vscode
-bin/tree.png
+bin/as
+bin/pc
+bin/tree.svg
 bin/tree.viz
 src/pc/lex.yy.c
 src/pc/parser.output

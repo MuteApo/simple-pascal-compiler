@@ -50,3 +50,13 @@ std::string BlockNode::visit() {
     symbol_table.leaveScope();
     return asm_code;
 }
+
+std::string ProgramNode::getNodeInfo() {
+    std::string result = "ProgramNode\n" + name;
+    if (id_list.size()) {
+        result += "(" + id_list.at(0)->getName();
+        for (int i = 1; i < id_list.size(); i++) result += "," + id_list.at(i)->getName();
+        return result + ")";
+    }
+    return result;
+}

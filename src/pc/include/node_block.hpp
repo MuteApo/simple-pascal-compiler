@@ -80,15 +80,7 @@ class ProgramNode {
         return uid;
     }
 
-    std::string getNodeInfo() {
-        std::string result = "ProgramNode\n" + name;
-        if (id_list.size()) {
-            result += "(" + id_list.at(0)->getName();
-            for (int i = 1; i < id_list.size(); i++) result += "," + id_list.at(i)->getName();
-            return result + ")";
-        }
-        return result;
-    }
+    std::string getNodeInfo();
 
     std::string gen_viz_code() {
         std::string result = vizNode(uid, getNodeInfo());

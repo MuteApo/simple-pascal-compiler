@@ -10,6 +10,7 @@ class IdListNode;
 class FuncNode;
 
 #include "defs.hpp"
+#include "node_const.hpp"
 #include "node_type.hpp"
 #include "viz.hpp"
 #include <string>
@@ -65,6 +66,10 @@ class ExprNode {
         return uid;
     }
 
+    expr_node_type getExprType() {
+        return node_type;
+    }
+
     IdNode *getIdNode() {
         return id_attr;
     }
@@ -76,6 +81,8 @@ class ExprNode {
     bool is_accessible() {
         return node_type == el_var_access || node_type == el_id;
     }
+
+    bool is_value_equ(ExprNode *expr);
 
     std::string gen_asm_code(void);
 };
@@ -139,6 +146,8 @@ class LiteralNode {
         return type;
     }
 
+    bool is_value_equ(LiteralNode *expr);
+
     std::string getNodeInfo();
 
     std::string gen_viz_code() {
@@ -191,6 +200,7 @@ class IdNode {
     std::string getName() {
         return name;
     }
+    ConstDefNode *getConst();
 
     TypeAttrNode *getType();
 

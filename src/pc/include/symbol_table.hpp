@@ -8,6 +8,7 @@
 #include "node_var.hpp"
 #include <list>
 #include <map>
+#include <set>
 #include <string>
 
 class TableItem {
@@ -111,6 +112,8 @@ class SymbolTable {
     std::vector<FuncDefNode *>  getValidFuncs();
 
     std::set<VarTableItem> getVarScope(int level);
+
+    ExprNode *translateConstId(ExprNode *id);
 
     template <class T> void printSymbol(const std::map<std::string, std::list<T>> &decl_map);
 

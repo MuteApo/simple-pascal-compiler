@@ -18,11 +18,8 @@ class ParamDefNode {
     VarDefNode *var_def;
 
   public:
-    ParamDefNode(bool is_r, std::string id, TypeAttrNode *t)
-            : uid(++global_uid), is_ref(is_r), var_def(new VarDefNode(id, t)) {}
-    ~ParamDefNode() {
-        if (var_def != nullptr) delete var_def;
-    }
+    ParamDefNode(bool is_r, std::string id, TypeAttrNode *t);
+    ~ParamDefNode();
 
     int getUid() {
         return uid;
@@ -34,14 +31,9 @@ class ParamDefNode {
         return result;
     }
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, getNodeInfo());
-        result += vizChildEdge(uid, var_def->getUid());
-        result += var_def->gen_viz_code();
-        return result;
-    }
-
     bool gen_sym_tab(int order);
+
+    std::string gen_viz_code();
 };
 
 class ParamDefListNode {
@@ -61,11 +53,7 @@ class ParamDefListNode {
     void addParamDef(ParamDefNode *param) {
         param_defs.push_back(param);
     }
-    void addParamDef(bool is_ref, IdListNode *ids, TypeAttrNode *type) {
-        for (IdNode *id : ids->getIdList())
-            addParamDef(new ParamDefNode(is_ref, id->getName(), type));
-    }
-
+    void                         addParamDef(bool is_ref, IdListNode *ids, TypeAttrNode *type);
     std::vector<ParamDefNode *> &getParamList() {
         return param_defs;
     }

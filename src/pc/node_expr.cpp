@@ -48,6 +48,16 @@ std::string ExprNode::gen_viz_code() {
     return result;
 }
 
+bool ExprNode::is_value_equ(ExprNode *expr) {
+    if (node_type != expr->node_type) return false;
+    switch (node_type) {
+        case el_literal:
+            return literal_attr->is_value_equ(expr->literal_attr);
+            // TODO: how to compare const expressions?
+    }
+    return false;
+}
+
 LiteralNode::LiteralNode(bool is_n, BasicAttrNode *t, bool bv, int iv, double dv, char cv)
         : uid(++global_uid), is_nil(is_n), type(t), bval(bv), ival(iv), dval(dv), cval(cv) {}
 LiteralNode::LiteralNode(void) : LiteralNode(true, nullptr, 0, 0, 0, 0) {}
@@ -57,6 +67,19 @@ LiteralNode::LiteralNode(double d) : LiteralNode(false, new BasicAttrNode(real),
 LiteralNode::LiteralNode(char c) : LiteralNode(false, new BasicAttrNode(character), 0, 0, 0, c) {}
 LiteralNode::~LiteralNode() {
     if (type != nullptr) delete type;
+}
+
+bool LiteralNode::is_value_equ(LiteralNode *expr) {
+    if (is_nil && expr->is_nil) return true;
+    if (is_nil != expr->is_nil) return false;
+    if (type->getType() != expr->type->getType()) return false;
+    switch (type->getType()) {
+        case boolean: return bval == expr->bval;
+        case integer: return ival == expr->ival;
+        case real: return dval == expr->dval;
+        case character: return cval == expr->cval;
+    }
+    return false;
 }
 
 std::string LiteralNode::getNodeInfo() {
@@ -77,7 +100,7 @@ template <class T> T LiteralNode::get_value() {
         case real: return dval;
         case character: return cval;
     }
-    return "";
+    return T();
 }
 
 std::string VarAccessNode::getNodeInfo() {
@@ -97,6 +120,10 @@ std::string VarAccessNode::gen_viz_code() {
         result += member_name->gen_viz_code();
     }
     return result;
+}
+
+ConstDefNode *IdNode::getConst() {
+    return symbol_table.findConstSymbol(name);
 }
 
 TypeAttrNode *IdNode::getType() {
