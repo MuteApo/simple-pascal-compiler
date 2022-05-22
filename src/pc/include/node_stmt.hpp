@@ -66,6 +66,8 @@ class StmtNode {
 
     std::string gen_viz_code(int run);
 
+    bool test_result_type();
+
     std::string gen_asm_code() {
         return "";
     }
@@ -91,6 +93,8 @@ class StmtListNode {
 
     std::string gen_viz_code(int run);
 
+    bool test_result_type();
+
     std::string gen_asm_code() {
         std::string asm_code = "";
         for (StmtNode *s : stmts) asm_code += s->gen_asm_code();
@@ -113,25 +117,29 @@ class AssignStmtNode {
 
     std::string gen_viz_code(int run);
 
+    bool test_result_type();
+
     std::string gen_asm_code();
 };
 
 class IfStmtNode {
   private:
     int       uid;
-    ExprNode *expr;
+    ExprNode *condition;
     StmtNode *then_part;
     StmtNode *else_part;
 
   public:
     IfStmtNode(ExprNode *e, StmtNode *t_p, StmtNode *e_p = nullptr)
-            : uid(++global_uid), expr(e), then_part(t_p), else_part(e_p) {}
+            : uid(++global_uid), condition(e), then_part(t_p), else_part(e_p) {}
 
     int getUid() {
         return uid;
     }
 
     std::string gen_viz_code(int run);
+
+    bool test_result_type();
 
     std::string gen_asm_code();
 };
@@ -164,6 +172,8 @@ class ForStmtNode {
     }
 
     std::string gen_viz_code(int run);
+
+    bool test_result_type();
 };
 
 class WhileStmtNode {
@@ -180,6 +190,8 @@ class WhileStmtNode {
     }
 
     std::string gen_viz_code(int run);
+
+    bool test_result_type();
 
     std::string gen_asm_code();
 };
@@ -200,6 +212,8 @@ class RepeatStmtNode {
 
     std::string gen_viz_code(int run);
 
+    bool test_result_type();
+
     std::string gen_asm_code();
 };
 
@@ -218,6 +232,8 @@ class CaseStmtNode {
     }
 
     std::string gen_viz_code(int run);
+
+    bool test_result_type();
 
     std::string gen_asm_code();
 };
@@ -245,6 +261,8 @@ class CaseListNode {
     }
 
     std::string gen_viz_code(int run);
+
+    bool test_result_type();
 };
 
 class SwitchStmtNode {
@@ -262,6 +280,8 @@ class SwitchStmtNode {
     }
 
     std::string gen_viz_code(int run);
+
+    bool test_result_type();
 };
 
 class FuncStmtNode {
@@ -277,6 +297,8 @@ class FuncStmtNode {
     }
 
     std::string gen_viz_code(int run);
+
+    bool test_result_type();
 };
 
 class ReadStmtNode {
@@ -292,6 +314,8 @@ class ReadStmtNode {
     }
 
     std::string gen_viz_code(int run);
+
+    bool test_result_type();
 };
 
 class WriteStmtNode {
@@ -308,6 +332,8 @@ class WriteStmtNode {
     }
 
     std::string gen_viz_code(int run);
+
+    bool test_result_type();
 };
 
 #endif

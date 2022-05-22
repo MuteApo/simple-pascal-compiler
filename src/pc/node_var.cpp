@@ -60,6 +60,12 @@ std::vector<VarDefNode *> &VarDefListNode::getVarList() {
     return var_defs;
 }
 
+VarDefNode *VarDefListNode::getVarDef(std::string id) {
+    for (VarDefNode *def : var_defs)
+        if (def->getName() == id) return def;
+    return nullptr;
+}
+
 void VarDefListNode::addVarDef(VarDefNode *var_def) {
     var_defs.push_back(var_def);
 }

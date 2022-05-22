@@ -17,7 +17,8 @@ ExprNode::ExprNode(expr_node_type nt,
           literal_attr(l_a),
           var_access_attr(v_a_a),
           id_attr(i_a),
-          func_attr(f_a) {}
+          func_attr(f_a),
+          res_type(nullptr) {}
 ExprNode::ExprNode(ExprEvalType et, ExprNode *op1_, ExprNode *op2_)
         : ExprNode(el_nonleaf, et, op1_, op2_, nullptr, nullptr, nullptr, nullptr) {}
 ExprNode::ExprNode(LiteralNode *l_a)
@@ -86,6 +87,27 @@ std::string ExprNode::gen_viz_code(int run) {
     return result;
 }
 
+TypeAttrNode *ExprNode::getResultType() {
+    switch (node_type) {
+        case el_nonleaf: {
+            TypeAttrNode *t1 = op1->getResultType();
+            if (op2 != nullptr) {
+                TypeAttrNode *t2 = op2->getResultType();
+                if (!t1->is_type_equ(t2)) {
+                    // TODO syntax error: type of operands is not equal
+                    return nullptr;
+                }
+            }
+            return res_type = t1;
+        }
+        case el_literal: return res_type = literal_attr->getResultType();
+        case el_var_access: return res_type = var_access_attr->getResultType();
+        case el_id: return res_type = id_attr->getResultType();
+        case el_fun_call: return res_type = func_attr->getResultType();
+    }
+    return nullptr;
+}
+
 bool ExprNode::is_value_equ(ExprNode *expr) {
     if (node_type != expr->node_type) return false;
     switch (node_type) {
@@ -102,6 +124,10 @@ ExprListNode::ExprListNode() : uid(++global_uid) {
 
 int ExprListNode::getUid() {
     return uid;
+}
+
+int ExprListNode::getDim() {
+    return exprs.size();
 }
 
 std::vector<ExprNode *> &ExprListNode::getExprList() {
@@ -170,6 +196,10 @@ std::string LiteralNode::gen_viz_code(int run) {
     return vizNode(uid, getNodeInfo());
 }
 
+TypeAttrNode *LiteralNode::getResultType() {
+    return new TypeAttrNode(type);
+}
+
 int LiteralNode::diff(LiteralNode *rhs) {
     if (is_nil || rhs->is_nil) {
         // TODO syntax error: cannot differ between pointers
@@ -212,7 +242,7 @@ std::string LiteralNode::toString() {
 }
 
 VarAccessNode::VarAccessNode(var_access_type t, ExprNode *h, ExprListNode *i_l, ExprNode *m)
-        : uid(++global_uid), type(t), host(h), index_list(i_l), member(m) {}
+        : uid(++global_uid), type(t), host(h), index_list(i_l), member(m), res_type(nullptr) {}
 VarAccessNode::VarAccessNode(ExprNode *h) : VarAccessNode(va_pointer, h, nullptr, nullptr) {}
 VarAccessNode::VarAccessNode(ExprNode *h, ExprListNode *indices)
         : VarAccessNode(va_array, h, indices, nullptr) {}
@@ -243,7 +273,25 @@ std::string VarAccessNode::gen_viz_code(int run) {
     return result;
 }
 
-IdNode::IdNode(std::string id) : uid(++global_uid), name(id) {}
+TypeAttrNode *VarAccessNode::getResultType() {
+    TypeAttrNode *type_attr =
+        host->getExprType() == el_literal ?
+            symbol_table.findVarSymbol(host->getIdNode()->getName())->getType() :
+            host->getResultType();
+    switch (type) {
+        case va_pointer: return res_type = type_attr;
+        case va_array:
+            return res_type = type_attr->getStructAttr()->getArrayAttr()->getElementType();
+        case va_record:
+            return res_type = type_attr->getStructAttr()
+                                  ->getRecordAttr()
+                                  ->getVarDef(member->getIdNode()->getName())
+                                  ->getType();
+    }
+    return nullptr;
+}
+
+IdNode::IdNode(std::string id) : uid(++global_uid), name(id), res_type(nullptr) {}
 
 int IdNode::getUid() {
     return uid;
@@ -269,6 +317,10 @@ std::string IdNode::gen_viz_code(int run) {
     return vizNode(uid, getNodeInfo());
 }
 
+TypeAttrNode *IdNode::getResultType() {
+    return res_type = symbol_table.findVarSymbol(name)->getType();
+}
+
 IdListNode::IdListNode() : uid(++global_uid) {
     ids.clear();
 }
@@ -286,7 +338,7 @@ void IdListNode::addId(IdNode *id) {
 }
 
 FuncNode::FuncNode(std::string id, ExprListNode *a_l)
-        : uid(++global_uid), func_name(id), arg_list(a_l) {}
+        : uid(++global_uid), func_name(id), arg_list(a_l), res_type(nullptr) {}
 
 int FuncNode::getUid() {
     return uid;
@@ -303,4 +355,13 @@ std::string FuncNode::gen_viz_code(int run) {
         result += arg_list->gen_viz_code(run);
     }
     return result;
+}
+
+bool FuncNode::test_arg_type() {
+    FuncDefNode *func = symbol_table.findFuncSymbol(func_name);
+    return func->test_arg_type(arg_list);
+}
+
+TypeAttrNode *FuncNode::getResultType() {
+    return res_type = symbol_table.findFuncSymbol(func_name)->getRetValType();
 }

@@ -88,6 +88,14 @@ type_kind TypeAttrNode::getType() {
     return root_type;
 }
 
+BasicAttrNode *TypeAttrNode::getBasicAttrNode() {
+    return basic_attr;
+}
+
+StructAttrNode *TypeAttrNode::getStructAttr() {
+    return struct_attr;
+}
+
 int TypeAttrNode::getLength() {
     switch (root_type) {
         case basic: return basic_attr->getLength();
@@ -414,6 +422,14 @@ int StructAttrNode::getUid() {
     return uid;
 }
 
+ArrayAttrNode *StructAttrNode::getArrayAttr() {
+    return array_attr;
+}
+
+RecordAttrNode *StructAttrNode::getRecordAttr() {
+    return record_attr;
+}
+
 int StructAttrNode::getLength() {
     return is_array ? array_attr->getLength() : record_attr->getLength();
 }
@@ -461,6 +477,10 @@ int ArrayAttrNode::getDim() {
     return index_type->getDim();
 }
 
+TypeAttrNode *ArrayAttrNode::getElementType() {
+    return element_type;
+}
+
 int ArrayAttrNode::getLength() {
     return index_type->getSize() * element_type->getLength();
 }
@@ -497,6 +517,10 @@ int RecordAttrNode::getUid() {
 
 int RecordAttrNode::getDim() {
     return defs->getDim();
+}
+
+VarDefNode *RecordAttrNode::getVarDef(std::string id) {
+    return defs->getVarDef(id);
 }
 
 int RecordAttrNode::getLength() {

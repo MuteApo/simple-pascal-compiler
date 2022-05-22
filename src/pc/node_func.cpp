@@ -20,7 +20,12 @@ std::string ParamDefNode::gen_viz_code(int run) {
 }
 
 bool ParamDefNode::gen_sym_tab(int order) {
+    var_def->translateId();
     return symbol_table.addSymbol(var_def->getName(), var_def, order);
+}
+
+bool ParamDefNode::test_arg_type(TypeAttrNode *type) {
+    return var_def->getType()->is_type_equ(type);
 }
 
 void ParamDefListNode::addParamDef(bool is_ref, IdListNode *ids, TypeAttrNode *type) {
@@ -44,6 +49,13 @@ bool ParamDefListNode::gen_sym_tab() {
     int  ord    = 0;
     for (ParamDefNode *def : param_defs) result &= def->gen_sym_tab(ord++);
     return result;
+}
+
+bool ParamDefListNode::test_arg_type(std::vector<ExprNode *> args) {
+    if (param_defs.size() != args.size()) return false;
+    for (int i = 0; i < param_defs.size(); i++)
+        if (!param_defs.at(i)->test_arg_type(args.at(i)->getResultType())) return false;
+    return true;
 }
 
 FuncDefNode::FuncDefNode(std::string id, ParamDefListNode *p_d, BlockNode *b)
@@ -89,6 +101,10 @@ bool FuncDefNode::gen_sym_tab() {
     block->visit();
     if (hasDecl()) symbol_table.leaveScope();
     return true;
+}
+
+bool FuncDefNode::test_arg_type(ExprListNode *args) {
+    return param_defs->test_arg_type(args->getExprList());
 }
 
 std::string FuncDefListNode::gen_viz_code(int run) {

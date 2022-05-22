@@ -55,27 +55,26 @@ std::string enum2str(int e) {
             //     case SK_Write: return "SK_Write";
             //     case SK_Writeln: return "SK_Writeln";
 
-        case EK_Add: return "EK_Add";
-        case EK_Sub: return "EK_Sub";
-        case EK_Mul: return "EK_Mul";
-        case EK_Div: return "EK_Div";
-        case EK_Mod: return "EK_Mod";
-        case EK_Fdiv: return "EK_Fdiv";
-        case EK_Eq: return "EK_Eq";
-        case EK_Ne: return "EK_Ne";
-        case EK_Lt: return "EK_Lt";
-        case EK_Gt: return "EK_Gt";
-        case EK_Le: return "EK_Le";
-        case EK_Ge: return "EK_Ge";
-        case EK_Not: return "EK_Not";
-        case EK_And: return "EK_And";
-        case EK_Or: return "EK_Or";
-        case EK_Xor: return "EK_Xor";
-        case EK_Shl: return "EK_Shl";
-        case EK_Shr: return "EK_Shr";
-        case EK_In: return "EK_In";
-        case EK_Access: return "EK_Access";
-        case EK_Address: return "EK_Address";
+        case EK_Add: return "Add";
+        case EK_Sub: return "Sub";
+        case EK_Mul: return "Mul";
+        case EK_Div: return "Div";
+        case EK_Mod: return "Mod";
+        case EK_Fdiv: return "Float Div";
+        case EK_Eq: return "=";
+        case EK_Ne: return "<>";
+        case EK_Lt: return "<";
+        case EK_Gt: return ">";
+        case EK_Le: return "<=";
+        case EK_Ge: return ">=";
+        case EK_Not: return "!";
+        case EK_And: return "&";
+        case EK_Or: return "|";
+        case EK_Xor: return "^";
+        case EK_Shl: return "<<";
+        case EK_Shr: return ">>";
+        case EK_In: return "In";
+        case EK_Access: return "Access";
     }
     return "Enum not found: " + std::to_string(e) + "\n";
 }

@@ -105,6 +105,10 @@ class TypeAttrNode {
 
     type_kind getType();
 
+    BasicAttrNode *getBasicAttrNode();
+
+    StructAttrNode *getStructAttr();
+
     int getLength();
 
     int getOffset(std::string member = "");
@@ -274,6 +278,10 @@ class StructAttrNode {
 
     int getUid();
 
+    ArrayAttrNode *getArrayAttr();
+
+    RecordAttrNode *getRecordAttr();
+
     int getLength();
 
     int getOffset(std::string member);
@@ -308,6 +316,8 @@ class ArrayAttrNode {
 
     int getDim();
 
+    TypeAttrNode *getElementType();
+
     int getLength();
 
     int getOffset();
@@ -330,6 +340,8 @@ class RecordAttrNode {
     int getUid();
 
     int getDim();
+
+    VarDefNode *getVarDef(std::string id);
 
     int getLength();
 

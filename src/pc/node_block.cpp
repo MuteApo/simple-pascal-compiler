@@ -55,6 +55,7 @@ void BlockNode::gen_sym_tab() {
     if (type_defs != nullptr) type_defs->gen_sym_tab();
     if (var_defs != nullptr) var_defs->gen_sym_tab();
     if (func_defs != nullptr) func_defs->gen_sym_tab();
+    if (stmts != nullptr && !stmts->test_result_type()) exit(-1);
 }
 
 std::string BlockNode::gen_asm_code() {

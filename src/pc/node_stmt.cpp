@@ -191,6 +191,22 @@ std::string StmtNode::gen_viz_code(int run) {
     return result;
 }
 
+bool StmtNode::test_result_type() {
+    switch (type) {
+        case SK_Compound: return compound_stmt->test_result_type();
+        case SK_Assign: return assign_stmt->test_result_type();
+        case SK_If: return if_stmt->test_result_type();
+        case SK_For: return for_stmt->test_result_type();
+        case SK_While: return while_stmt->test_result_type();
+        case SK_Repeat: return repeat_stmt->test_result_type();
+        case SK_Switch: return switch_stmt->test_result_type();
+        case SK_Func: return func_stmt->test_result_type();
+        case SK_Read: return read_stmt->test_result_type();
+        case SK_Write: return write_stmt->test_result_type();
+    }
+    return false;
+}
+
 std::string StmtListNode::gen_viz_code(int run) {
     std::string result = vizNode(uid, "StmtListNode");
     for (int i = 0; i < stmts.size(); i++) {
@@ -199,6 +215,12 @@ std::string StmtListNode::gen_viz_code(int run) {
         result += stmts.at(i)->gen_viz_code(run);
     }
     return result;
+}
+
+bool StmtListNode::test_result_type() {
+    for (StmtNode *stmt : stmts)
+        if (!stmt->test_result_type()) return false;
+    return true;
 }
 
 std::string AssignStmtNode::gen_viz_code(int run) {
@@ -210,10 +232,14 @@ std::string AssignStmtNode::gen_viz_code(int run) {
     return result;
 }
 
+bool AssignStmtNode::test_result_type() {
+    return dst->getResultType()->is_type_equ(src->getResultType());
+}
+
 std::string IfStmtNode::gen_viz_code(int run) {
     std::string result = vizNode(uid, "IfStmtNode");
-    result += vizChildEdge(uid, expr->getUid(), "condition", "Condition");
-    result += expr->gen_viz_code(run);
+    result += vizChildEdge(uid, condition->getUid(), "condition", "Condition");
+    result += condition->gen_viz_code(run);
     result += vizChildEdge(uid, then_part->getUid(), "then", "Then Part");
     result += then_part->gen_viz_code(run);
     if (else_part != nullptr) {
@@ -221,6 +247,15 @@ std::string IfStmtNode::gen_viz_code(int run) {
         result += else_part->gen_viz_code(run);
     }
     return result;
+}
+
+bool IfStmtNode::test_result_type() {
+    TypeAttrNode *type = condition->getResultType();
+    if (type->getType() != basic) return false;
+    if (type->getBasicAttrNode()->getType() != boolean) return false;
+    if (!then_part->test_result_type()) return false;
+    if (else_part != nullptr && !else_part->test_result_type()) return false;
+    return true;
 }
 
 std::string ForStmtNode::gen_viz_code(int run) {
@@ -234,6 +269,11 @@ std::string ForStmtNode::gen_viz_code(int run) {
     return result;
 }
 
+bool ForStmtNode::test_result_type() {
+    if (!start_expr->getResultType()->is_type_equ(end_expr->getResultType())) return false;
+    return body_part->test_result_type();
+}
+
 std::string WhileStmtNode::gen_viz_code(int run) {
     std::string result = vizNode(uid, "WhileStmtNode");
     result += vizChildEdge(uid, condition->getUid(), "condition", "Condition");
@@ -243,6 +283,13 @@ std::string WhileStmtNode::gen_viz_code(int run) {
     return result;
 }
 
+bool WhileStmtNode::test_result_type() {
+    TypeAttrNode *type = condition->getResultType();
+    if (type->getType() != basic) return false;
+    if (type->getBasicAttrNode()->getType() != boolean) return false;
+    return body_part->test_result_type();
+}
+
 std::string RepeatStmtNode::gen_viz_code(int run) {
     std::string result = vizNode(uid, "RepeatStmtNode");
     result += vizChildEdge(uid, body_part->getUid(), "body", "Body Part");
@@ -250,6 +297,27 @@ std::string RepeatStmtNode::gen_viz_code(int run) {
     result += vizChildEdge(uid, condition->getUid(), "condition", "Condition");
     result += condition->gen_viz_code(run);
     return result;
+}
+
+bool RepeatStmtNode::test_result_type() {
+    TypeAttrNode *type = condition->getResultType();
+    if (type->getType() != basic) return false;
+    if (type->getBasicAttrNode()->getType() != boolean) return false;
+    return body_part->test_result_type();
+}
+
+std::string CaseStmtNode::gen_viz_code(int run) {
+    std::string result = vizNode(uid, "CaseStmtNode");
+    result += vizChildEdge(uid, const_list->getUid(), "candicate", "Candicate");
+    result += const_list->gen_viz_code(run);
+    result += vizChildEdge(uid, body_part->getUid(), "body", "Body Part");
+    result += body_part->gen_viz_code(run);
+    return result;
+}
+
+bool CaseStmtNode::test_result_type() {
+    // TODO incomplete, what about const_list?
+    return body_part->test_result_type();
 }
 
 std::string CaseListNode::gen_viz_code(int run) {
@@ -262,6 +330,12 @@ std::string CaseListNode::gen_viz_code(int run) {
     return result;
 }
 
+bool CaseListNode::test_result_type() {
+    for (CaseStmtNode *stmt : case_list)
+        if (!stmt->test_result_type()) return false;
+    return true;
+}
+
 std::string SwitchStmtNode::gen_viz_code(int run) {
     std::string result = vizNode(uid, "SwitchStmtNode");
     result += vizChildEdge(uid, condition->getUid(), "condition", "Condition");
@@ -271,13 +345,8 @@ std::string SwitchStmtNode::gen_viz_code(int run) {
     return result;
 }
 
-std::string CaseStmtNode::gen_viz_code(int run) {
-    std::string result = vizNode(uid, "CaseStmtNode");
-    result += vizChildEdge(uid, const_list->getUid(), "candicate", "Candicate");
-    result += const_list->gen_viz_code(run);
-    result += vizChildEdge(uid, body_part->getUid(), "body", "Body Part");
-    result += body_part->gen_viz_code(run);
-    return result;
+bool SwitchStmtNode::test_result_type() {
+    return case_list->test_result_type();
 }
 
 std::string FuncStmtNode::gen_viz_code(int run) {
@@ -287,6 +356,10 @@ std::string FuncStmtNode::gen_viz_code(int run) {
     return result;
 }
 
+bool FuncStmtNode::test_result_type() {
+    return func->test_arg_type();
+}
+
 std::string ReadStmtNode::gen_viz_code(int run) {
     std::string result = vizNode(uid, "ReadStmtNode");
     result += vizChildEdge(uid, exprs->getUid(), "args", "Argument List");
@@ -294,9 +367,17 @@ std::string ReadStmtNode::gen_viz_code(int run) {
     return result;
 }
 
+bool ReadStmtNode::test_result_type() {
+    return true;
+}
+
 std::string WriteStmtNode::gen_viz_code(int run) {
     std::string result = vizNode(uid, is_writeln ? "WritelnStmtNode" : "WriteStmtNode");
     result += vizChildEdge(uid, exprs->getUid(), "args", "Argument List");
     result += exprs->gen_viz_code(run);
     return result;
+}
+
+bool WriteStmtNode::test_result_type() {
+    return true;
 }

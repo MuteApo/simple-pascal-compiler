@@ -76,8 +76,7 @@ enum ExprEvalType {
     EK_Shr,  // shr
     EK_In,   // in
     /* temporary(will be removed) */
-    EK_Access,
-    EK_Address
+    EK_Access
 };
 enum errorType {
     NO_PERIOD,        // 缺少句点

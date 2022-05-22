@@ -31,10 +31,12 @@ var
     end;
 
     procedure gg(var x: integer; q: digit);
+    var
+        w: y;
     begin
-        x := k[1, 'a'].v;
+        x := k[1, 'a'].i;
     end;
 
 begin
-    y := 1;
+    
 end.

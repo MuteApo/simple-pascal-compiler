@@ -57,6 +57,8 @@ class VarDefListNode {
 
     std::vector<VarDefNode *> &getVarList();
 
+    VarDefNode *getVarDef(std::string id);
+
     int getLength();
 
     int getOffset(std::string member);

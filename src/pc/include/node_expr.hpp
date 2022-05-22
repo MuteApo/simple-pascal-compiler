@@ -19,6 +19,7 @@ class FuncNode;
 extern int global_uid;
 
 enum expr_node_type { el_nonleaf = 30001, el_literal, el_var_access, el_id, el_fun_call };
+enum result_type { rt_unknown = 40001, rt_integer, rt_real, rt_boolean, rt_pointer, rt_record };
 
 class ExprNode {
   private:
@@ -30,6 +31,7 @@ class ExprNode {
     VarAccessNode *var_access_attr;
     IdNode        *id_attr;
     FuncNode      *func_attr;
+    TypeAttrNode  *res_type;
 
   public:
     ExprNode(expr_node_type nt,
@@ -60,6 +62,8 @@ class ExprNode {
 
     std::string gen_viz_code(int run);
 
+    TypeAttrNode *getResultType();
+
     bool is_value_equ(ExprNode *expr);
 
     std::string gen_asm_code(void);
@@ -74,6 +78,8 @@ class ExprListNode {
     ExprListNode();
 
     int getUid();
+
+    int getDim();
 
     std::vector<ExprNode *> &getExprList();
 
@@ -111,6 +117,8 @@ class LiteralNode {
 
     std::string gen_viz_code(int run);
 
+    TypeAttrNode *getResultType();
+
     int diff(LiteralNode *rhs);
 
     bool is_value_equ(LiteralNode *expr);
@@ -128,6 +136,7 @@ class VarAccessNode {
     ExprNode       *host;
     ExprListNode   *index_list;  // array
     ExprNode       *member;      // record
+    TypeAttrNode   *res_type;
 
   public:
     VarAccessNode(var_access_type t, ExprNode *h, ExprListNode *i_l, ExprNode *m);
@@ -141,13 +150,16 @@ class VarAccessNode {
 
     std::string gen_viz_code(int run);
 
+    TypeAttrNode *getResultType();
+
     std::string gen_asm_code();
 };
 
 class IdNode {
   private:
-    int         uid;
-    std::string name;
+    int           uid;
+    std::string   name;
+    TypeAttrNode *res_type;
 
   public:
     IdNode(std::string id);
@@ -163,6 +175,8 @@ class IdNode {
     std::string getNodeInfo();
 
     std::string gen_viz_code(int run);
+
+    TypeAttrNode *getResultType();
 
     std::string gen_asm_code(void);
 };
@@ -187,6 +201,7 @@ class FuncNode {
     int           uid;
     std::string   func_name;
     ExprListNode *arg_list;
+    TypeAttrNode *res_type;
 
   public:
     FuncNode(std::string id, ExprListNode *a_l);
@@ -196,6 +211,10 @@ class FuncNode {
     std::string getNodeInfo();
 
     std::string gen_viz_code(int run);
+
+    bool test_arg_type();
+
+    TypeAttrNode *getResultType();
 };
 
 #endif

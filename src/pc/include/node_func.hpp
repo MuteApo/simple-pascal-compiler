@@ -30,6 +30,8 @@ class ParamDefNode {
     std::string gen_viz_code(int run);
 
     bool gen_sym_tab(int order);
+
+    bool test_arg_type(TypeAttrNode *type);
 };
 
 class ParamDefListNode {
@@ -62,6 +64,8 @@ class ParamDefListNode {
     std::string gen_viz_code(int run);
 
     bool gen_sym_tab();
+
+    bool test_arg_type(std::vector<ExprNode *> args);
 };
 
 class FuncDefNode {
@@ -81,11 +85,17 @@ class FuncDefNode {
         return uid;
     }
 
+    TypeAttrNode *getRetValType() {
+        return retval_type;
+    }
+
     bool hasDecl();
 
     std::string gen_viz_code(int run);
 
     bool gen_sym_tab();
+
+    bool test_arg_type(ExprListNode *args);
 
     std::string gen_asm_code();
 };
