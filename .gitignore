@@ -1,8 +1,8 @@
 .DS_Store
 .vscode
-bin/as
-bin/pc
-bin/tree.viz
+bin/*
+!bin/hex2bin
+!bin/rvsim
 src/pc/lex.yy.c
 src/pc/parser.output
 src/pc/parser.tab.c

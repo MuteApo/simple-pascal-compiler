@@ -25,34 +25,22 @@ class VarDefNode {
   public:
     VarDefNode(std::string id, TypeAttrNode *t);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string getName() {
-        return name;
-    }
+    std::string getName();
 
-    TypeAttrNode *getType() {
-        return type;
-    }
-
-    void translateId();
+    TypeAttrNode *getType();
 
     // Find if "type_id" exists in variable symble table
     bool is_legal();
 
+    std::string gen_viz_code(int run);
+
+    void translateId();
+
     bool gen_sym_tab(int ord);
 
-    int get_length(void);
-
-    std::string gen_viz_code();
-
-    std::string gen_asm_def(void);
-
-    std::string toString() {
-        return "";
-    }
+    std::string gen_asm_def();
 };
 
 class VarDefListNode {
@@ -61,48 +49,32 @@ class VarDefListNode {
     std::vector<VarDefNode *> var_defs;
 
   public:
-    VarDefListNode() : uid(++global_uid) {
-        var_defs.clear();
-    }
+    VarDefListNode();
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    int getDim() {
-        return var_defs.size();
-    }
+    int getDim();
 
-    void addVarDef(VarDefNode *var_def) {
-        var_defs.push_back(var_def);
-    }
+    std::vector<VarDefNode *> &getVarList();
+
+    int getLength();
+
+    int getOffset(std::string member);
+
+    void addVarDef(VarDefNode *var_def);
     void addVarDef(IdListNode *ids, TypeAttrNode *type);
 
-    std::vector<VarDefNode *> &getVarList() {
-        return var_defs;
-    }
+    void mergeVarDefList(VarDefListNode *defs);
 
-    void mergeVarDefList(VarDefListNode *defs) {
-        for (VarDefNode *def : defs->getVarList()) addVarDef(def);
-    }
+    std::string gen_viz_code(int run);
 
     void translateId();
 
     bool gen_sym_tab();
 
-    std::string gen_asm_def(void);
+    bool is_type_equ(VarDefListNode *rhs);
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "VarDefListNode");
-        for (int i = 0; i < var_defs.size(); i++) {
-            result += vizChildEdge(uid,
-                                   var_defs.at(i)->getUid(),
-                                   "field" + to_string(i + 1),
-                                   "Type of Field " + to_string(i + 1));
-            result += var_defs.at(i)->gen_viz_code();
-        }
-        return result;
-    }
+    std::string gen_asm_def();
 };
 
 #endif

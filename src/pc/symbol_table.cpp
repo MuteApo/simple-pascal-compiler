@@ -7,7 +7,7 @@ std::string TableItem::toString() {
 }
 std::string ConstTableItem::toString() {
     return name + "\t[level: " + to_string(level) +
-           "\tvalue:" + to_string(const_def->getExpr()->getLiteralNode()->get_value_string()) + "]";
+           "\tvalue:" + to_string(const_def->getExpr()->getLiteralNode()->toString()) + "]";
 }
 std::string TypeTableItem::toString() {
     return name + "\t[level: " + to_string(level) + "]";

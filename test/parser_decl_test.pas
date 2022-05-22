@@ -8,33 +8,32 @@ type
     week2 = week;
     digit = 0..z;
     y = record
-        {i: set of digit;}
-        u: week2;
-        v: integer;
+        i: integer;
+        u: digit;
+        v: ^week2;
     end;
 var
-    d: integer;
-    e: real;
-    k: array [digit, char] of week;
-    f: y;
+    k: array [digit, char] of y;
 
-function ff: week;
+    function ff: week;
 
-function fff: real;
-type
-    week3 = week2;
-begin
+        function fff: real;
+        type
+            week3 = week2;
+        var
+            p: week;
+        begin
 
-end;
+        end;
 
-begin
+    begin
 
-end;
+    end;
 
-procedure gg(var x: integer; q: digit);
-begin
-    x := k[1, 'a'].v;
-end;
+    procedure gg(var x: integer; q: digit);
+    begin
+        x := k[1, 'a'].v;
+    end;
 
 begin
     y := 1;

@@ -24,24 +24,13 @@ class BlockNode {
     FuncDefListNode  *func_defs;
     StmtListNode     *stmts;
 
-    void gen_sym_tab();
-
-    std::string gen_asm_code();
-
   public:
     BlockNode(bool              is_g,
               ConstDefListNode *c_defs = nullptr,
               TypeDefListNode  *t_defs = nullptr,
               VarDefListNode   *v_defs = nullptr,
               FuncDefListNode  *f_defs = nullptr,
-              StmtListNode     *s      = nullptr)
-            : uid(++global_uid),
-              is_global(is_g),
-              const_defs(c_defs),
-              type_defs(t_defs),
-              var_defs(v_defs),
-              func_defs(f_defs),
-              stmts(s) {}
+              StmtListNode     *s      = nullptr);
 
     int getUid() {
         return uid;
@@ -51,15 +40,13 @@ class BlockNode {
         is_global = true;
     }
 
-    bool hasDecl() {
-        if (const_defs != nullptr) return true;
-        if (type_defs != nullptr) return true;
-        if (var_defs != nullptr) return true;
-        if (func_defs != nullptr) return true;
-        return false;
-    }
+    bool hasDecl();
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
+
+    void gen_sym_tab();
+
+    std::string gen_asm_code();
 
     std::string visit();
 };
@@ -82,18 +69,9 @@ class ProgramNode {
 
     std::string getNodeInfo();
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, getNodeInfo());
-        if (block != nullptr) {
-            result += vizChildEdge(uid, block->getUid(), "block", "Program Block");
-            result += block->gen_viz_code();
-        }
-        return "digraph G {\n" + result + "}";
-    }
+    std::string gen_viz_code(int run);
 
-    std::string visit() {
-        return block != nullptr ? block->visit() : "";
-    }
+    std::string visit();
 };
 
 #endif

@@ -57,6 +57,8 @@ ProgramNode *root = nullptr;
     CaseListNode *case_list_node;
     CaseStmtNode *case_stmt_node;
     FuncStmtNode *func_stmt_node;
+    ReadStmtNode *read_stmt_node;
+    WriteStmtNode *write_stmt_node;
     ExprListNode *expr_list_node;
     ExprNode *expr_node;
     IdNode *id_node;
@@ -125,15 +127,17 @@ ProgramNode *root = nullptr;
 %type <switch_stmt_node> CaseStmt
 %type <case_list_node> CaseList
 %type <case_stmt_node> Case
-%type <func_stmt_node> FuncStmt
+%type <func_stmt_node> FuncStmt ProcStmt
+%type <read_stmt_node> ReadStmt
+%type <write_stmt_node> WriteStmt
 %type <expr_list_node> ArgList IndexList
 %type <expr_node> Arg Expr Term Factor Item VarAccess Accessible Id SignedLiteral Literal
 %type <id_list_node> IdList
-%type <func_node> FuncExpr
+%type <func_node> FuncExpr ProcExpr
 %type <expr_eval_type> Sign
 
-%type <type_def_node> SetTypeDef StringTypeDef     
-%type <stmt_node> WithStmt ReadStmt WriteStmt
+%type <type_def_node> SetTypeDef StringTypeDef
+%type <stmt_node> WithStmt
 
 %start Program
 
@@ -192,7 +196,7 @@ Type: BasicRealType {
 }| StructTypeDef {
     $$ = new TypeAttrNode($1);
 }| PtrTypeDef {
-    $$ = nullptr;   // TODO
+    $$ = new TypeAttrNode($1);
 }| Id {
     $$ = new TypeAttrNode($1->getIdNode()->getName());
 }
@@ -238,9 +242,9 @@ RecordTypeDef: WSYM_RECORD VarDeclList WSYM_END {
 }
 
 PtrTypeDef: SYM_HAT BasicRealType {
-    $$ = new PtrAttrNode($2);
+    $$ = new PtrAttrNode(new TypeAttrNode($2));
 }| SYM_HAT Id {
-    $$ = new PtrAttrNode($2->getIdNode()->getName());
+    $$ = new PtrAttrNode(new TypeAttrNode($2->getIdNode()->getName()));
 }
 
 OrdTypeDef: SYM_LPAR ConstList SYM_RPAR {
@@ -385,6 +389,10 @@ FuncExpr: Id SYM_LPAR ArgList SYM_RPAR {
     $$ = new FuncNode($1->getIdNode()->getName(), nullptr);
 }
 
+ProcExpr: Id {
+    $$ = new FuncNode($1->getIdNode()->getName(), nullptr);
+}
+
 /************************* Rules of Stmt *************************/
 
 Stmt: CompoundStmt {
@@ -392,6 +400,8 @@ Stmt: CompoundStmt {
 }| AssignStmt {
     $$ = new StmtNode($1);
 }| FuncStmt {
+    $$ = new StmtNode($1);
+}| ProcStmt {
     $$ = new StmtNode($1);
 }| IfStmt {
     $$ = new StmtNode($1);
@@ -406,9 +416,9 @@ Stmt: CompoundStmt {
 }| WithStmt {
     $$ = nullptr;    // TODO
 }| ReadStmt {
-    $$ = nullptr;    // TODO
+    $$ = new StmtNode($1);
 }| WriteStmt {
-    $$ = nullptr;    // TODO
+    $$ = new StmtNode($1);
 }
 
 AssignStmt: Id SYM_ASSIGN Expr {
@@ -418,6 +428,10 @@ AssignStmt: Id SYM_ASSIGN Expr {
 }
 
 FuncStmt: FuncExpr {
+    $$ = new FuncStmtNode($1);
+}
+
+ProcStmt: ProcExpr {
     $$ = new FuncStmtNode($1);
 }
 
@@ -462,13 +476,13 @@ WithStmt: WSYM_WITH IdList WSYM_DO Stmt {
 }
 
 ReadStmt: SID_READ SYM_LPAR ArgList SYM_RPAR {
-    $$ = nullptr;    // TODO
+    $$ = new ReadStmtNode($3);
 }
 
 WriteStmt: SID_WRITE SYM_LPAR ArgList SYM_RPAR {
-    $$ = nullptr;    // TODO
+    $$ = new WriteStmtNode(false, $3);
 }| SID_WRITELN SYM_LPAR ArgList SYM_RPAR {
-    $$ = nullptr;    // TODO
+    $$ = new WriteStmtNode(false, $3);
 }
 
 CompoundStmt: WSYM_BEGIN StmtList WSYM_END {
