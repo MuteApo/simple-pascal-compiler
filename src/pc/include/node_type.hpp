@@ -47,9 +47,9 @@ class TypeDefNode {
         return uid;
     }
 
-    std::string gen_viz_code();
-
     bool gen_sym_tab();
+
+    std::string gen_viz_code(int run);
 };
 
 class TypeDefListNode {
@@ -70,7 +70,7 @@ class TypeDefListNode {
         type_defs.push_back(type_def);
     }
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
 
     bool gen_sym_tab();
 };
@@ -96,19 +96,12 @@ class TypeAttrNode {
                  std::string     id,
                  BasicAttrNode  *b_attr = nullptr,
                  OrdAttrNode    *o_attr = nullptr,
-                 StructAttrNode *s_attr = nullptr)
-            : uid(++global_uid),
-              root_type(type),
-              name(id),
-              basic_attr(b_attr),
-              ord_attr(o_attr),
-              struct_attr(s_attr) {}
-    TypeAttrNode(void) : TypeAttrNode(pointer, "") {}
-    TypeAttrNode(std::string id) : TypeAttrNode(type_identifier, id) {}
-    TypeAttrNode(BasicAttrNode *attr_node) : TypeAttrNode(basic, "", attr_node, nullptr, nullptr) {}
-    TypeAttrNode(OrdAttrNode *attr_node) : TypeAttrNode(ordinal, "", nullptr, attr_node, nullptr) {}
-    TypeAttrNode(StructAttrNode *attr_node)
-            : TypeAttrNode(structured, "", nullptr, nullptr, attr_node) {}
+                 StructAttrNode *s_attr = nullptr);
+    TypeAttrNode(void);
+    TypeAttrNode(std::string id);
+    TypeAttrNode(BasicAttrNode *attr_node);
+    TypeAttrNode(OrdAttrNode *attr_node);
+    TypeAttrNode(StructAttrNode *attr_node);
 
     int getUid() {
         return uid;
@@ -122,8 +115,6 @@ class TypeAttrNode {
         return root_type;
     }
 
-    void translateId();
-
     int get_length(void);
 
     // -1: Fail to get the offset
@@ -131,20 +122,18 @@ class TypeAttrNode {
     int get_offset(std::vector<int> static_indexs);  // For array type
     int get_offset(std::string member);              // For record type
 
-    bool is_type_equ(TypeAttrNode *type, bool use_struct = true);
-
     std::string getNodeInfo();
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
+
+    void translateId();
 
     bool gen_sym_tab();
 
+    bool is_type_equ(TypeAttrNode *type, bool use_struct = true);
+
     std::string gen_asm_def(void) {
         // TODO
-        return "";
-    }
-
-    std::string toString() {
         return "";
     }
 };
@@ -169,18 +158,18 @@ class TypeAttrListNode {
         return type_attrs.size();
     }
 
+    std::vector<TypeAttrNode *> getAttrList() {
+        return type_attrs;
+    }
+
     void addTypeAttr(TypeAttrNode *type_attr) {
         is_type_id.push_back(type_attr->getType() == type_identifier);
         type_attrs.push_back(type_attr);
     }
 
+    std::string gen_viz_code(int run);
+
     void translateId();
-
-    std::vector<TypeAttrNode *> getAttrList() {
-        return type_attrs;
-    }
-
-    std::string gen_viz_code();
 
     bool is_type_equ(TypeAttrListNode *type);
 };
@@ -198,23 +187,17 @@ class BasicAttrNode {
         return uid;
     }
 
-    std::string getNodeInfo() {
-        if (type == boolean) return "boolean";
-        if (type == integer) return "integer";
-        if (type == real) return "real";
-        if (type == character) return "character";
-        return "unkown type";
+    basic_type_kind getType() {
+        return type;
     }
-
-    std::string gen_viz_code() {
-        return vizNode(uid, "BasicAttrNode\n" + getNodeInfo());
-    }
-
-    basic_type_kind getType();
 
     int get_length(void);
 
     int get_offset(void);
+
+    std::string getNodeInfo();
+
+    std::string gen_viz_code(int run);
 
     bool is_type_equ(BasicAttrNode *type);
 };
@@ -240,15 +223,15 @@ class OrdAttrNode {
         return uid;
     }
 
-    void translateId();
-
     int get_length(void);
 
     int get_size(void);
 
     int get_offset(void);
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
+
+    void translateId();
 
     bool gen_sym_tab();
 
@@ -269,17 +252,17 @@ class SubrangeAttrNode {
         return uid;
     }
 
-    void translateId();
-
     int get_length(void);
 
     int get_size(void);
 
     int get_offset(void);
 
-    bool is_type_equ(SubrangeAttrNode *type);
+    std::string gen_viz_code(int run);
 
-    std::string gen_viz_code();
+    void translateId();
+
+    bool is_type_equ(SubrangeAttrNode *type);
 };
 
 class EnumAttrNode {
@@ -301,7 +284,7 @@ class EnumAttrNode {
 
     int get_offset(void);
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
 
     bool gen_sym_tab();
 
@@ -326,15 +309,15 @@ class StructAttrNode {
         return uid;
     }
 
-    void translateId();
-
     int get_length(void);
 
     int get_offset(void);
 
-    bool is_type_equ(StructAttrNode *type);
+    std::string gen_viz_code(int run);
 
-    std::string gen_viz_code();
+    void translateId();
+
+    bool is_type_equ(StructAttrNode *type);
 };
 
 class SetAttrNode {  // TODO
@@ -360,15 +343,15 @@ class ArrayAttrNode {
         return uid;
     }
 
-    void translateId();
-
-    int get_dim();
+    int getDim();
 
     int get_length(void);
 
     int get_offset(void);
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
+
+    void translateId();
 
     bool is_type_equ(ArrayAttrNode *type);
 };
@@ -385,17 +368,17 @@ class RecordAttrNode {
         return uid;
     }
 
-    void translateId();
-
-    int get_dim();
+    int getDim();
 
     int get_length(void);
 
     int get_offset(void);
 
-    bool is_type_equ(RecordAttrNode *type);
+    std::string gen_viz_code(int run);
 
-    std::string gen_viz_code();
+    void translateId();
+
+    bool is_type_equ(RecordAttrNode *type);
 };
 
 class PtrAttrNode {

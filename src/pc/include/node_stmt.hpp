@@ -11,6 +11,8 @@ class CaseStmtNode;
 class CaseListNode;
 class SwitchStmtNode;
 class FuncStmtNode;
+class ReadStmtNode;
+class WriteStmtNode;
 
 #include "defs.hpp"
 #include "node_const.hpp"
@@ -32,6 +34,8 @@ class StmtNode {
     RepeatStmtNode *repeat_stmt;
     SwitchStmtNode *switch_stmt;
     FuncStmtNode   *func_stmt;
+    ReadStmtNode   *read_stmt;
+    WriteStmtNode  *write_stmt;
 
   public:
     StmtNode(stmt_type       t,
@@ -39,54 +43,32 @@ class StmtNode {
              AssignStmtNode *a_s,
              IfStmtNode     *i_s,
              ForStmtNode    *f_s,
-             WhileStmtNode  *w_s,
-             RepeatStmtNode *r_s,
+             WhileStmtNode  *wh_s,
+             RepeatStmtNode *rep_s,
              SwitchStmtNode *s_s,
-             FuncStmtNode   *p_s)
-            : uid(++global_uid),
-              type(t),
-              compound_stmt(c_s),
-              assign_stmt(a_s),
-              if_stmt(i_s),
-              for_stmt(f_s),
-              while_stmt(w_s),
-              repeat_stmt(r_s),
-              switch_stmt(s_s),
-              func_stmt(p_s) {}
-    StmtNode(StmtListNode *c_s)
-            : StmtNode(
-                  SK_Compound, c_s, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr) {
-    }
-    StmtNode(AssignStmtNode *a_s)
-            : StmtNode(
-                  SK_Assign, nullptr, a_s, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr) {}
-    StmtNode(IfStmtNode *i_s)
-            : StmtNode(SK_If, nullptr, nullptr, i_s, nullptr, nullptr, nullptr, nullptr, nullptr) {}
-    StmtNode(ForStmtNode *f_s)
-            : StmtNode(SK_For, nullptr, nullptr, nullptr, f_s, nullptr, nullptr, nullptr, nullptr) {
-    }
-    StmtNode(WhileStmtNode *w_s)
-            : StmtNode(
-                  SK_While, nullptr, nullptr, nullptr, nullptr, w_s, nullptr, nullptr, nullptr) {}
-    StmtNode(RepeatStmtNode *r_s)
-            : StmtNode(
-                  SK_Repeat, nullptr, nullptr, nullptr, nullptr, nullptr, r_s, nullptr, nullptr) {}
-    StmtNode(SwitchStmtNode *s_s)
-            : StmtNode(
-                  SK_Switch, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, s_s, nullptr) {}
-    StmtNode(FuncStmtNode *p_s)
-            : StmtNode(
-                  SK_Func, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, p_s) {}
+             FuncStmtNode   *p_s,
+             ReadStmtNode   *rea_s,
+             WriteStmtNode  *wr_s);
+    StmtNode(StmtListNode *c_s);
+    StmtNode(AssignStmtNode *a_s);
+    StmtNode(IfStmtNode *i_s);
+    StmtNode(ForStmtNode *f_s);
+    StmtNode(WhileStmtNode *w_s);
+    StmtNode(RepeatStmtNode *r_s);
+    StmtNode(SwitchStmtNode *s_s);
+    StmtNode(FuncStmtNode *p_s);
+    StmtNode(ReadStmtNode *r_s);
+    StmtNode(WriteStmtNode *w_s);
 
     int getUid() {
         return uid;
     }
 
+    std::string gen_viz_code(int run);
+
     std::string gen_asm_code() {
         return "";
     }
-
-    std::string gen_viz_code();
 };
 
 class StmtListNode {
@@ -107,13 +89,13 @@ class StmtListNode {
         stmts.push_back(stmt);
     }
 
+    std::string gen_viz_code(int run);
+
     std::string gen_asm_code() {
         std::string asm_code = "";
         for (StmtNode *s : stmts) asm_code += s->gen_asm_code();
         return asm_code;
     }
-
-    std::string gen_viz_code();
 };
 
 class AssignStmtNode {
@@ -129,9 +111,9 @@ class AssignStmtNode {
         return uid;
     }
 
-    std::string gen_asm_code();
+    std::string gen_viz_code(int run);
 
-    std::string gen_viz_code();
+    std::string gen_asm_code();
 };
 
 class IfStmtNode {
@@ -149,9 +131,9 @@ class IfStmtNode {
         return uid;
     }
 
-    std::string gen_asm_code();
+    std::string gen_viz_code(int run);
 
-    std::string gen_viz_code();
+    std::string gen_asm_code();
 };
 
 class ForStmtNode {
@@ -181,7 +163,7 @@ class ForStmtNode {
         return result + (is_to ? "\n→" : "\n←");
     }
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
 };
 
 class WhileStmtNode {
@@ -197,9 +179,9 @@ class WhileStmtNode {
         return uid;
     }
 
-    std::string gen_asm_code();
+    std::string gen_viz_code(int run);
 
-    std::string gen_viz_code();
+    std::string gen_asm_code();
 };
 
 class RepeatStmtNode {
@@ -216,9 +198,9 @@ class RepeatStmtNode {
         return uid;
     }
 
-    std::string gen_asm_code();
+    std::string gen_viz_code(int run);
 
-    std::string gen_viz_code();
+    std::string gen_asm_code();
 };
 
 class CaseStmtNode {
@@ -235,9 +217,9 @@ class CaseStmtNode {
         return uid;
     }
 
-    std::string gen_asm_code();
+    std::string gen_viz_code(int run);
 
-    std::string gen_viz_code();
+    std::string gen_asm_code();
 };
 
 class CaseListNode {
@@ -254,25 +236,15 @@ class CaseListNode {
         return uid;
     }
 
-    void addCase(CaseStmtNode *c) {
-        case_list.push_back(c);
-    }
-
     std::vector<CaseStmtNode *> &getCaseList() {
         return case_list;
     }
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "CaseListNode");
-        for (int i = 0; i < case_list.size(); i++) {
-            result += vizChildEdge(uid,
-                                   case_list.at(i)->getUid(),
-                                   "case" + to_string(i + 1),
-                                   "Case " + to_string(i + 1));
-            result += case_list.at(i)->gen_viz_code();
-        }
-        return result;
+    void addCase(CaseStmtNode *c) {
+        case_list.push_back(c);
     }
+
+    std::string gen_viz_code(int run);
 };
 
 class SwitchStmtNode {
@@ -289,7 +261,7 @@ class SwitchStmtNode {
         return uid;
     }
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
 };
 
 class FuncStmtNode {
@@ -304,7 +276,38 @@ class FuncStmtNode {
         return uid;
     }
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
+};
+
+class ReadStmtNode {
+  private:
+    int           uid;
+    ExprListNode *exprs;
+
+  public:
+    ReadStmtNode(ExprListNode *e) : uid(++global_uid), exprs(e) {}
+
+    int getUid() {
+        return uid;
+    }
+
+    std::string gen_viz_code(int run);
+};
+
+class WriteStmtNode {
+  private:
+    int           uid;
+    bool          is_writeln;
+    ExprListNode *exprs;
+
+  public:
+    WriteStmtNode(bool is_ln, ExprListNode *e) : uid(++global_uid), is_writeln(is_ln), exprs(e) {}
+
+    int getUid() {
+        return uid;
+    }
+
+    std::string gen_viz_code(int run);
 };
 
 #endif

@@ -25,15 +25,11 @@ class ParamDefNode {
         return uid;
     }
 
-    std::string getNodeInfo() {
-        std::string result = "ParamDefNode";
-        if (is_ref) result += "(ref)";
-        return result;
-    }
+    std::string getNodeInfo();
+
+    std::string gen_viz_code(int run);
 
     bool gen_sym_tab(int order);
-
-    std::string gen_viz_code();
 };
 
 class ParamDefListNode {
@@ -50,36 +46,22 @@ class ParamDefListNode {
         return uid;
     }
 
-    void addParamDef(ParamDefNode *param) {
-        param_defs.push_back(param);
-    }
-    void                         addParamDef(bool is_ref, IdListNode *ids, TypeAttrNode *type);
     std::vector<ParamDefNode *> &getParamList() {
         return param_defs;
     }
+
+    void addParamDef(ParamDefNode *param) {
+        param_defs.push_back(param);
+    }
+    void addParamDef(bool is_ref, IdListNode *ids, TypeAttrNode *type);
 
     void mergeParamDefList(ParamDefListNode *defs) {
         for (ParamDefNode *def : defs->getParamList()) addParamDef(def);
     }
 
-    bool gen_sym_tab() {
-        bool result = true;
-        int  ord    = 0;
-        for (ParamDefNode *def : param_defs) result &= def->gen_sym_tab(ord++);
-        return result;
-    }
+    std::string gen_viz_code(int run);
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "ParamDefListNode");
-        for (int i = 0; i < param_defs.size(); i++) {
-            result += vizChildEdge(uid,
-                                   param_defs.at(i)->getUid(),
-                                   "param" + to_string(i + 1),
-                                   "Type of Param " + to_string(i + 1));
-            result += param_defs.at(i)->gen_viz_code();
-        }
-        return result;
-    }
+    bool gen_sym_tab();
 };
 
 class FuncDefNode {
@@ -92,20 +74,8 @@ class FuncDefNode {
     BlockNode        *block;
 
   public:
-    FuncDefNode(std::string id, ParamDefListNode *p_d, BlockNode *b)
-            : uid(++global_uid),
-              is_func(false),
-              name(id),
-              param_defs(p_d),
-              retval_type(nullptr),
-              block(b) {}
-    FuncDefNode(std::string id, ParamDefListNode *p_d, TypeAttrNode *r_v, BlockNode *b)
-            : uid(++global_uid),
-              is_func(true),
-              name(id),
-              param_defs(p_d),
-              retval_type(r_v),
-              block(b) {}
+    FuncDefNode(std::string id, ParamDefListNode *p_d, BlockNode *b);
+    FuncDefNode(std::string id, ParamDefListNode *p_d, TypeAttrNode *r_v, BlockNode *b);
 
     int getUid() {
         return uid;
@@ -113,11 +83,11 @@ class FuncDefNode {
 
     bool hasDecl();
 
+    std::string gen_viz_code(int run);
+
     bool gen_sym_tab();
 
     std::string gen_asm_code();
-
-    std::string gen_viz_code();
 };
 
 class FuncDefListNode {
@@ -138,21 +108,11 @@ class FuncDefListNode {
         func_defs.push_back(func_def);
     }
 
+    std::string gen_viz_code(int run);
+
     bool gen_sym_tab();
 
     std::string gen_asm_code();
-
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "FuncDefListNode");
-        for (int i = 0; i < func_defs.size(); i++) {
-            result += vizChildEdge(uid,
-                                   func_defs.at(i)->getUid(),
-                                   "func" + to_string(i + 1),
-                                   "Function " + to_string(i + 1));
-            result += func_defs.at(i)->gen_viz_code();
-        }
-        return result;
-    }
 };
 
 #endif

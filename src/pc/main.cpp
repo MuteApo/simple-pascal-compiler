@@ -15,6 +15,7 @@ extern ProgramNode *root;
 
 int main(int argc, char *argv[]) {
     FILE *viz_file_0 = NULL, *viz_file_1 = NULL;
+    if (argc == 1) return puts("no input file"), 1;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-i") == 0) {
             if (i + 1 >= argc || argv[i + 1][0] == '-') {
@@ -58,12 +59,12 @@ int main(int argc, char *argv[]) {
     }
     yyparse();
     if (viz_file_0 != NULL) {
-        fprintf(viz_file_0, "%s", root->gen_viz_code().c_str());
+        fprintf(viz_file_0, "%s", root->gen_viz_code(0).c_str());
         fclose(viz_file_0);
     }
-    root->visit();
+    if (root != nullptr) root->visit();
     if (viz_file_1 != NULL) {
-        fprintf(viz_file_1, "%s", root->gen_viz_code().c_str());
+        fprintf(viz_file_1, "%s", root->gen_viz_code(1).c_str());
         fclose(viz_file_1);
     }
     return 0;

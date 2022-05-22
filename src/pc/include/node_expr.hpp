@@ -39,27 +39,12 @@ class ExprNode {
              LiteralNode   *l_a,
              VarAccessNode *v_a_a,
              IdNode        *i_a,
-             FuncNode      *f_a)
-            : uid(++global_uid),
-              node_type(nt),
-              eval_type(et),
-              op1(op_1),
-              op2(op_2),
-              literal_attr(l_a),
-              var_access_attr(v_a_a),
-              id_attr(i_a),
-              func_attr(f_a) {}
-    ExprNode(ExprEvalType et, ExprNode *op1_, ExprNode *op2_)
-            : ExprNode(el_nonleaf, et, op1_, op2_, nullptr, nullptr, nullptr, nullptr) {}
-    ExprNode(LiteralNode *l_a)
-            : ExprNode(el_literal, EK_None, nullptr, nullptr, l_a, nullptr, nullptr, nullptr) {}
-    ExprNode(VarAccessNode *v_a_a)
-            : ExprNode(el_var_access, EK_None, nullptr, nullptr, nullptr, v_a_a, nullptr, nullptr) {
-    }
-    ExprNode(IdNode *i_a)
-            : ExprNode(el_id, EK_None, nullptr, nullptr, nullptr, nullptr, i_a, nullptr) {}
-    ExprNode(FuncNode *f_a)
-            : ExprNode(el_fun_call, EK_None, nullptr, nullptr, nullptr, nullptr, nullptr, f_a) {}
+             FuncNode      *f_a);
+    ExprNode(ExprEvalType et, ExprNode *op1_, ExprNode *op2_);
+    ExprNode(LiteralNode *l_a);
+    ExprNode(VarAccessNode *v_a_a);
+    ExprNode(IdNode *i_a);
+    ExprNode(FuncNode *f_a);
 
     int getUid() {
         return uid;
@@ -83,11 +68,7 @@ class ExprNode {
 
     std::string getNodeInfo();
 
-    std::string gen_viz_code();
-
-    bool is_accessible() {
-        return node_type == el_var_access || node_type == el_id;
-    }
+    std::string gen_viz_code(int run);
 
     bool is_value_equ(ExprNode *expr);
 
@@ -108,25 +89,15 @@ class ExprListNode {
         return uid;
     }
 
-    void addExpr(ExprNode *expr) {
-        exprs.push_back(expr);
-    }
-
     std::vector<ExprNode *> &getExprList() {
         return exprs;
     }
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "ExprListNode");
-        for (int i = 0; i < exprs.size(); i++) {
-            result += vizChildEdge(uid,
-                                   exprs.at(i)->getUid(),
-                                   "expr" + to_string(i + 1),
-                                   "Expression " + to_string(i + 1));
-            result += exprs.at(i)->gen_viz_code();
-        }
-        return result;
+    void addExpr(ExprNode *expr) {
+        exprs.push_back(expr);
     }
+
+    std::string gen_viz_code(int run);
 };
 
 class LiteralNode {
@@ -158,17 +129,15 @@ class LiteralNode {
         return type;
     }
 
-    bool is_value_equ(LiteralNode *expr);
-
     std::string getNodeInfo();
 
-    std::string gen_viz_code() {
-        return vizNode(uid, getNodeInfo());
-    }
+    std::string gen_viz_code(int run);
 
-    std::string get_value_string();
+    bool is_value_equ(LiteralNode *expr);
 
     std::string gen_asm_code(void);
+
+    std::string toString();
 };
 
 enum var_access_type { va_pointer = 40001, va_array, va_record };
@@ -181,22 +150,20 @@ class VarAccessNode {
     ExprNode       *member;      // record
 
   public:
-    VarAccessNode(var_access_type t, ExprNode *h, ExprListNode *i_l, ExprNode *m)
-            : uid(++global_uid), type(t), host(h), index_list(i_l), member(m) {}
-    VarAccessNode(ExprNode *h) : VarAccessNode(va_pointer, h, nullptr, nullptr) {}
-    VarAccessNode(ExprNode *h, ExprListNode *indices)
-            : VarAccessNode(va_array, h, indices, nullptr) {}
-    VarAccessNode(ExprNode *h, ExprNode *m) : VarAccessNode(va_record, h, nullptr, m) {}
+    VarAccessNode(var_access_type t, ExprNode *h, ExprListNode *i_l, ExprNode *m);
+    VarAccessNode(ExprNode *h);
+    VarAccessNode(ExprNode *h, ExprListNode *indices);
+    VarAccessNode(ExprNode *h, ExprNode *m);
 
     int getUid() {
         return uid;
     }
 
-    std::string gen_asm_code(void);
-
     std::string getNodeInfo();
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
+
+    std::string gen_asm_code();
 };
 
 class IdNode {
@@ -214,17 +181,14 @@ class IdNode {
     std::string getName() {
         return name;
     }
+
     ConstDefNode *getConst();
 
     TypeAttrNode *getType();
 
-    std::string getNodeInfo() {
-        return "IdNode\n" + name;
-    }
+    std::string getNodeInfo();
 
-    std::string gen_viz_code() {
-        return vizNode(uid, getNodeInfo());
-    }
+    std::string gen_viz_code(int run);
 
     std::string gen_asm_code(void);
 };
@@ -243,12 +207,12 @@ class IdListNode {
         return uid;
     }
 
-    void addId(IdNode *id) {
-        ids.push_back(id);
-    }
-
     std::vector<IdNode *> &getIdList() {
         return ids;
+    }
+
+    void addId(IdNode *id) {
+        ids.push_back(id);
     }
 };
 
@@ -265,18 +229,9 @@ class FuncNode {
         return uid;
     }
 
-    std::string getNodeInfo() {
-        return "FuncNode\n" + func_name;
-    }
+    std::string getNodeInfo();
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, getNodeInfo());
-        if (arg_list != nullptr) {
-            result += vizChildEdge(uid, arg_list->getUid(), "args", "Arguments of Function Call");
-            result += arg_list->gen_viz_code();
-        }
-        return result;
-    }
+    std::string gen_viz_code(int run);
 };
 
 #endif

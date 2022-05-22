@@ -37,22 +37,18 @@ class VarDefNode {
         return type;
     }
 
-    void translateId();
-
     // Find if "type_id" exists in variable symble table
     bool is_legal();
 
-    bool gen_sym_tab(int ord);
-
     int get_length(void);
 
-    std::string gen_viz_code();
+    std::string gen_viz_code(int run);
 
-    std::string gen_asm_def(void);
+    void translateId();
 
-    std::string toString() {
-        return "";
-    }
+    bool gen_sym_tab(int ord);
+
+    std::string gen_asm_def();
 };
 
 class VarDefListNode {
@@ -73,36 +69,26 @@ class VarDefListNode {
         return var_defs.size();
     }
 
+    std::vector<VarDefNode *> &getVarList() {
+        return var_defs;
+    }
+
     void addVarDef(VarDefNode *var_def) {
         var_defs.push_back(var_def);
     }
     void addVarDef(IdListNode *ids, TypeAttrNode *type);
 
-    std::vector<VarDefNode *> &getVarList() {
-        return var_defs;
-    }
-
     void mergeVarDefList(VarDefListNode *defs) {
         for (VarDefNode *def : defs->getVarList()) addVarDef(def);
     }
+
+    std::string gen_viz_code(int run);
 
     void translateId();
 
     bool gen_sym_tab();
 
-    std::string gen_asm_def(void);
-
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "VarDefListNode");
-        for (int i = 0; i < var_defs.size(); i++) {
-            result += vizChildEdge(uid,
-                                   var_defs.at(i)->getUid(),
-                                   "field" + to_string(i + 1),
-                                   "Type of Field " + to_string(i + 1));
-            result += var_defs.at(i)->gen_viz_code();
-        }
-        return result;
-    }
+    std::string gen_asm_def();
 };
 
 #endif
