@@ -25,22 +25,14 @@ class VarDefNode {
   public:
     VarDefNode(std::string id, TypeAttrNode *t);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string getName() {
-        return name;
-    }
+    std::string getName();
 
-    TypeAttrNode *getType() {
-        return type;
-    }
+    TypeAttrNode *getType();
 
     // Find if "type_id" exists in variable symble table
     bool is_legal();
-
-    int get_length(void);
 
     std::string gen_viz_code(int run);
 
@@ -57,36 +49,30 @@ class VarDefListNode {
     std::vector<VarDefNode *> var_defs;
 
   public:
-    VarDefListNode() : uid(++global_uid) {
-        var_defs.clear();
-    }
+    VarDefListNode();
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    int getDim() {
-        return var_defs.size();
-    }
+    int getDim();
 
-    std::vector<VarDefNode *> &getVarList() {
-        return var_defs;
-    }
+    std::vector<VarDefNode *> &getVarList();
 
-    void addVarDef(VarDefNode *var_def) {
-        var_defs.push_back(var_def);
-    }
+    int getLength();
+
+    int getOffset(std::string member);
+
+    void addVarDef(VarDefNode *var_def);
     void addVarDef(IdListNode *ids, TypeAttrNode *type);
 
-    void mergeVarDefList(VarDefListNode *defs) {
-        for (VarDefNode *def : defs->getVarList()) addVarDef(def);
-    }
+    void mergeVarDefList(VarDefListNode *defs);
 
     std::string gen_viz_code(int run);
 
     void translateId();
 
     bool gen_sym_tab();
+
+    bool is_type_equ(VarDefListNode *rhs);
 
     std::string gen_asm_def();
 };

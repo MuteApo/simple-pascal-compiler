@@ -29,6 +29,26 @@ ExprNode::ExprNode(IdNode *i_a)
 ExprNode::ExprNode(FuncNode *f_a)
         : ExprNode(el_fun_call, EK_None, nullptr, nullptr, nullptr, nullptr, nullptr, f_a) {}
 
+int ExprNode::getUid() {
+    return uid;
+}
+
+expr_node_type ExprNode::getExprType() {
+    return node_type;
+}
+
+IdNode *ExprNode::getIdNode() {
+    return id_attr;
+}
+
+LiteralNode *ExprNode::getLiteralNode() {
+    return literal_attr;
+}
+
+VarAccessNode *ExprNode::getVarAccessNode() {
+    return var_access_attr;
+}
+
 std::string ExprNode::getNodeInfo() {
     std::string result = "ExprNode\n";
     if (node_type == el_nonleaf) result += enum2str(eval_type);
@@ -76,6 +96,22 @@ bool ExprNode::is_value_equ(ExprNode *expr) {
     return false;
 }
 
+ExprListNode::ExprListNode() : uid(++global_uid) {
+    exprs.clear();
+}
+
+int ExprListNode::getUid() {
+    return uid;
+}
+
+std::vector<ExprNode *> &ExprListNode::getExprList() {
+    return exprs;
+}
+
+void ExprListNode::addExpr(ExprNode *expr) {
+    exprs.push_back(expr);
+}
+
 std::string ExprListNode::gen_viz_code(int run) {
     std::string result = vizNode(uid, "ExprListNode");
     for (int i = 0; i < exprs.size(); i++) {
@@ -111,6 +147,14 @@ bool LiteralNode::operator<(const LiteralNode &rhs) const {
     return false;
 }
 
+int LiteralNode::getUid() {
+    return uid;
+}
+
+BasicAttrNode *LiteralNode::getType() {
+    return type;
+}
+
 std::string LiteralNode::getNodeInfo() {
     std::string result = "LiteralNode\n";
     if (is_nil) return result + "NIL";
@@ -124,6 +168,24 @@ std::string LiteralNode::getNodeInfo() {
 
 std::string LiteralNode::gen_viz_code(int run) {
     return vizNode(uid, getNodeInfo());
+}
+
+int LiteralNode::diff(LiteralNode *rhs) {
+    if (is_nil || rhs->is_nil) {
+        // TODO syntax error: cannot differ between pointers
+        return 0;
+    }
+    if (type != rhs->type) {
+        // TODO syntax error: cannot cannot differ between two types
+        return 0;
+    }
+    switch (type->getType()) {
+        case boolean: return bval - rhs->bval;
+        case integer: return ival - rhs->ival;
+        case real: return dval - rhs->dval;
+        case character: return cval - rhs->cval;
+    }
+    return 0;
 }
 
 bool LiteralNode::is_value_equ(LiteralNode *expr) {
@@ -156,6 +218,10 @@ VarAccessNode::VarAccessNode(ExprNode *h, ExprListNode *indices)
         : VarAccessNode(va_array, h, indices, nullptr) {}
 VarAccessNode::VarAccessNode(ExprNode *h, ExprNode *m) : VarAccessNode(va_record, h, nullptr, m) {}
 
+int VarAccessNode::getUid() {
+    return uid;
+}
+
 std::string VarAccessNode::getNodeInfo() {
     std::string result = "VarAccessNode\n";
     if (type == va_pointer) result += "^";
@@ -177,6 +243,16 @@ std::string VarAccessNode::gen_viz_code(int run) {
     return result;
 }
 
+IdNode::IdNode(std::string id) : uid(++global_uid), name(id) {}
+
+int IdNode::getUid() {
+    return uid;
+}
+
+std::string IdNode::getName() {
+    return name;
+}
+
 ConstDefNode *IdNode::getConst() {
     return symbol_table.findConstSymbol(name);
 }
@@ -191,6 +267,29 @@ std::string IdNode::getNodeInfo() {
 
 std::string IdNode::gen_viz_code(int run) {
     return vizNode(uid, getNodeInfo());
+}
+
+IdListNode::IdListNode() : uid(++global_uid) {
+    ids.clear();
+}
+
+int IdListNode::getUid() {
+    return uid;
+}
+
+std::vector<IdNode *> &IdListNode::getIdList() {
+    return ids;
+}
+
+void IdListNode::addId(IdNode *id) {
+    ids.push_back(id);
+}
+
+FuncNode::FuncNode(std::string id, ExprListNode *a_l)
+        : uid(++global_uid), func_name(id), arg_list(a_l) {}
+
+int FuncNode::getUid() {
+    return uid;
 }
 
 std::string FuncNode::getNodeInfo() {

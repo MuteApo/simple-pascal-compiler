@@ -46,25 +46,15 @@ class ExprNode {
     ExprNode(IdNode *i_a);
     ExprNode(FuncNode *f_a);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    expr_node_type getExprType() {
-        return node_type;
-    }
+    expr_node_type getExprType();
 
-    IdNode *getIdNode() {
-        return id_attr;
-    }
+    IdNode *getIdNode();
 
-    LiteralNode *getLiteralNode() {
-        return literal_attr;
-    }
+    LiteralNode *getLiteralNode();
 
-    VarAccessNode *getVarAccessNode() {
-        return var_access_attr;
-    }
+    VarAccessNode *getVarAccessNode();
 
     std::string getNodeInfo();
 
@@ -81,21 +71,13 @@ class ExprListNode {
     std::vector<ExprNode *> exprs;
 
   public:
-    ExprListNode() : uid(++global_uid) {
-        exprs.clear();
-    }
+    ExprListNode();
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::vector<ExprNode *> &getExprList() {
-        return exprs;
-    }
+    std::vector<ExprNode *> &getExprList();
 
-    void addExpr(ExprNode *expr) {
-        exprs.push_back(expr);
-    }
+    void addExpr(ExprNode *expr);
 
     std::string gen_viz_code(int run);
 };
@@ -121,17 +103,15 @@ class LiteralNode {
 
     bool operator<(const LiteralNode &rhs) const;
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    BasicAttrNode *getType() {
-        return type;
-    }
+    BasicAttrNode *getType();
 
     std::string getNodeInfo();
 
     std::string gen_viz_code(int run);
+
+    int diff(LiteralNode *rhs);
 
     bool is_value_equ(LiteralNode *expr);
 
@@ -155,9 +135,7 @@ class VarAccessNode {
     VarAccessNode(ExprNode *h, ExprListNode *indices);
     VarAccessNode(ExprNode *h, ExprNode *m);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
     std::string getNodeInfo();
 
@@ -172,15 +150,11 @@ class IdNode {
     std::string name;
 
   public:
-    IdNode(std::string id) : uid(++global_uid), name(id) {}
+    IdNode(std::string id);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string getName() {
-        return name;
-    }
+    std::string getName();
 
     ConstDefNode *getConst();
 
@@ -199,21 +173,13 @@ class IdListNode {
     std::vector<IdNode *> ids;
 
   public:
-    IdListNode() : uid(++global_uid) {
-        ids.clear();
-    }
+    IdListNode();
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::vector<IdNode *> &getIdList() {
-        return ids;
-    }
+    std::vector<IdNode *> &getIdList();
 
-    void addId(IdNode *id) {
-        ids.push_back(id);
-    }
+    void addId(IdNode *id);
 };
 
 class FuncNode {
@@ -223,11 +189,9 @@ class FuncNode {
     ExprListNode *arg_list;
 
   public:
-    FuncNode(std::string id, ExprListNode *a_l) : uid(++global_uid), func_name(id), arg_list(a_l) {}
+    FuncNode(std::string id, ExprListNode *a_l);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
     std::string getNodeInfo();
 

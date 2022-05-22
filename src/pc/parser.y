@@ -196,7 +196,7 @@ Type: BasicRealType {
 }| StructTypeDef {
     $$ = new TypeAttrNode($1);
 }| PtrTypeDef {
-    $$ = nullptr;   // TODO
+    $$ = new TypeAttrNode($1);
 }| Id {
     $$ = new TypeAttrNode($1->getIdNode()->getName());
 }
@@ -242,9 +242,9 @@ RecordTypeDef: WSYM_RECORD VarDeclList WSYM_END {
 }
 
 PtrTypeDef: SYM_HAT BasicRealType {
-    $$ = new PtrAttrNode($2);
+    $$ = new PtrAttrNode(new TypeAttrNode($2));
 }| SYM_HAT Id {
-    $$ = new PtrAttrNode($2->getIdNode()->getName());
+    $$ = new PtrAttrNode(new TypeAttrNode($2->getIdNode()->getName()));
 }
 
 OrdTypeDef: SYM_LPAR ConstList SYM_RPAR {

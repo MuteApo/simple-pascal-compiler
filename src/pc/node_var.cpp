@@ -4,14 +4,20 @@
 VarDefNode::VarDefNode(std::string id, TypeAttrNode *t)
         : uid(++global_uid), name(id), type(t), is_type_id(t->getType() == type_identifier) {}
 
-bool VarDefNode::is_legal() {
-    return symbol_table.findTypeSymbol(type->getName()) != nullptr;
+int VarDefNode::getUid() {
+    return uid;
 }
 
-int VarDefNode::get_length(void) {
-    TypeAttrNode *type_def = symbol_table.findTypeSymbol(type->getName());
-    if (type_def == nullptr) return -1;
-    return type_def->get_length();
+std::string VarDefNode::getName() {
+    return name;
+}
+
+TypeAttrNode *VarDefNode::getType() {
+    return type;
+}
+
+bool VarDefNode::is_legal() {
+    return symbol_table.findTypeSymbol(type->getName()) != nullptr;
 }
 
 std::string VarDefNode::gen_viz_code(int run) {
@@ -38,8 +44,46 @@ std::string VarDefNode::gen_asm_def() {
     return type_def->gen_asm_def();
 }
 
+VarDefListNode::VarDefListNode() : uid(++global_uid) {
+    var_defs.clear();
+}
+
+int VarDefListNode::getUid() {
+    return uid;
+}
+
+int VarDefListNode::getDim() {
+    return var_defs.size();
+}
+
+std::vector<VarDefNode *> &VarDefListNode::getVarList() {
+    return var_defs;
+}
+
+void VarDefListNode::addVarDef(VarDefNode *var_def) {
+    var_defs.push_back(var_def);
+}
 void VarDefListNode::addVarDef(IdListNode *ids, TypeAttrNode *type) {
     for (IdNode *id : ids->getIdList()) addVarDef(new VarDefNode(id->getName(), type));
+}
+
+void VarDefListNode::mergeVarDefList(VarDefListNode *defs) {
+    for (VarDefNode *def : defs->getVarList()) addVarDef(def);
+}
+
+int VarDefListNode::getLength() {
+    int result = 0;
+    for (VarDefNode *def : var_defs) result += def->getType()->getLength();
+    return result;
+}
+
+int VarDefListNode::getOffset(std::string member) {
+    int result = 0;
+    for (VarDefNode *def : var_defs) {
+        if (def->getName() == member) break;
+        result += def->getType()->getLength();
+    }
+    return result;
 }
 
 std::string VarDefListNode::gen_viz_code(int run) {
@@ -55,19 +99,26 @@ std::string VarDefListNode::gen_viz_code(int run) {
 }
 
 void VarDefListNode::translateId() {
-    for (VarDefNode *var : var_defs) var->translateId();
+    for (int i = 0; i < var_defs.size(); i++) var_defs.at(i)->translateId();
 }
 
-bool VarDefListNode::gen_sym_tab(void) {
+bool VarDefListNode::gen_sym_tab() {
     bool result       = true;
     int  lvars_length = 0;
     int  ord          = 0;
     for (VarDefNode *var : var_defs) {
         result &= var->gen_sym_tab(ord++);
-        lvars_length += var->get_length();
+        lvars_length += var->getType()->getLength();
     }
     ar_lvars_length.push_back(lvars_length);
     return result;
+}
+
+bool VarDefListNode::is_type_equ(VarDefListNode *rhs) {
+    if (getDim() != rhs->getDim()) return false;
+    for (int i = 0; i < var_defs.size(); i++)
+        if (!var_defs.at(i)->getType()->is_type_equ(rhs->var_defs.at(i)->getType())) return false;
+    return true;
 }
 
 std::string VarDefListNode::gen_asm_def() {
