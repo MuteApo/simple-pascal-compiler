@@ -125,11 +125,11 @@ ProgramNode *root = nullptr;
 %type <switch_stmt_node> CaseStmt
 %type <case_list_node> CaseList
 %type <case_stmt_node> Case
-%type <func_stmt_node> FuncStmt
+%type <func_stmt_node> FuncStmt ProcStmt
 %type <expr_list_node> ArgList IndexList
 %type <expr_node> Arg Expr Term Factor Item VarAccess Accessible Id SignedLiteral Literal
 %type <id_list_node> IdList
-%type <func_node> FuncExpr
+%type <func_node> FuncExpr ProcExpr
 %type <expr_eval_type> Sign
 
 %type <type_def_node> SetTypeDef StringTypeDef     
@@ -385,6 +385,10 @@ FuncExpr: Id SYM_LPAR ArgList SYM_RPAR {
     $$ = new FuncNode($1->getIdNode()->getName(), nullptr);
 }
 
+ProcExpr: Id {
+    $$ = new FuncNode($1->getIdNode()->getName(), nullptr);
+}
+
 /************************* Rules of Stmt *************************/
 
 Stmt: CompoundStmt {
@@ -392,6 +396,8 @@ Stmt: CompoundStmt {
 }| AssignStmt {
     $$ = new StmtNode($1);
 }| FuncStmt {
+    $$ = new StmtNode($1);
+}| ProcStmt {
     $$ = new StmtNode($1);
 }| IfStmt {
     $$ = new StmtNode($1);
@@ -418,6 +424,10 @@ AssignStmt: Id SYM_ASSIGN Expr {
 }
 
 FuncStmt: FuncExpr {
+    $$ = new FuncStmtNode($1);
+}
+
+ProcStmt: ProcExpr {
     $$ = new FuncStmtNode($1);
 }
 
