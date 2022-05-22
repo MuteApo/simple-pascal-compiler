@@ -33,18 +33,17 @@ void get_source(string &buffer) {
 }
 
 void split_segment(string buffer, string &equiv, string &text, string &data) {
-    for (int i = 0; i < buffer.length(); i++) {
-    }
+    for (int i = 0; i < buffer.length(); i++) {}
 }
 
 void scan_symbol(string equiv, string text, string data) {}
 
-// Suported Pseudo-instructions: li, la, j
+// Suported Pseudo-instructions: la, li, j, jr
 void gen_hex(FILE *output, string text, string data) {}
 
 int main(int argc, char *argv[]) {
     string output_filename = "target.hex";
-    FILE *output_file = NULL;
+    FILE  *output_file     = NULL;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-i") == 0) {
             if (i + 1 >= argc || argv[i + 1][0] == '-') {
@@ -66,8 +65,9 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "-h") == 0) {
             printf("Simple RISC-V Assembler, version 0.1\n");
             printf("-i <file> Use <file> as source input (default: stdin)\n");
-            printf("-o <file> Place the HEX text output into <file> (default: "
-                   "target.hex)\n");
+            printf(
+                "-o <file> Place the HEX text output into <file> (default: "
+                "target.hex)\n");
             printf("-s Print symbol table during assembling\n");
             printf("-h Show this information\n");
             return 0;

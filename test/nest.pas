@@ -14,5 +14,5 @@ begin
 end;
 
 begin
-    a;
+    a();
 end.

@@ -1,285 +1,141 @@
 digraph G {
-	node183 [label="ProgramNode
-test"];
-	node183 -> node182 [color=blue, label = "block", labeltooltip = "Program Block"];
-	node182 [label="BlockNode"];
-	node182 -> node9 [color=blue, label = "const", labeltooltip = "Const Part"];
-	node9 [label="ConstDefListNode"];
-	node9 -> node8 [color=blue, label = "constdef1", labeltooltip = "Const Definition 1"];
-	node8 [label="ConstDefNode
-z"];
-	node8 -> node7 [color=blue, label = "constdef", labeltooltip = "Const Definition"];
-	node7 [label="ExprNode
+	node70 [label="ProgramNode
+env"];
+	node70 -> node69 [color=blue, label = "block", labeltooltip = "Program Block"];
+	node69 [label="BlockNode"];
+	node69 -> node62 [color=blue, label = "func", labeltooltip = "Function/Procedure Part"];
+	node62 [label="FuncDefListNode"];
+	node62 -> node61 [color=blue, label = "func1", labeltooltip = "Function 1"];
+	node61 [label="FuncDefNode
+a"];
+	node61 -> node60 [color=blue, label = "block", labeltooltip = "Procedure Block"];
+	node60 [label="BlockNode"];
+	node60 -> node10 [color=blue, label = "var", labeltooltip = "Var Part"];
+	node10 [label="VarDefListNode"];
+	node10 -> node11 [color=blue, label = "field1", labeltooltip = "Type of Field 1"];
+	node11 [label="VarDefNode
+x"];
+	node11 -> node9 [color=blue, label = "vardef", labeltooltip = "Variable Definition"];
+	node9 [label="TypeAttrNode
 "];
-	node7 -> node6 [color=blue, label = "literal", labeltooltip = "Literal"];
-	node6 [label="LiteralNode
-integer
-233"];
-	node9 -> node15 [color=blue, label = "constdef2", labeltooltip = "Const Definition 2"];
-	node15 [label="ConstDefNode
-yy"];
-	node15 -> node14 [color=blue, label = "constdef", labeltooltip = "Const Definition"];
-	node14 [label="ExprNode
+	node9 -> node8 [color=blue, label = "basic", labeltooltip = "Basic Type"];
+	node8 [label="BasicAttrNode
+integer"];
+	node60 -> node41 [color=blue, label = "func", labeltooltip = "Function/Procedure Part"];
+	node41 [label="FuncDefListNode"];
+	node41 -> node40 [color=blue, label = "func1", labeltooltip = "Function 1"];
+	node40 [label="FuncDefNode
+b"];
+	node40 -> node39 [color=blue, label = "block", labeltooltip = "Procedure Block"];
+	node39 [label="BlockNode"];
+	node39 -> node19 [color=blue, label = "var", labeltooltip = "Var Part"];
+	node19 [label="VarDefListNode"];
+	node19 -> node20 [color=blue, label = "field1", labeltooltip = "Type of Field 1"];
+	node20 [label="VarDefNode
+x"];
+	node20 -> node18 [color=blue, label = "vardef", labeltooltip = "Variable Definition"];
+	node18 [label="TypeAttrNode
 "];
-	node14 -> node13 [color=blue, label = "literal", labeltooltip = "Literal"];
-	node13 [label="LiteralNode
-character
-y"];
-	node182 -> node33 [color=blue, label = "type", labeltooltip = "Type Part"];
-	node33 [label="TypeDefListNode"];
-	node33 -> node32 [color=blue, label = "typedef1", labeltooltip = "Type Definition 1"];
-	node32 [label="TypeDefNode
-week"];
-	node32 -> node31 [color=blue, label = "typedef", labeltooltip = "Type Definition"];
-	node31 [label="TypeAttrNode
-"];
-	node31 -> node30 [color=blue, label = "ordinal", labeltooltip = "Ordinal Type"];
-	node30 [label="OrdAttrNode"];
-	node30 -> node29 [color=blue, label = "enum", labeltooltip = "Enumerated Type"];
-	node29 [label="EnumAttrNode"];
-	node29 -> node19 [color=blue, label = "enum1", labeltooltip = "Enum at Ordinal 1"];
-	node19 [label="ExprNode
-"];
-	node19 -> node18 [color=blue, label = "id", labeltooltip = "Identifier"];
-	node18 [label="IdNode
-mon"];
-	node29 -> node22 [color=blue, label = "enum2", labeltooltip = "Enum at Ordinal 2"];
+	node18 -> node17 [color=blue, label = "basic", labeltooltip = "Basic Type"];
+	node17 [label="BasicAttrNode
+integer"];
+	node39 -> node28 [color=blue, label = "stmts", labeltooltip = "Statement Part"];
+	node28 [label="StmtListNode"];
+	node28 -> node27 [color=blue, label = "stmt1", labeltooltip = "Statement 1"];
+	node27 [label="StmtNode"];
+	node27 -> node26 [color=blue, label = "assign", labeltooltip = "Assign Statement"];
+	node26 [label="AssignStmtNode"];
+	node26 -> node22 [color=blue, label = "lval", labeltooltip = "Left Value"];
 	node22 [label="ExprNode
 "];
 	node22 -> node21 [color=blue, label = "id", labeltooltip = "Identifier"];
 	node21 [label="IdNode
-tues"];
-	node29 -> node24 [color=blue, label = "enum3", labeltooltip = "Enum at Ordinal 3"];
-	node24 [label="ExprNode
+x"];
+	node26 -> node25 [color=blue, label = "rval", labeltooltip = "Right Value"];
+	node25 [label="ExprNode
 "];
-	node24 -> node23 [color=blue, label = "id", labeltooltip = "Identifier"];
-	node23 [label="IdNode
-wed"];
-	node29 -> node26 [color=blue, label = "enum4", labeltooltip = "Enum at Ordinal 4"];
-	node26 [label="ExprNode
-"];
-	node26 -> node25 [color=blue, label = "id", labeltooltip = "Identifier"];
-	node25 [label="IdNode
-thur"];
-	node29 -> node28 [color=blue, label = "enum5", labeltooltip = "Enum at Ordinal 5"];
-	node28 [label="ExprNode
-"];
-	node28 -> node27 [color=blue, label = "id", labeltooltip = "Identifier"];
-	node27 [label="IdNode
-fri"];
-	node33 -> node39 [color=blue, label = "typedef2", labeltooltip = "Type Definition 2"];
-	node39 [label="TypeDefNode
-week2"];
-	node39 -> node31 [color=blue, label = "typedef", labeltooltip = "Type Definition"];
-	node33 -> node50 [color=blue, label = "typedef3", labeltooltip = "Type Definition 3"];
-	node50 [label="TypeDefNode
-digit"];
-	node50 -> node49 [color=blue, label = "typedef", labeltooltip = "Type Definition"];
-	node49 [label="TypeAttrNode
-"];
-	node49 -> node48 [color=blue, label = "ordinal", labeltooltip = "Ordinal Type"];
-	node48 [label="OrdAttrNode"];
-	node48 -> node47 [color=blue, label = "subrange", labeltooltip = "Subrange Type"];
-	node47 [label="SubrangeAttrNode"];
-	node47 -> node44 [color=blue, label = "low", labeltooltip = "Lower Bound"];
-	node44 [label="ExprNode
-"];
-	node44 -> node43 [color=blue, label = "literal", labeltooltip = "Literal"];
-	node43 [label="LiteralNode
+	node25 -> node24 [color=blue, label = "literal", labeltooltip = "Literal"];
+	node24 [label="LiteralNode
 integer
-0"];
-	node47 -> node7 [color=blue, label = "up", labeltooltip = "Upper Bound"];
-	node33 -> node71 [color=blue, label = "typedef4", labeltooltip = "Type Definition 4"];
-	node71 [label="TypeDefNode
-y"];
-	node71 -> node70 [color=blue, label = "typedef", labeltooltip = "Type Definition"];
-	node70 [label="TypeAttrNode
+2"];
+	node28 -> node38 [color=blue, label = "stmt2", labeltooltip = "Statement 2"];
+	node38 [label="StmtNode"];
+	node38 -> node37 [color=blue, label = "assign", labeltooltip = "Assign Statement"];
+	node37 [label="AssignStmtNode"];
+	node37 -> node30 [color=blue, label = "lval", labeltooltip = "Left Value"];
+	node30 [label="ExprNode
 "];
-	node70 -> node69 [color=blue, label = "struct", labeltooltip = "Structured Type"];
-	node69 [label="StructAttrNode"];
-	node69 -> node68 [color=blue, label = "record", labeltooltip = "Record Type"];
-	node68 [label="RecordAttrNode"];
-	node68 -> node59 [color=blue, label = "", labeltooltip = ""];
-	node59 [label="VarDefListNode"];
-	node59 -> node60 [color=blue, label = "field1", labeltooltip = "Type of Field 1"];
-	node60 [label="VarDefNode
-u"];
-	node60 -> node31 [color=blue, label = "vardef", labeltooltip = "Variable Definition"];
-	node59 -> node67 [color=blue, label = "field2", labeltooltip = "Type of Field 2"];
-	node67 [label="VarDefNode
-v"];
-	node67 -> node65 [color=blue, label = "vardef", labeltooltip = "Variable Definition"];
-	node65 [label="TypeAttrNode
-"];
-	node65 -> node64 [color=blue, label = "basic", labeltooltip = "Basic Type"];
-	node64 [label="BasicAttrNode
-integer"];
-	node182 -> node77 [color=blue, label = "var", labeltooltip = "Var Part"];
-	node77 [label="VarDefListNode"];
-	node77 -> node78 [color=blue, label = "field1", labeltooltip = "Type of Field 1"];
-	node78 [label="VarDefNode
-d"];
-	node78 -> node76 [color=blue, label = "vardef", labeltooltip = "Variable Definition"];
-	node76 [label="TypeAttrNode
-"];
-	node76 -> node75 [color=blue, label = "basic", labeltooltip = "Basic Type"];
-	node75 [label="BasicAttrNode
-integer"];
-	node77 -> node85 [color=blue, label = "field2", labeltooltip = "Type of Field 2"];
-	node85 [label="VarDefNode
-e"];
-	node85 -> node83 [color=blue, label = "vardef", labeltooltip = "Variable Definition"];
-	node83 [label="TypeAttrNode
-"];
-	node83 -> node82 [color=blue, label = "basic", labeltooltip = "Basic Type"];
-	node82 [label="BasicAttrNode
-real"];
-	node77 -> node102 [color=blue, label = "field3", labeltooltip = "Type of Field 3"];
-	node102 [label="VarDefNode
-k"];
-	node102 -> node100 [color=blue, label = "vardef", labeltooltip = "Variable Definition"];
-	node100 [label="TypeAttrNode
-"];
-	node100 -> node99 [color=blue, label = "struct", labeltooltip = "Structured Type"];
-	node99 [label="StructAttrNode"];
-	node99 -> node98 [color=blue, label = "array", labeltooltip = "Array Type"];
-	node98 [label="ArrayAttrNode"];
-	node98 -> node92 [color=blue, label = "indices", labeltooltip = "Type of Indices "];
-	node92 [label="TypeAttrListNode"];
-	node92 -> node49 [color=blue, label = "index1", labeltooltip = "Type of Index 1"];
-	node92 -> node94 [color=blue, label = "index2", labeltooltip = "Type of Index 2"];
-	node94 [label="TypeAttrNode
-"];
-	node94 -> node93 [color=blue, label = "basic", labeltooltip = "Basic Type"];
-	node93 [label="BasicAttrNode
-character"];
-	node98 -> node31 [color=blue, label = "element", labeltooltip = "Type of Element"];
-	node77 -> node110 [color=blue, label = "field4", labeltooltip = "Type of Field 4"];
-	node110 [label="VarDefNode
-f"];
-	node110 -> node70 [color=blue, label = "vardef", labeltooltip = "Variable Definition"];
-	node182 -> node132 [color=blue, label = "func", labeltooltip = "Function/Procedure Part"];
-	node132 [label="FuncDefListNode"];
-	node132 -> node131 [color=blue, label = "func1", labeltooltip = "Function 1"];
-	node131 [label="FuncDefNode
-ff"];
-	node131 -> node115 [color=blue, label = "retval", labeltooltip = "Return Value Type"];
-	node115 [label="TypeAttrNode
-week"];
-	node131 -> node130 [color=blue, label = "block", labeltooltip = "Function Block"];
-	node130 [label="BlockNode"];
-	node130 -> node129 [color=blue, label = "func", labeltooltip = "Function/Procedure Part"];
-	node129 [label="FuncDefListNode"];
-	node129 -> node128 [color=blue, label = "func1", labeltooltip = "Function 1"];
-	node128 [label="FuncDefNode
-fff"];
-	node128 -> node119 [color=blue, label = "retval", labeltooltip = "Return Value Type"];
-	node119 [label="TypeAttrNode
-"];
-	node119 -> node118 [color=blue, label = "basic", labeltooltip = "Basic Type"];
-	node118 [label="BasicAttrNode
-real"];
-	node128 -> node127 [color=blue, label = "block", labeltooltip = "Function Block"];
-	node127 [label="BlockNode"];
-	node127 -> node126 [color=blue, label = "type", labeltooltip = "Type Part"];
-	node126 [label="TypeDefListNode"];
-	node126 -> node125 [color=blue, label = "typedef1", labeltooltip = "Type Definition 1"];
-	node125 [label="TypeDefNode
-week3"];
-	node125 -> node31 [color=blue, label = "typedef", labeltooltip = "Type Definition"];
-	node132 -> node173 [color=blue, label = "func2", labeltooltip = "Function 2"];
-	node173 [label="FuncDefNode
-gg"];
-	node173 -> node140 [color=blue, label = "params", labeltooltip = "Type of Parameters"];
-	node140 [label="ParamDefListNode"];
-	node140 -> node141 [color=blue, label = "param1", labeltooltip = "Type of Param 1"];
-	node141 [label="ParamDefNode(ref)"];
-	node141 -> node142 [color=blue, label = "paramdef", labeltooltip = "Parameter Definition"];
-	node142 [label="VarDefNode
+	node30 -> node29 [color=blue, label = "id", labeltooltip = "Identifier"];
+	node29 [label="IdNode
 x"];
-	node142 -> node139 [color=blue, label = "vardef", labeltooltip = "Variable Definition"];
-	node139 [label="TypeAttrNode
+	node37 -> node36 [color=blue, label = "rval", labeltooltip = "Right Value"];
+	node36 [label="ExprNode
+EK_Add"];
+	node36 -> node32 [color=blue, label = "op1", labeltooltip = "Operand 1"];
+	node32 [label="ExprNode
 "];
-	node139 -> node138 [color=blue, label = "basic", labeltooltip = "Basic Type"];
-	node138 [label="BasicAttrNode
-integer"];
-	node140 -> node150 [color=blue, label = "param2", labeltooltip = "Type of Param 2"];
-	node150 [label="ParamDefNode"];
-	node150 -> node151 [color=blue, label = "paramdef", labeltooltip = "Parameter Definition"];
-	node151 [label="VarDefNode
-q"];
-	node151 -> node148 [color=blue, label = "vardef", labeltooltip = "Variable Definition"];
-	node173 -> node172 [color=blue, label = "block", labeltooltip = "Procedure Block"];
-	node172 [label="BlockNode"];
-	node172 -> node171 [color=blue, label = "stmts", labeltooltip = "Statement Part"];
-	node171 [label="StmtListNode"];
-	node171 -> node170 [color=blue, label = "stmt1", labeltooltip = "Statement 1"];
-	node170 [label="StmtNode"];
-	node170 -> node169 [color=blue, label = "assign", labeltooltip = "Assign Statement"];
-	node169 [label="AssignStmtNode"];
-	node169 -> node153 [color=blue, label = "lval", labeltooltip = "Left Value"];
-	node153 [label="ExprNode
-"];
-	node153 -> node152 [color=blue, label = "id", labeltooltip = "Identifier"];
-	node152 [label="IdNode
+	node32 -> node31 [color=blue, label = "id", labeltooltip = "Identifier"];
+	node31 [label="IdNode
 x"];
-	node169 -> node168 [color=blue, label = "rval", labeltooltip = "Right Value"];
-	node168 [label="ExprNode
+	node36 -> node35 [color=blue, label = "op2", labeltooltip = "Operand 2"];
+	node35 [label="ExprNode
 "];
-	node168 -> node167 [color=blue, label = "var access", labeltooltip = "Variable Access"];
-	node167 [label="VarAccessNode
-"];
-	node167 -> node164 [color=blue, label = "host", labeltooltip = "Host Name"];
-	node164 [label="ExprNode
-"];
-	node164 -> node163 [color=blue, label = "var access", labeltooltip = "Variable Access"];
-	node163 [label="VarAccessNode
-"];
-	node163 -> node155 [color=blue, label = "host", labeltooltip = "Host Name"];
-	node155 [label="ExprNode
-"];
-	node155 -> node154 [color=blue, label = "id", labeltooltip = "Identifier"];
-	node154 [label="IdNode
-k"];
-	node163 -> node159 [color=blue, label = "array index", labeltooltip = "Array Index"];
-	node159 [label="ExprListNode"];
-	node159 -> node158 [color=blue, label = "expr1", labeltooltip = "Expression 1"];
-	node158 [label="ExprNode
-"];
-	node158 -> node157 [color=blue, label = "literal", labeltooltip = "Literal"];
-	node157 [label="LiteralNode
+	node35 -> node34 [color=blue, label = "literal", labeltooltip = "Literal"];
+	node34 [label="LiteralNode
 integer
 1"];
-	node159 -> node162 [color=blue, label = "expr2", labeltooltip = "Expression 2"];
-	node162 [label="ExprNode
+	node60 -> node49 [color=blue, label = "stmts", labeltooltip = "Statement Part"];
+	node49 [label="StmtListNode"];
+	node49 -> node48 [color=blue, label = "stmt1", labeltooltip = "Statement 1"];
+	node48 [label="StmtNode"];
+	node48 -> node47 [color=blue, label = "assign", labeltooltip = "Assign Statement"];
+	node47 [label="AssignStmtNode"];
+	node47 -> node43 [color=blue, label = "lval", labeltooltip = "Left Value"];
+	node43 [label="ExprNode
 "];
-	node162 -> node161 [color=blue, label = "literal", labeltooltip = "Literal"];
-	node161 [label="LiteralNode
-character
+	node43 -> node42 [color=blue, label = "id", labeltooltip = "Identifier"];
+	node42 [label="IdNode
+x"];
+	node47 -> node46 [color=blue, label = "rval", labeltooltip = "Right Value"];
+	node46 [label="ExprNode
+"];
+	node46 -> node45 [color=blue, label = "literal", labeltooltip = "Literal"];
+	node45 [label="LiteralNode
+integer
+3"];
+	node49 -> node59 [color=blue, label = "stmt2", labeltooltip = "Statement 2"];
+	node59 [label="StmtNode"];
+	node59 -> node58 [color=blue, label = "assign", labeltooltip = "Assign Statement"];
+	node58 [label="AssignStmtNode"];
+	node58 -> node51 [color=blue, label = "lval", labeltooltip = "Left Value"];
+	node51 [label="ExprNode
+"];
+	node51 -> node50 [color=blue, label = "id", labeltooltip = "Identifier"];
+	node50 [label="IdNode
+x"];
+	node58 -> node57 [color=blue, label = "rval", labeltooltip = "Right Value"];
+	node57 [label="ExprNode
+EK_Add"];
+	node57 -> node53 [color=blue, label = "op1", labeltooltip = "Operand 1"];
+	node53 [label="ExprNode
+"];
+	node53 -> node52 [color=blue, label = "id", labeltooltip = "Identifier"];
+	node52 [label="IdNode
+x"];
+	node57 -> node56 [color=blue, label = "op2", labeltooltip = "Operand 2"];
+	node56 [label="ExprNode
+"];
+	node56 -> node55 [color=blue, label = "literal", labeltooltip = "Literal"];
+	node55 [label="LiteralNode
+integer
+1"];
+	node69 -> node68 [color=blue, label = "stmts", labeltooltip = "Statement Part"];
+	node68 [label="StmtListNode"];
+	node68 -> node67 [color=blue, label = "stmt1", labeltooltip = "Statement 1"];
+	node67 [label="StmtNode"];
+	node67 -> node66 [color=blue, label = "func", labeltooltip = "Function Call Statement"];
+	node66 [label="FuncStmtNode"];
+	node66 -> node65 [color=blue, label = "fun call", labeltooltip = "Function Call"];
+	node65 [label="FuncNode
 a"];
-	node167 -> node166 [color=blue, label = "record field", labeltooltip = "Record Field"];
-	node166 [label="ExprNode
-"];
-	node166 -> node165 [color=blue, label = "id", labeltooltip = "Identifier"];
-	node165 [label="IdNode
-v"];
-	node182 -> node181 [color=blue, label = "stmts", labeltooltip = "Statement Part"];
-	node181 [label="StmtListNode"];
-	node181 -> node180 [color=blue, label = "stmt1", labeltooltip = "Statement 1"];
-	node180 [label="StmtNode"];
-	node180 -> node179 [color=blue, label = "assign", labeltooltip = "Assign Statement"];
-	node179 [label="AssignStmtNode"];
-	node179 -> node175 [color=blue, label = "lval", labeltooltip = "Left Value"];
-	node175 [label="ExprNode
-"];
-	node175 -> node174 [color=blue, label = "id", labeltooltip = "Identifier"];
-	node174 [label="IdNode
-y"];
-	node179 -> node178 [color=blue, label = "rval", labeltooltip = "Right Value"];
-	node178 [label="ExprNode
-"];
-	node178 -> node177 [color=blue, label = "literal", labeltooltip = "Literal"];
-	node177 [label="LiteralNode
-integer
-1"];
 }

@@ -11,6 +11,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "include/asmgen.hpp"
+
 extern ProgramNode *root;
 
 int main(int argc, char *argv[]) {
@@ -66,5 +68,8 @@ int main(int argc, char *argv[]) {
         fprintf(viz_file_1, "%s", root->gen_viz_code().c_str());
         fclose(viz_file_1);
     }
+    start_asm("bin/test.S");
+    write_segment(get_integer_calc("mod", false), false);
+    finish_asm();
     return 0;
 }

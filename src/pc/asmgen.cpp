@@ -7,15 +7,35 @@ using namespace std;
 
 #include "include/asmgen.hpp"
 
+#define ECALL_EXIT 0
+#define ECALL_PRT_STR 2
+
+#define GLOBAL_INIT_VAL (0)
+
 #define t0 (5)
 #define t1 (6)
 #define t2 (7)
-#define s1 (9)
+#define t3 (28)
+#define t4 (29)
+#define t5 (30)
+#define t6 (31)
 
-bool in_code_segment;
-bool in_data_segment;
-FILE *asm_file = NULL;
-uint32_t internal_label_id = 0;
+#define s1 (9)
+#define s2 (18)
+#define s3 (19)
+#define s4 (20)
+#define s5 (21)
+#define s6 (22)
+#define s7 (23)
+#define s8 (24)
+#define s9 (25)
+#define s10 (26)
+#define s11 (27)
+
+bool     in_code_segment;
+bool     in_data_segment;
+FILE    *asm_file          = NULL;
+uint32_t internal_label_id = (uint32_t)((int32_t)-1);
 
 static map<string, string> internal_msg = {
     {"msg_div_zero", "illegal: divided by zero"},
@@ -27,7 +47,7 @@ void init_asm(uint32_t init_stack_top) {
     fprintf(asm_file, ".data\n");
     map<string, string>::iterator p = internal_msg.begin();
     while (p != internal_msg.end()) {
-        fprintf(asm_file, "@%s:\n", p->first.data());
+        fprintf(asm_file, "_%s:\n", p->first.data());
         fprintf(asm_file, "\t.asciiz \"%s\"\n", p->second.data());
         fprintf(asm_file, "\t.align 4\n");
         p++;
@@ -35,8 +55,7 @@ void init_asm(uint32_t init_stack_top) {
     fprintf(asm_file, ".text\n");
     fprintf(asm_file, "init:\n");
     int32_t low_12_bits = init_stack_top & 0xFFF;
-    if (low_12_bits & 0x800)
-        low_12_bits |= ~0xFFF;
+    if (low_12_bits & 0x800) low_12_bits |= ~0xFFF;
     int32_t high_20_bits = (init_stack_top - low_12_bits) >> 12;
     fprintf(asm_file, "\tlui sp, %d\n", high_20_bits);
     fprintf(asm_file, "\taddi sp, sp, %d\n", low_12_bits);
@@ -56,14 +75,15 @@ void init_asm(uint32_t init_stack_top) {
 // for unary operator: t0 = atom_op t1
 
 // For all assembly snippet,they use t3-t6 for intermediate result
-// Be careful to reuse t0-t6 when snippets referencing each other
-// Use s1-s11 register or stack to backup your t3-t6 register
+// When call funcs here to get code snippet,
+// use s1-s11 register or stack to backup your t3-t6 register
 
 /********************* `Atom` Expression Calculation ********************/
 // `Atom` Calculation is for Integer
 // All calc will be checked strictly for overflow
 
-string get_reg_xchg(uchar dst_reg, uchar src_reg) {
+// Only break content in t3
+string get_reg_xchg(uint8_t dst_reg, uint8_t src_reg) {
     if (dst_reg >= 32 || src_reg >= 32) {
         if (dst_reg >= 32)
             printf("illegal register x%d\n", dst_reg);
@@ -71,163 +91,180 @@ string get_reg_xchg(uchar dst_reg, uchar src_reg) {
             printf("illegal register x%d\n", src_reg);
         return "";
     }
-    string res = "addi t3, x" + to_string(dst_reg) + ", 0\n";
-    res += "add x" + to_string(dst_reg) + ", x" + to_string(src_reg) + ", x0\n";
-    res += "add x" + to_string(src_reg) + ", t3, x0\n";
+    string res = "\taddi t3, x" + to_string(dst_reg) + ", 0\n";
+    res += "\tadd x" + to_string(dst_reg) + ", x" + to_string(src_reg) + ", x0\n";
+    res += "\tadd x" + to_string(src_reg) + ", t3, x0\n";
     return res;
 }
 
+// Only break content in t0
 string get_load_imm(int32_t imm) {
-    string res = "";
+    string  res         = "";
     int32_t low_12_bits = imm & 0xFFF;
-    if (low_12_bits & 0x800)
-        low_12_bits |= ~0xFFF;
+    if (low_12_bits & 0x800) low_12_bits |= ~0xFFF;
     int32_t high_20_bits = (imm - low_12_bits) >> 12;
-    res += "lui t1, " + to_string(high_20_bits) + "\n";
-    res += "addi t1, t1, " + to_string(low_12_bits) + "\n";
+    res += "\tlui t0, " + to_string(high_20_bits) + "\n";
+    res += "\taddi t0, t0, " + to_string(low_12_bits) + "\n";
     return res;
 }
 
-string get_basic_calc(string operation, bool is_unsigned) {
+string get_integer_calc(string operation, bool is_unsigned) {
     string res = "";
     if (operation == "not") {
         operation = "xor";
-        res += get_reg_xchg(s1, t1);
         res += get_load_imm(0xFFFFFFFF);
-        res += get_reg_xchg(t2, t1);
-        res += get_reg_xchg(t1, s1);
+        res += get_reg_xchg(t2, t0);
     }
     if (operation == "add" || operation == "sub") {
         if (operation == "add")
-            res += "add t0, t1, t2\n";
+            res += "\tadd t0, t1, t2\n";
         else
-            res += "sub t0, t1, t2\n";
+            res += "\tsub t0, t1, t2\n";
         if (is_unsigned) {
             // add: t0 < t1 + t2, overflow
             // sub: t1 < t2, overflow
             if (operation == "add")
-                res += "bgeu t0, t1, 28\n";
+                res += "\tbgeu t0, t1, _lbl_" + to_string(++internal_label_id) + "\n";
             else
-                res += "bgeu t1 ,t2, 28\n";
-            res += "addi a0, x0, 2\n";
-            res += "la a1, @msg_unsigned_overflow\n";
-            res += "ecall\n";
-            res += "addi a0, x0, 0\n";
-            res += "ecall\n";
+                res += "\tbgeu t1 ,t2, _lbl_" + to_string(++internal_label_id) + "\n";
+            res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
+            res += "\tla a1, _msg_unsigned_overflow\n";
+            res += "\tecall\n";
+            res += "\taddi a0, x0, " + to_string(ECALL_EXIT) + "\n";
+            res += "\tecall\n";
+            res += "_lbl_" + to_string(internal_label_id) + ":\n";
         } else {
             // For add of signed int, if src2 < 0,
             // then res must less than src1, else overflow
             // t3 = t2 < 0
             // add: t4 = t0 < t1
             // sub: t4 = t1 < t0
-            res += "slti t3, t2, 0\n";
+            res += "\tslti t3, t2, 0\n";
             if (operation == "add")
-                res += "slt t4, t0, t1\n";
+                res += "\tslt t4, t0, t1\n";
             else
-                res += "slt t4, t1, t0\n";
-            res += "beq t3, t4, 28\n";
-            res += "addi a0, x0, 2\n";
-            res += "la a1, @msg_signed_overflow\n";
-            res += "ecall\n";
-            res += "addi a0, x0, 0\n";
-            res += "ecall\n";
+                res += "\tslt t4, t1, t0\n";
+            res += "\tbeq t3, t4, _lbl_" + to_string(++internal_label_id) + "\n";
+            res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
+            res += "\tla a1, _msg_signed_overflow\n";
+            res += "\tecall\n";
+            res += "\taddi a0, x0, " + to_string(ECALL_EXIT) + "\n";
+            res += "\tecall\n";
+            res += "_lbl_" + to_string(internal_label_id) + ":\n";
         }
     } else if (operation == "shr") {
         if (!is_unsigned)
-            res += "sra t0, t1, t2\n";
+            res += "\tsra t0, t1, t2\n";
         else
-            res += "srl t0, t1, t2\n";
+            res += "\tsrl t0, t1, t2\n";
     } else if (operation == "shl") {
-        res += "sll t0, t1, t2\n";
+        res += "\tsll t0, t1, t2\n";
     } else if (operation == "and") {
-        res += "and t0, t1, t2\n";
+        res += "\tand t0, t1, t2\n";
     } else if (operation == "or") {
-        res += "or t0, t1, t2\n";
+        res += "\tor t0, t1, t2\n";
     } else if (operation == "xor") {
-        res += "xor t0, t1, t2\n";
+        res += "\txor t0, t1, t2\n";
     } else if (operation == "cmp_lt") {
         if (!is_unsigned)
-            res += "slt t0, t1, t2\n";
+            res += "\tslt t0, t1, t2\n";
         else
-            res += "sltu t0, t1, t2\n";
+            res += "\tsltu t0, t1, t2\n";
     } else if (operation == "mul" || operation == "div" || operation == "mod") {
         if (is_unsigned) {
             if (operation == "mul") {
-                res += "addi t0, x0, 0\n";
-                res += "beq t2, x0, 44\n";
-                res += "addi t3, t0, 0\n";
-                res += "add t0, t0, t1\n";
-                res += "bgeu t0, t3, 24\n";
-                res += "la a1, @msg_unsigned_overflow\n"; // two instructions
-                res += "ecall\n";
-                res += "addi a0, x0, 0\n";
-                res += "ecall\n";
-                res += "addi t2, t2, -1\n";
-                res += "beq x0, x0, -40\n";
+                res += "\taddi t0, x0, 0\n";
+                res += "_lbl_" + to_string(internal_label_id + 3) + ":\n";
+                res += "\tbeq t2, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
+                res += "\taddi t3, t0, 0\n";
+                res += "\tadd t0, t0, t1\n";
+                res += "\tbgeu t0, t3,  _lbl_" + to_string(internal_label_id + 2) + "\n";
+                res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
+                res += "\tla a1, _msg_unsigned_overflow\n";
+                res += "\tecall\n";
+                res += "\taddi a0, x0, " + to_string(ECALL_EXIT) + "\n";
+                res += "\tecall\n";
+                res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
+                res += "\taddi t2, t2, -1\n";
+                res += "\tbeq x0, x0, _lbl_" + to_string(internal_label_id + 3) + "\n";
+                res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
+                internal_label_id += 3;
             } else if (operation == "div" || operation == "mod") {
-                res += "bne t2, x0, 24\n";
-                res += "la a1, @msg_div_zero\n";
-                res += "ecall\n";
-                res += "addi a0, x0, 0\n";
-                res += "ecall\n";
-                res += "addi t0, x0, 0\n";
-                res += "bge x0, t1, 16\n";
-                res += "sub t1, t1, t2\n";
-                res += "addi t0, t0, 1\n";
-                res += "beq x0, x0, -12\n";
-                res += "beq t1, x0, 12\n";
-                res += "add t1, t1, t2\n"; // Compensite for over-sub
-                res += "addi t0, t0, -1\n";
-                if (operation == "mod") // Return remainder rather than quotient
-                    res += "addi t0, t1, 0";
+                res += "\tbne t2, x0, _lbl_" + to_string(++internal_label_id) + "\n";
+                res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
+                res += "\tla a1, _msg_div_zero\n";
+                res += "\tecall\n";
+                res += "\taddi a0, x0, " + to_string(ECALL_EXIT) + "\n";
+                res += "\tecall\n";
+                res += "_lbl_" + to_string(internal_label_id) + ":\n";
+                res += "\taddi t0, x0, 0\n";
+                res += "\tbge x0, t1, 16\n";
+                res += "\tsub t1, t1, t2\n";
+                res += "\taddi t0, t0, 1\n";
+                res += "\tbeq x0, x0, -12\n";
+                res += "\tbeq t1, x0, 12\n";
+                res += "\tadd t1, t1, t2\n";  // Compensite for over-sub
+                res += "\taddi t0, t0, -1\n";
+                if (operation == "mod")  // Return remainder rather than quotient
+                    res += "\taddi t0, t1, 0\n";
             }
         } else {
-            if (operation == "mod") {
-                res += "slt t3, t1, 0\n";
-                res += "slt t4, t2, 0\n";
-                res += "xor s1, t3, t4\n"; // s1 = sign of result
+            if (operation != "mod") {
+                res += "\tslti t3, t1, 0\n";
+                res += "\tslti t4, t2, 0\n";
+                res += "\txor t5, t3, t4\n";  // top of stack = sign of result
+                res += "\taddi sp, sp, -4\n";
+                res += "\tsw t5, 0(sp)\n";
             } else {
-                res += "slt s1, t1, 0\n";
+                res += "\tslti t3, t1, 0\n";
+                res += "\tslti t4, t2, 0\n";
+                res += "\tslti t5, t1, 0\n";
+                res += "\taddi sp, sp, -4\n";
+                res += "\tsw t5, 0(sp)\n";
             }
-            res += "beq t3, x0, 8\n";
-            res += "sub t1, x0, t1\n"; // t1 = -t1, never overflow
-            res += "beq t4, x0, 8\n";
-            res += "sub t2, x0, t2\n";              // t2 = -t2
-            res += get_basic_calc(operation, true); // do unsigned mul/div/mod
-            res += "beq s1, x0, 28\n";
-            res += "sub t0, x0, t0\n";
-            res += "blt t0, x0, 24\n";
-            res += "la a1, @msg_signed_overflow\n";
-            res += "ecall\n";
-            res += "addi a0, x0, 0\n";
-            res += "ecall\n";
+            res += "\tbeq t3, x0, 8\n";
+            res += "\tsub t1, x0, t1\n";  // t1 = -t1, never overflow
+            res += "\tbeq t4, x0, 8\n";
+            res += "\tsub t2, x0, t2\n";               // t2 = -t2
+            res += get_integer_calc(operation, true);  // do unsigned mul/div/mod
+            res += "\tlw t5, 0(sp)\n";
+            res += "\taddi sp, sp, 4\n";
+            res += "\tbeq t5, x0, _lbl_" + to_string(++internal_label_id) + "\n";
+            res += "\tsub t0, x0, t0\n";
+            res += "\tblt t0, x0, _lbl_" + to_string(internal_label_id) + "\n";
+            res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
+            res += "\tla a1, _msg_signed_overflow\n";
+            res += "\tecall\n";
+            res += "\taddi a0, x0, " + to_string(ECALL_EXIT) + "\n";
+            res += "\tecall\n";
+            res += "_lbl_" + to_string(internal_label_id) + ":\n";
         }
-    } else if (operation == "neg") { // No overflow check
-        res += "sub t0, x0, t1\n";
+    } else if (operation == "neg") {  // No overflow check
+        res += "\tsub t0, x0, t1\n";
     } else if (operation == "cmp_le") {
         res += get_reg_xchg(t1, t0);
-        res += get_basic_calc("cmp_ge", is_unsigned);
+        res += get_integer_calc("cmp_ge", is_unsigned);
     } else if (operation == "cmp_gt") {
         res += get_reg_xchg(t1, t2);
-        res += get_basic_calc("cmp_lt", is_unsigned);
+        res += get_integer_calc("cmp_lt", is_unsigned);
     } else if (operation == "cmp_ge") {
         if (!is_unsigned)
-            res += "bge t1, t2, 12\n";
+            res += "\tbge t1, t2, 12\n";
         else
-            res += "bgeu t1, t2, 12\n";
-        res += "addi t0, x0, 0\n";
-        res += "beq x0, x0, 8\n";
-        res += "addi t0, x0, 1\n";
+            res += "\tbgeu t1, t2, 12\n";
+        res += "\taddi t0, x0, 0\n";
+        res += "\tbeq x0, x0, 8\n";
+        res += "\taddi t0, x0, 1\n";
     } else if (operation == "cmp_eq") {
-        res += "beq t1, t2, 12\n";
-        res += "addi t0, x0, 0\n";
-        res += "beq x0, x0, 8\n";
-        res += "addi t0, x0, 1\n";
+        res += "\tbeq t1, t2, 12\n";
+        res += "\taddi t0, x0, 0\n";
+        res += "\tbeq x0, x0, 8\n";
+        res += "\taddi t0, x0, 1\n";
     } else if (operation == "cmp_ne") {
-        res += "bne t1, t2, 12\n";
-        res += "addi t0, x0, 0\n";
-        res += "beq x0, x0, 8\n";
-        res += "addi t0, x0, 1\n";
+        res += "\tbne t1, t2, 12\n";
+        res += "\taddi t0, x0, 0\n";
+        res += "\tbeq x0, x0, 8\n";
+        res += "\taddi t0, x0, 1\n";
     } else {
         printf("%s is not a basic expr\n", operation.data());
     }
@@ -235,68 +272,123 @@ string get_basic_calc(string operation, bool is_unsigned) {
 }
 
 /************************** Memory Load-Store **************************/
-// Always load memory cell to t1, and write t0 to memory cell
+// Always load memory cell to t0, and write t2 to memory cell
+// Memory address is in t1
 
 // size: 1, 2 or 4, and other value is illegal
 // dir = 0: load, from mem to reg(t0)
 // dir = 1: write, from reg(t1) to mem
 // is_signed: only for read operation
 
-string get_mem_access(uchar size, bool dir, bool is_signed) {
+// Will only break t0 register
+string get_mem_access(uint8_t size, bool dir, bool is_signed) {
     string res = "";
     if (size == 1) {
         if (!dir) {
             if (is_signed)
-                res += "lb t0, 0(t0)\n";
+                res += "\tlb t0, 0(t1)\n";
             else
-                res += "lbu t0, 0(t0)\n";
+                res += "\tlbu t0, 0(t1)\n";
         } else {
-            res += "sb t1, 0(t0)\n";
+            res += "\tsb t2, 0(t1)\n";
         }
     } else if (size == 2) {
         if (!dir) {
             if (is_signed)
-                res += "lh t0, 0(t0)\n";
+                res += "\tlh t0, 0(t1)\n";
             else
-                res += "lhu t0, 0(t0)\n";
+                res += "\tlhu t0, 0(t1)\n";
         } else {
-            res += "sh t1, 0(t0)\n";
+            res += "\tsh t2, 0(t1)\n";
         }
     } else if (size == 4) {
         if (!dir)
-            res += "lw t0, 0(t0)\n";
+            res += "\tlw t0, 0(t1)\n";
         else
-            res += "sw t1, 0(t0)\n";
+            res += "\tsw t2, 0(t1)\n";
     } else {
         printf("size %d is illegal in single memory access\n", size);
     }
     return res;
 }
 
-string get_mem_access(int32_t stk_pos, int32_t offset, uchar size, bool dir,
-                      bool is_signed) {
+string get_var_access(int32_t var_pos, int32_t offset, uint8_t size, bool dir, bool is_signed) {
     string res = "";
-    res += get_load_imm(stk_pos + offset);
-    res += "add t0, t0, sp\n";
+    res += get_load_imm(var_pos + offset);
+    res += "\tadd t1, t0, sp\n";
     res += get_mem_access(size, dir, is_signed);
     return res;
 }
 
-string get_mem_access(string name, int32_t offset, uchar size, bool dir,
-                      bool is_signed) {
+string get_var_access(string name, int32_t offset, uint8_t size, bool dir, bool is_signed) {
     string res = "";
     res += get_load_imm(offset);
-    res += "la t1, " + name + "\n";
-    res += "add t0, t0, t1\n";
+    res += "\tla t1, " + name + "\n";
+    res += "\tadd t1, t0, t1\n";
     res += get_mem_access(size, dir, is_signed);
+    return res;
+}
+
+// Stack pointer is always and pre-decremented and post-incremented
+string get_reg_save(void) {
+    string res = "";
+    res += "\taddi sp, sp, -4\n";
+    res += "\tsw t1, 0(sp)\n";
+    return res;
+}
+
+string get_reg_restore(void) {
+    string res = "";
+    res += "\tlw t0, 0(sp)\n";
+    res += "\taddi sp, sp, 4\n";
     return res;
 }
 
 // Copy func/proc perameters before func/proc call
-string get_mem_copy(uint32_t dst_stk_pos, uint32_t src_stk_pos,
-                    uint32_t length) {}
+// t0: temp regs for single load and store
+// t1: src base addr
+// t2: dst base addr
+// t3: byte counter
 
-string get_mem_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {}
+string get_mem_copy(void) {
+    string res = "";
+    res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
+    res += "\tbeq t3, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
+    res += "\tlw t0, 0(t1)\n";
+    res += "\tsw t0, 0(t2)\n";
+    res += "\taddi t1, t1, 1\n";
+    res += "\taddi t2, t2, 1\n";
+    res += "\taddi t3, t3, -1\n";
+    res += "\tbeq x0, x0, _lbl_" + to_string(internal_label_id + 2) + "\n";
+    res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
+    internal_label_id += 2;
+    return res;
+}
+
+string get_params_copy(uint32_t dst_stk_pos, uint32_t src_stk_pos, uint32_t length) {
+    string res = "";
+    res += get_load_imm(length);
+    res += "\tadd t3, t0, x0\n";
+    res += get_load_imm(dst_stk_pos);
+    res += "\tadd t2, t0, sp\n";
+    res += get_load_imm(src_stk_pos);
+    res += "\tadd t1, t0, sp\n";
+    res += get_mem_copy();
+    res += "\tsub sp, sp, t3\n";
+    return res;
+}
+
+string get_params_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {
+    string res = "";
+    res += "\tla t1, " + src_name + "\n";
+    res += get_load_imm(length);
+    res += "\tadd t3, t0, x0\n";
+    res += get_load_imm(dst_stk_pos);
+    res += "\tadd t2, t0, sp\n";
+    res += get_mem_copy();
+    res += "\tsub sp, sp, t3\n";
+    return res;
+}
 
 /********************** Function or Procedure Call **********************/
 
@@ -305,45 +397,86 @@ string get_mem_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {}
 // ------------------------------ (High Address)
 // |          List of           | {Leftest in arg list is at lowest addr}
 // |         Parameters         |
-// ------------------------------
+// |----------------------------|
 // |        Return Value        | {4 bytes, only for func, BasicRealType}
-// ------------------------------
-// |         OLD ra(x1)         | {4 bytes (one word)}
-// ------------------------------
-// |         OLD fp(x8)         | {4 bytes (one word), as control link}
-// ------------------------------ <- fp(x8/s0) HERE!
-// |       Local Variables      | {Vary with func. LEN is treated as const}
-// ------------------------------ <- sp(x2) HERE!
-// | (Saved REGs before a call) | {LEN is also calced and convey to nested func}
-// ------------------------------
-// |       Free Stack Space     |
+// |----------------------------|
+// |         OLD ra(x1)         | {4 bytes (one word), as control link}
+// |----------------------------|
+// |         OLD s1-s11         | {4 * 11 bytes (11 words)}
+// |----------------------------|
+// |        OLD fp(x8/s0)       | {4 bytes (one word), as access link}
+// |----------------------------| <- fp(x8/s0) HERE!
+// |       Local Variables      | {LEN varies with func as a const}
+// |----------------------------| <- sp(x2) HERE!
+// | (Saved REGs before a call) | {Saved temporary registers}
+// |----------------------------|
+// |       Free Stack Space     | {For inner func/proc's AR}
 // ------------------------------ (Low Address)
 
 // 1 - DO NOT USE s0(fp) for other purpose during a call!
-// 2 - If use callee saved register s1-s11 or other
-// caller saved register, please save them before a call
-// 3 - sp is never modified to another const after initialized
-// 4 - To support access of non-local & non-global vars, use "OLD fp"
-// or control link to get the start addr of caller's local var
+// 2 - sp is never modified to another const after initialized
+// 3 - To support access of non-local & non-global vars, use "OLD fp"
+// or access link to get the start addr of caller's local var
 
 // External Visable Function for Assembly Code Generation
 
-string get_func_def() {}
+string get_func_def(uint32_t args_len, uint32_t local_vars_len, bool has_retval, string func_body) {
+    string res = "";
 
-string get_func_call() {}
+    return res;
+}
 
-string get_ctrl_link() {}
+string get_func_call(string parem_copy) {
+    string res = "";
+
+    return res;
+}
+
+// Clean params and retval after a call
+string get_func_cleanup(uint32_t args_len, bool has_retval) {
+    string res = "";
+
+    return res;
+}
+
+std::string get_retval_read(void) {  // For caller to get return value
+    string res = "";
+
+    return res;
+}
+
+std::string get_retval_write(void) {  // For callee to put return value
+    string res = "";
+
+    return res;
+}
+
+string get_param_access(uint32_t param_pos, uint32_t offset) {
+    string res = "";
+
+    return res;
+}
+
+// fp of target level of AR is finally in t0
+string get_access_link(uint32_t jmp_level) {
+    string res = "";
+    res += get_load_imm(jmp_level);
+    res += "\tadd t1, t0, x0\n";  // t1 = level that needs to jump
+    res += "\tadd t0, x0, fp\n";  // t0 = current level's fp
+    res += "_lbl_" + to_string(++internal_label_id) + ":\n";
+    res += "\tlw t0, 0(t0)\n";  // x0 = old fp
+    res += "\taddi t1, t1, -1\n";
+    res += "bne t1, x0, " + to_string(internal_label_id) + "\n";
+    return res;
+}
 
 bool start_asm(std::string filename, uint32_t init_stack_top) {
-    if (asm_file != NULL)
-        return false;
+    if (asm_file != NULL) return false;
     in_code_segment = in_data_segment = false;
-    internal_label_id = 0;
-    asm_file = fopen(filename.data(), "w+");
-    if (asm_file == NULL)
-        printf("unable to create file %s\n", filename.data());
-    if (asm_file != NULL)
-        init_asm(init_stack_top);
+    internal_label_id                 = -1;
+    asm_file                          = fopen(filename.data(), "w+");
+    if (asm_file == NULL) printf("unable to create file %s\n", filename.data());
+    if (asm_file != NULL) init_asm(init_stack_top);
     return asm_file != NULL;
 }
 
@@ -371,36 +504,95 @@ bool write_segment(string snippet, bool data_seg) {
         in_code_segment = true;
     } else
         return false;
-    for (int i = 0; i < snippet.length(); i++) {
-        if (i == 0)
-            fprintf(asm_file, "\t");
-        fprintf(asm_file, "%c", snippet[i]);
-        if (snippet[i] == '\n' && i != snippet.length() - 1)
-            fprintf(asm_file, "\t");
-    }
+    fprintf(asm_file, "%s", snippet.data());
     return true;
 }
 
-void get_define_global(string name, vector<uchar> field_size) {
-    fprintf(asm_file, "%s:\n", name.data());
-
-    fprintf(asm_file, "\t.align 4\n");
+string get_define_global(string name, vector<uint8_t> field_size, vector<uint8_t> field_rep) {
+    string res = "";
+    if (field_size.size() != field_rep.size()) return "";
+    res += "\t.align 4\n";
+    res += name + ":\n";
+    for (int i = 0; i < field_size.size(); i++) {
+        if (field_size[i] == 1) {
+            res += "\t.byte ";
+        } else if (field_size[i] == 4) {
+            res += "\t.word ";
+        } else
+            return "";
+        for (int j = 0; j < field_rep[i]; j++) {
+            if (j == 0)
+                res += to_string(GLOBAL_INIT_VAL);
+            else
+                res += " " + to_string(GLOBAL_INIT_VAL);
+        }
+        res += "\n";
+    }
+    res += "\n";
+    return res;
 }
 
-string get_ordinal_bound_check() {}
+// Ordinal data for checking is in t1 register
+string get_ordinal_bound_check(uint32_t lower_bound, uint32_t upper_bound) {
+    string res = "";
+    res += get_load_imm(lower_bound);
+    res += "\tadd t3, t0, x0\n";
+    res += get_load_imm(upper_bound);
+    res += "\tadd t4, t0, x0\n";
+    res += "\tslt t5, t1, t3\n";
+    res += "\tsltu t6, t4, t1\n";
+    res += "\tor t5, t5, t6\n";
+    res += "\tbeq t5, x0, _lbl_" + to_string(++internal_label_id) + "\n";
+    res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
+    res += "\tla a1, _msg_out_of_bounds\n";
+    res += "\tecall\n";
+    res += "\taddi a0, x0, " + to_string(ECALL_EXIT) + "\n";
+    res += "\tecall\n";
+    res += "_lbl_" + to_string(internal_label_id) + ":\n";
+    return res;
+}
 
-string get_stmt_assign() {}
+// calc_expr must store its result in t1, and saved temperary registers itself
+string get_stmt_cond(string calc_expr, string then_stmts, string else_stmts) {
+    string res = "";
+    res += calc_expr;
+    res += "\tbne t1, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
+    res += else_stmts;
+    res += "\tbeq x0, x0, _lbl_" + to_string(internal_label_id + 2) + "\n";
+    res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
+    res += then_stmts;
+    res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
+    internal_label_id += 2;
+    return res;
+}
 
-string get_stmt_if() {}
+string get_stmt_while(string calc_expr, string stmts) {
+    string res = "";
+    res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
+    res += calc_expr;
+    res += "\tbeq t1, x0, _lbl_" + to_string(internal_label_id + 2) + "\n";
+    res += stmts;
+    res += "\tbeq x0, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
+    res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
+    internal_label_id += 2;
+    return res;
+}
 
-string get_stmt_case() {}
+string get_stmt_until(string calc_expr, string stmts) {
+    string res = "";
+    res += "_lbl_" + to_string(++internal_label_id) + ":\n";
+    res += stmts;
+    res += calc_expr;
+    res += "\tbeq t1, x0, _lbl_" + to_string(internal_label_id) + "\n";
+    return res;
+}
 
-string get_stmt_while() {}
+string get_read() {  // TODO
+    string res = "";
+    return res;
+}
 
-string get_stmt_repeat() {}
-
-string get_stmt_for() {}
-
-string get_read() {}
-
-string get_write() {}
+string get_write() {  // TODO
+    string res = "";
+    return res;
+}
