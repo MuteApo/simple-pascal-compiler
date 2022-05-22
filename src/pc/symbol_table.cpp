@@ -6,7 +6,8 @@ std::string TableItem::toString() {
     return "<TableItem Root Class>";
 }
 std::string ConstTableItem::toString() {
-    return name + "\t[level: " + to_string(level) + "]";
+    return name + "\t[level: " + to_string(level) +
+           "\tvalue:" + to_string(const_def->getExpr()->getLiteralNode()->get_value_string()) + "]";
 }
 std::string TypeTableItem::toString() {
     return name + "\t[level: " + to_string(level) + "]";
@@ -16,6 +17,15 @@ std::string VarTableItem::toString() {
 }
 std::string FuncTableItem::toString() {
     return name + "\t[level: " + to_string(level) + "]";
+}
+
+bool ConstTableItem::operator<(const ConstTableItem &rhs) const {
+    return level < rhs.level ||
+           level == rhs.level &&
+               const_def->getExpr()->getExprType() < rhs.const_def->getExpr()->getExprType() ||
+           level == rhs.level &&
+               const_def->getExpr()->getExprType() == rhs.const_def->getExpr()->getExprType() &&
+               const_def->getExpr()->getLiteralNode() < rhs.const_def->getExpr()->getLiteralNode();
 }
 
 int SymbolTable::getLevel() {
@@ -151,7 +161,7 @@ ExprNode *SymbolTable::translateConstId(ExprNode *id) {
         // TODO syntax error: symbol not found
         return nullptr;
     }
-    return const_def->getValue();
+    return const_def->getExpr();
 }
 
 TypeAttrNode *SymbolTable::translateTypeId(TypeAttrNode *id) {

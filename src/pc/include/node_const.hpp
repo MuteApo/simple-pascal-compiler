@@ -16,17 +16,17 @@ class ConstDefNode {
   private:
     int         uid;
     std::string name;
-    ExprNode   *value;
+    ExprNode   *expr;
 
   public:
-    ConstDefNode(std::string id, ExprNode *v) : uid(++global_uid), name(id), value(v) {}
+    ConstDefNode(std::string id, ExprNode *v) : uid(++global_uid), name(id), expr(v) {}
 
     int getUid() {
         return uid;
     }
 
-    ExprNode *getValue() {
-        return value;
+    ExprNode *getExpr() {
+        return expr;
     }
 
     bool gen_sym_tab();

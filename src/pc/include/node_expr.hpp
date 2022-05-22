@@ -73,6 +73,10 @@ class ExprNode {
         return id_attr;
     }
 
+    LiteralNode *getLiteralNode() {
+        return literal_attr;
+    }
+
     VarAccessNode *getVarAccessNode() {
         return var_access_attr;
     }
@@ -144,6 +148,8 @@ class LiteralNode {
     LiteralNode(char c);
     ~LiteralNode();
 
+    bool operator<(const LiteralNode &rhs) const;
+
     int getUid() {
         return uid;
     }
@@ -160,7 +166,7 @@ class LiteralNode {
         return vizNode(uid, getNodeInfo());
     }
 
-    template <class T> T get_value();
+    std::string get_value_string();
 
     std::string gen_asm_code(void);
 };

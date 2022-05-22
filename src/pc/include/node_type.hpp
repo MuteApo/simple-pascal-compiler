@@ -47,9 +47,9 @@ class TypeDefNode {
         return uid;
     }
 
-    bool gen_sym_tab();
-
     std::string gen_viz_code();
+
+    bool gen_sym_tab();
 };
 
 class TypeDefListNode {
@@ -70,23 +70,9 @@ class TypeDefListNode {
         type_defs.push_back(type_def);
     }
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "TypeDefListNode");
-        for (int i = 0; i < type_defs.size(); i++) {
-            result += vizChildEdge(uid,
-                                   type_defs.at(i)->getUid(),
-                                   "typedef" + to_string(i + 1),
-                                   "Type Definition " + to_string(i + 1));
-            result += type_defs.at(i)->gen_viz_code();
-        }
-        return result;
-    }
+    std::string gen_viz_code();
 
-    bool gen_sym_tab() {
-        bool result = true;
-        for (TypeDefNode *type : type_defs) result &= type->gen_sym_tab();
-        return result;
-    }
+    bool gen_sym_tab();
 };
 
 class TypeAttrNode {
@@ -151,6 +137,8 @@ class TypeAttrNode {
 
     std::string gen_viz_code();
 
+    bool gen_sym_tab();
+
     std::string gen_asm_def(void) {
         // TODO
         return "";
@@ -192,24 +180,9 @@ class TypeAttrListNode {
         return type_attrs;
     }
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "TypeAttrListNode");
-        for (int i = 0; i < type_attrs.size(); i++) {
-            result += vizChildEdge(uid,
-                                   type_attrs.at(i)->getUid(),
-                                   "index" + to_string(i + 1),
-                                   "Type of Index " + to_string(i + 1));
-            if (!is_type_id.at(i)) result += type_attrs.at(i)->gen_viz_code();
-        }
-        return result;
-    }
+    std::string gen_viz_code();
 
-    bool is_type_equ(TypeAttrListNode *type) {
-        if (type_attrs.size() != type->type_attrs.size()) return false;
-        for (int i = 0; i < type_attrs.size(); i++)
-            if (!type_attrs.at(i)->is_type_equ(type->type_attrs.at(i))) return false;
-        return true;
-    }
+    bool is_type_equ(TypeAttrListNode *type);
 };
 
 class BasicAttrNode {
@@ -275,9 +248,11 @@ class OrdAttrNode {
 
     int get_offset(void);
 
-    bool is_type_equ(OrdAttrNode *type);
-
     std::string gen_viz_code();
+
+    bool gen_sym_tab();
+
+    bool is_type_equ(OrdAttrNode *type);
 };
 
 class SubrangeAttrNode {
@@ -309,8 +284,8 @@ class SubrangeAttrNode {
 
 class EnumAttrNode {
   private:
-    int                      uid;
-    std::vector<std::string> items;
+    int                     uid;
+    std::vector<ExprNode *> items;
     friend class OrdAttrNode;
 
   public:
@@ -326,13 +301,11 @@ class EnumAttrNode {
 
     int get_offset(void);
 
+    std::string gen_viz_code();
+
+    bool gen_sym_tab();
+
     bool is_type_equ(EnumAttrNode *type);
-
-    std::string getNodeInfo();
-
-    std::string gen_viz_code() {
-        return vizNode(uid, getNodeInfo());
-    }
 };
 
 class StructAttrNode {
@@ -395,16 +368,9 @@ class ArrayAttrNode {
 
     int get_offset(void);
 
-    bool is_type_equ(ArrayAttrNode *type);
+    std::string gen_viz_code();
 
-    std::string gen_viz_code() {
-        std::string result = vizNode(uid, "ArrayAttrNode");
-        result += vizChildEdge(uid, index_type->getUid(), "indices", "Type of Indices ");
-        result += index_type->gen_viz_code();
-        result += vizChildEdge(uid, element_type->getUid(), "element", "Type of Element");
-        if (!is_ele_type_id) result += element_type->gen_viz_code();
-        return result;
-    }
+    bool is_type_equ(ArrayAttrNode *type);
 };
 
 class RecordAttrNode {

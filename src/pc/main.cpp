@@ -14,7 +14,7 @@
 extern ProgramNode *root;
 
 int main(int argc, char *argv[]) {
-    FILE *viz_file = NULL;
+    FILE *viz_file_0 = NULL, *viz_file_1 = NULL;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-i") == 0) {
             if (i + 1 >= argc || argv[i + 1][0] == '-') {
@@ -29,16 +29,21 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "-o") == 0) {
             // TODO
         } else if (strcmp(argv[i], "-V") == 0) {
-            if (i + 1 >= argc || argv[i + 1][0] == '-') {
+            if (i + 2 >= argc || argv[i + 1][0] == '-' || argv[i + 2][0] == '-') {
                 printf("missing filename after '-V'\n");
                 return 1;
             }
-            viz_file = fopen(argv[i + 1], "w+");
-            if (viz_file == NULL) {
+            viz_file_0 = fopen(argv[i + 1], "w+");
+            if (viz_file_0 == NULL) {
                 printf("can not create visualization script %s\n", argv[i + 1]);
                 return 1;
             }
-            i += 1;
+            viz_file_1 = fopen(argv[i + 2], "w+");
+            if (viz_file_1 == NULL) {
+                printf("can not create visualization script %s\n", argv[i + 2]);
+                return 1;
+            }
+            i += 2;
         } else if (strcmp(argv[i], "-h") == 0) {
             printf("Simple Pascal Compiler, with ISO 7185 language standard, version 0.1:\n");
             printf("-i <file> Use <file> as source input (default: stdin)\n");
@@ -52,14 +57,14 @@ int main(int argc, char *argv[]) {
         }
     }
     yyparse();
-    // semanticAnalyser sem = semanticAnalyser();
-    // sem.analyseTree(root);
-    // sem.st.printTable();
-    // sem.err.printError();
+    if (viz_file_0 != NULL) {
+        fprintf(viz_file_0, "%s", root->gen_viz_code().c_str());
+        fclose(viz_file_0);
+    }
     root->visit();
-    if (viz_file != NULL) {
-        fprintf(viz_file, "%s", root->gen_viz_code().c_str());
-        fclose(viz_file);
+    if (viz_file_1 != NULL) {
+        fprintf(viz_file_1, "%s", root->gen_viz_code().c_str());
+        fclose(viz_file_1);
     }
     return 0;
 }

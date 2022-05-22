@@ -7,8 +7,8 @@ bool ConstDefNode::gen_sym_tab() {
 
 std::string ConstDefNode::gen_viz_code(void) {
     std::string result = vizNode(uid, "ConstDefNode\n" + name);
-    result += vizChildEdge(uid, value->getUid(), "constdef", "Const Definition");
-    result += value->gen_viz_code();
+    result += vizChildEdge(uid, expr->getUid(), "constdef", "Const Definition");
+    result += expr->gen_viz_code();
     return result;
 }
 

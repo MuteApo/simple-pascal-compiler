@@ -27,9 +27,7 @@ class ConstTableItem : public TableItem {
 
     ConstTableItem(std::string id, int lv, ConstDefNode *c_d) : TableItem(id, lv), const_def(c_d) {}
 
-    bool operator<(const ConstTableItem &rhs) const {
-        return level < rhs.level || level == rhs.level && name < rhs.name;
-    }
+    bool operator<(const ConstTableItem &rhs) const;
 
     std::string toString();
 };

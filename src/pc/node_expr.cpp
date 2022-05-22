@@ -59,6 +59,18 @@ LiteralNode::~LiteralNode() {
     if (type != nullptr) delete type;
 }
 
+bool LiteralNode::operator<(const LiteralNode &rhs) const {
+    if (is_nil) return !rhs.is_nil;
+    if (type->getType() != rhs.type->getType()) return false;
+    switch (type->getType()) {
+        case boolean: return bval < rhs.bval;
+        case integer: return ival < rhs.ival;
+        case real: return dval < rhs.dval;
+        case character: return cval < rhs.cval;
+    }
+    return false;
+}
+
 bool LiteralNode::is_value_equ(LiteralNode *expr) {
     if (is_nil && expr->is_nil) return true;
     if (is_nil != expr->is_nil) return false;
@@ -76,21 +88,21 @@ std::string LiteralNode::getNodeInfo() {
     std::string result = "LiteralNode\n";
     if (is_nil) return result + "NIL";
     result += type->getNodeInfo() + "\n";
-    if (type->getType() == boolean) return result + to_string<bool>(bval);
-    if (type->getType() == integer) return result + to_string<int>(ival);
-    if (type->getType() == real) return result + to_string<double>(dval);
-    if (type->getType() == character) return result + to_string<char>(cval);
+    if (type->getType() == boolean) return result + to_string(bval);
+    if (type->getType() == integer) return result + to_string(ival);
+    if (type->getType() == real) return result + to_string(dval);
+    if (type->getType() == character) return result + to_string(cval);
     return result + "illegal literal";
 }
 
-template <class T> T LiteralNode::get_value() {
+std::string LiteralNode::get_value_string() {
     switch (type->type) {
-        case boolean: return bval;
-        case integer: return ival;
-        case real: return dval;
-        case character: return cval;
+        case boolean: return to_string(bval);
+        case integer: return to_string(ival);
+        case real: return to_string(dval);
+        case character: return to_string(cval);
     }
-    return T();
+    return "";
 }
 
 std::string VarAccessNode::getNodeInfo() {

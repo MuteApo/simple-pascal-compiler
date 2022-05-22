@@ -4,16 +4,35 @@
 TypeDefNode::TypeDefNode(std::string id, TypeAttrNode *t)
         : uid(++global_uid), name(id), type(t), is_type_id(t->getType() == type_identifier) {}
 
-bool TypeDefNode::gen_sym_tab() {
-    type = symbol_table.translateTypeId(type);
-    type->translateId();
-    return symbol_table.addSymbol(name, type);
-}
-
 std::string TypeDefNode::gen_viz_code() {
     std::string result = vizNode(uid, "TypeDefNode\n" + name);
     result += vizChildEdge(uid, type->getUid(), "typedef", "Type Definition");
     if (!is_type_id) result += type->gen_viz_code();
+    return result;
+}
+
+bool TypeDefNode::gen_sym_tab() {
+    type = symbol_table.translateTypeId(type);
+    type->translateId();
+    type->gen_sym_tab();  // insert (enum, int) pairs into const symbol table
+    return symbol_table.addSymbol(name, type);
+}
+
+std::string TypeDefListNode::gen_viz_code() {
+    std::string result = vizNode(uid, "TypeDefListNode");
+    for (int i = 0; i < type_defs.size(); i++) {
+        result += vizChildEdge(uid,
+                               type_defs.at(i)->getUid(),
+                               "typedef" + to_string(i + 1),
+                               "Type Definition " + to_string(i + 1));
+        result += type_defs.at(i)->gen_viz_code();
+    }
+    return result;
+}
+
+bool TypeDefListNode::gen_sym_tab() {
+    bool result = true;
+    for (TypeDefNode *type : type_defs) result &= type->gen_sym_tab();
     return result;
 }
 
@@ -102,11 +121,36 @@ std::string TypeAttrNode::gen_viz_code() {
     return result;
 }
 
+bool TypeAttrNode::gen_sym_tab() {
+    if (root_type == ordinal) return ord_attr->gen_sym_tab();
+    // TODO
+    return true;
+}
+
 void TypeAttrListNode::translateId() {
     for (int i = 0; i < type_attrs.size(); i++) {
         type_attrs.at(i) = symbol_table.translateTypeId(type_attrs.at(i));
         type_attrs.at(i)->translateId();
     }
+}
+
+std::string TypeAttrListNode::gen_viz_code() {
+    std::string result = vizNode(uid, "TypeAttrListNode");
+    for (int i = 0; i < type_attrs.size(); i++) {
+        result += vizChildEdge(uid,
+                               type_attrs.at(i)->getUid(),
+                               "index" + to_string(i + 1),
+                               "Type of Index " + to_string(i + 1));
+        if (!is_type_id.at(i)) result += type_attrs.at(i)->gen_viz_code();
+    }
+    return result;
+}
+
+bool TypeAttrListNode::is_type_equ(TypeAttrListNode *type) {
+    if (type_attrs.size() != type->type_attrs.size()) return false;
+    for (int i = 0; i < type_attrs.size(); i++)
+        if (!type_attrs.at(i)->is_type_equ(type->type_attrs.at(i))) return false;
+    return true;
 }
 
 basic_type_kind BasicAttrNode::getType() {
@@ -149,12 +193,6 @@ int OrdAttrNode::get_offset(void) {
     return -1;  // TODO
 }
 
-bool OrdAttrNode::is_type_equ(OrdAttrNode *type) {
-    if (is_subrange != type->is_subrange) return false;
-    return is_subrange ? subrange_attr->is_type_equ(type->subrange_attr) :
-                         enum_attr->is_type_equ(type->enum_attr);
-}
-
 std::string OrdAttrNode::gen_viz_code() {
     std::string result = vizNode(uid, "OrdAttrNode");
     if (is_subrange) {
@@ -165,6 +203,18 @@ std::string OrdAttrNode::gen_viz_code() {
         result += enum_attr->gen_viz_code();
     }
     return result;
+}
+
+bool OrdAttrNode::gen_sym_tab() {
+    if (!is_subrange) return enum_attr->gen_sym_tab();
+    // TODO
+    return true;
+}
+
+bool OrdAttrNode::is_type_equ(OrdAttrNode *type) {
+    if (is_subrange != type->is_subrange) return false;
+    return is_subrange ? subrange_attr->is_type_equ(type->subrange_attr) :
+                         enum_attr->is_type_equ(type->enum_attr);
 }
 
 SubrangeAttrNode::SubrangeAttrNode(ExprNode *lb, ExprNode *ub)
@@ -208,7 +258,7 @@ std::string SubrangeAttrNode::gen_viz_code() {
 
 EnumAttrNode::EnumAttrNode(std::vector<ExprNode *> exprs) : uid(++global_uid) {
     items.clear();
-    for (ExprNode *expr : exprs) items.push_back(expr->getIdNode()->getName());
+    for (ExprNode *expr : exprs) items.push_back(expr);
 }
 
 int EnumAttrNode::get_length(void) {
@@ -223,18 +273,32 @@ int EnumAttrNode::get_offset(void) {
     return 0;
 }
 
+std::string EnumAttrNode::gen_viz_code() {
+    std::string result = vizNode(uid, "EnumAttrNode");
+    for (int i = 0; i < items.size(); i++) {
+        result += vizChildEdge(uid,
+                               items.at(i)->getUid(),
+                               "enum" + to_string(i + 1),
+                               "Enum at Ordinal " + to_string(i + 1));
+        result += items.at(i)->gen_viz_code();
+    }
+    return result;
+}
+
+bool EnumAttrNode::gen_sym_tab() {
+    bool result = true;
+    for (int i = 0; i < items.size(); i++)
+        result &= symbol_table.addSymbol(items.at(i)->getIdNode()->getName(),
+                                         new ConstDefNode(items.at(i)->getIdNode()->getName(),
+                                                          new ExprNode(new LiteralNode(i))));
+    return result;
+}
+
 bool EnumAttrNode::is_type_equ(EnumAttrNode *type) {
     if (items.size() != type->items.size()) return false;
     for (int i = 0; i < items.size(); i++)
         if (items.at(i) != type->items.at(i)) return false;
     return true;
-}
-
-std::string EnumAttrNode::getNodeInfo() {
-    std::string result = "EnumAttrNode\n(";
-    if (items.size()) result += items.at(0);
-    for (int i = 1; i < items.size(); i++) result += "," + items.at(i);
-    return result + ")";
 }
 
 void StructAttrNode::translateId() {
@@ -292,6 +356,15 @@ int ArrayAttrNode::get_length(void) {
 
 int ArrayAttrNode::get_offset(void) {
     return -1;  // TODO
+}
+
+std::string ArrayAttrNode::gen_viz_code() {
+    std::string result = vizNode(uid, "ArrayAttrNode");
+    result += vizChildEdge(uid, index_type->getUid(), "indices", "Type of Indices ");
+    result += index_type->gen_viz_code();
+    result += vizChildEdge(uid, element_type->getUid(), "element", "Type of Element");
+    if (!is_ele_type_id) result += element_type->gen_viz_code();
+    return result;
 }
 
 bool ArrayAttrNode::is_type_equ(ArrayAttrNode *type) {
