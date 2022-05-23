@@ -17,15 +17,15 @@ using namespace std;
 
 #define GLOBAL_INIT_VAL (0)
 
-static uint8_t t_table[7]  = {5, 6, 7, 28, 29, 30, 31};
-static uint8_t s_table[12] = {8, 9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27};
+const uint8_t t_table[7]  = {5, 6, 7, 28, 29, 30, 31};
+const uint8_t s_table[12] = {8, 9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27};
 
 bool     in_code_segment;
 bool     in_data_segment;
 FILE    *asm_file          = NULL;
 uint32_t internal_label_id = (uint32_t)((int32_t)-1);
 
-static map<string, string> internal_msg = {
+const map<string, string> internal_msg = {
     {"msg_div_zero", "illegal: divided by zero"},
     {"msg_signed_overflow", "illegal: signed arithmetic overflow"},
     {"msg_unsigned_overflow", "illegal: unsigned arithmetic overflow"},
@@ -33,7 +33,7 @@ static map<string, string> internal_msg = {
 
 void init_asm(uint32_t init_stack_top) {
     fprintf(asm_file, ".data\n");
-    map<string, string>::iterator p = internal_msg.begin();
+    map<string, string>::const_iterator p = internal_msg.begin();
     while (p != internal_msg.end()) {
         fprintf(asm_file, "_%s:\n", p->first.data());
         fprintf(asm_file, "\t.asciiz \"%s\"\n", p->second.data());

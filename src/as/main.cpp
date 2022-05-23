@@ -1,11 +1,14 @@
 #include <cstdio>
 #include <cstring>
-#include <map>
 #include <string>
 
-#include "inst2code.hpp"
+#include "include/inst2code.hpp"
+#include "include/lexer.hpp"
+#include "include/symbol.hpp"
 
 using namespace std;
+
+// Suported Pseudo-instructions: la, li, j, jr
 
 /******************** Supported Assembler Directives ********************/
 // .text	Store subsequent instructions in the text segment
@@ -20,26 +23,6 @@ using namespace std;
 // '<label>:' is also supported to generate symbol table
 
 // only one instruction in one line, and comma between oprand is optional
-
-map<string, uint32_t> label_table;
-map<string, uint32_t> equiv_table;
-
-void get_source(string &buffer) {
-    char c = getchar();
-    while (c != EOF) {
-        buffer += c;
-        c = getchar();
-    }
-}
-
-void split_segment(string buffer, string &equiv, string &text, string &data) {
-    for (int i = 0; i < buffer.length(); i++) {}
-}
-
-void scan_symbol(string equiv, string text, string data) {}
-
-// Suported Pseudo-instructions: la, li, j, jr
-void gen_hex(FILE *output, string text, string data) {}
 
 int main(int argc, char *argv[]) {
     string output_filename = "target.hex";
@@ -65,9 +48,7 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "-h") == 0) {
             printf("Simple RISC-V Assembler, version 0.1\n");
             printf("-i <file> Use <file> as source input (default: stdin)\n");
-            printf(
-                "-o <file> Place the HEX text output into <file> (default: "
-                "target.hex)\n");
+            printf("-o <file> Place the HEX text output into <file> (default: target.hex)\n");
             printf("-s Print symbol table during assembling\n");
             printf("-h Show this information\n");
             return 0;
@@ -78,7 +59,7 @@ int main(int argc, char *argv[]) {
     }
     output_file = fopen(output_filename.data(), "w+");
     if (output_file == NULL) {
-        printf("can not create binary file %s!\n", output_filename.data());
+        printf("can not create HEX text file %s!\n", output_filename.data());
         return 1;
     }
     string input_buffer = "";
