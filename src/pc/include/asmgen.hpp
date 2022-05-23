@@ -45,17 +45,18 @@ std::string get_define_global(std::string          name,
                               std::vector<uint8_t> field_rep);
 
 std::string
-get_func_def(uint32_t args_len, uint32_t local_vars_len, bool has_retval, std::string func_body);
+get_func_def(string name, uint32_t args_len, uint32_t local_vars_len, std::string func_body);
 
-std::string get_func_call(std::string parem_copy);
+std::string get_func_call(string name, std::string parem_copy, bool has_retval);
 
 std::string get_func_cleanup(uint32_t args_len, bool has_retval);
 
-std::string get_retval_read(void);
+std::string get_retval_read(uint8_t size, bool is_unsigned);
 
-std::string get_retval_write(void);
+std::string get_retval_write(uint8_t size, bool is_unsigned);
 
-std::string get_param_access(uint32_t param_pos, uint32_t offset);
+std::string get_param_access(
+    uint32_t param_pos, uint32_t offset, bool has_retval, uint8_t size, bool dir, bool is_signed);
 
 std::string get_access_link(uint32_t jmp_level);
 
@@ -66,5 +67,11 @@ std::string get_stmt_cond(std::string calc_expr, std::string then_stmts, std::st
 std::string get_stmt_while(std::string calc_expr, std::string stmts);
 
 std::string get_stmt_until(std::string calc_expr, std::string stmts);
+
+std::string get_read(std::string type);
+
+std::string get_write(std::string type);
+
+std::string get_exit(void);
 
 #endif

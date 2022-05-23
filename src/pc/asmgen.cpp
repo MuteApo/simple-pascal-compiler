@@ -8,29 +8,17 @@ using namespace std;
 #include "include/asmgen.hpp"
 
 #define ECALL_EXIT 0
+#define ECALL_PRT_CHAR 1
 #define ECALL_PRT_STR 2
+#define ECALL_PRT_INT 3
+#define ECALL_READ_CHAR 4
+#define ECALL_READ_STR 5
+#define ECALL_READ_INT 6
 
 #define GLOBAL_INIT_VAL (0)
 
-#define t0 (5)
-#define t1 (6)
-#define t2 (7)
-#define t3 (28)
-#define t4 (29)
-#define t5 (30)
-#define t6 (31)
-
-#define s1 (9)
-#define s2 (18)
-#define s3 (19)
-#define s4 (20)
-#define s5 (21)
-#define s6 (22)
-#define s7 (23)
-#define s8 (24)
-#define s9 (25)
-#define s10 (26)
-#define s11 (27)
+static uint8_t t_table[7]  = {5, 6, 7, 28, 29, 30, 31};
+static uint8_t s_table[12] = {8, 9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27};
 
 bool     in_code_segment;
 bool     in_data_segment;
@@ -113,7 +101,7 @@ string get_integer_calc(string operation, bool is_unsigned) {
     if (operation == "not") {
         operation = "xor";
         res += get_load_imm(0xFFFFFFFF);
-        res += get_reg_xchg(t2, t0);
+        res += get_reg_xchg(t_table[2], t_table[0]);
     }
     if (operation == "add" || operation == "sub") {
         if (operation == "add")
@@ -242,10 +230,10 @@ string get_integer_calc(string operation, bool is_unsigned) {
     } else if (operation == "neg") {  // No overflow check
         res += "\tsub t0, x0, t1\n";
     } else if (operation == "cmp_le") {
-        res += get_reg_xchg(t1, t0);
+        res += get_reg_xchg(t_table[1], t_table[0]);
         res += get_integer_calc("cmp_ge", is_unsigned);
     } else if (operation == "cmp_gt") {
-        res += get_reg_xchg(t1, t2);
+        res += get_reg_xchg(t_table[1], t_table[2]);
         res += get_integer_calc("cmp_lt", is_unsigned);
     } else if (operation == "cmp_ge") {
         if (!is_unsigned)
@@ -276,8 +264,8 @@ string get_integer_calc(string operation, bool is_unsigned) {
 // Memory address is in t1
 
 // size: 1, 2 or 4, and other value is illegal
-// dir = 0: load, from mem to reg(t0)
-// dir = 1: write, from reg(t1) to mem
+// dir = false: load, from mem to reg(t0)
+// dir = true: write, from reg(t1) to mem
 // is_signed: only for read operation
 
 // Will only break t0 register
@@ -315,7 +303,7 @@ string get_mem_access(uint8_t size, bool dir, bool is_signed) {
 string get_var_access(int32_t var_pos, int32_t offset, uint8_t size, bool dir, bool is_signed) {
     string res = "";
     res += get_load_imm(var_pos + offset);
-    res += "\tadd t1, t0, sp\n";
+    res += "\tsub t1, fp, t0\n";  // local variable field in AR is used reversely
     res += get_mem_access(size, dir, is_signed);
     return res;
 }
@@ -400,11 +388,11 @@ string get_params_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {
 // |----------------------------|
 // |        Return Value        | {4 bytes, only for func, BasicRealType}
 // |----------------------------|
-// |         OLD ra(x1)         | {4 bytes (one word), as control link}
+// |         OLD ra(x1)         | {4 bytes (one word)}
 // |----------------------------|
 // |         OLD s1-s11         | {4 * 11 bytes (11 words)}
 // |----------------------------|
-// |        OLD fp(x8/s0)       | {4 bytes (one word), as access link}
+// |        OLD fp(x8/s0)       | {4 bytes (one word), as indirect access link}
 // |----------------------------| <- fp(x8/s0) HERE!
 // |       Local Variables      | {LEN varies with func as a const}
 // |----------------------------| <- sp(x2) HERE!
@@ -420,40 +408,76 @@ string get_params_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {
 
 // External Visable Function for Assembly Code Generation
 
-string get_func_def(uint32_t args_len, uint32_t local_vars_len, bool has_retval, string func_body) {
+string get_func_def(string name, uint32_t args_len, uint32_t local_vars_len, string func_body) {
     string res = "";
-
+    res += "\taddi sp, sp, -4\n";
+    res += "\tsw ra, 0(sp)\n";
+    res += "\taddi sp, sp, -44\n";
+    for (int i = 1; i <= 11; i++) {
+        res += "\tsw x" + to_string(s_table[i]) + ", " + to_string((i - 1) * 4) + "(sp)\n";
+    }
+    res += "\taddi sp, sp, -4\n";
+    res += "\tsw fp, 0(sp)\n";
+    res += "\tadd fp, sp, x0\n";
+    res += get_load_imm(local_vars_len);
+    res += "\tsub sp, sp, t0\n";
+    res += func_body;
+    res += get_load_imm(local_vars_len);
+    res += "\tadd sp, sp, t0\n";
+    res += "\tlw fp, 0(sp)\n";
+    res += "\taddi sp, sp, 4\n";
+    for (int i = 1; i <= 11; i++) {
+        res += "\tlw x" + to_string(s_table[i]) + ", " + to_string((i - 1) * 4) + "(sp)\n";
+    }
+    res += "\taddi sp, sp, 44\n";
+    res += "\tlw ra, 0(sp)\n";
+    res += "\taddi sp, sp, 4\n";
+    res += "\tjalr x0, 0(ra)\n";
     return res;
 }
 
-string get_func_call(string parem_copy) {
+string get_func_call(string name, string parem_copy, bool has_retval) {
     string res = "";
-
+    res += parem_copy;
+    if (has_retval) res += "\taddi sp, sp, -4\n";
+    res += "\tjal ra, " + name + "\n";
     return res;
 }
 
 // Clean params and retval after a call
 string get_func_cleanup(uint32_t args_len, bool has_retval) {
     string res = "";
-
+    if (!has_retval)
+        res += get_load_imm(args_len);
+    else
+        res += get_load_imm(args_len + 4);
+    res += "\tadd sp, sp, t0\n";
     return res;
 }
 
-std::string get_retval_read(void) {  // For caller to get return value
+std::string get_retval_read(uint8_t size, bool is_unsigned) {  // For caller to get return value
     string res = "";
-
+    res += "\taddi t1, fp, 52\n";
+    res += get_mem_access(size, false, is_unsigned);
     return res;
 }
 
-std::string get_retval_write(void) {  // For callee to put return value
+std::string get_retval_write(uint8_t size, bool is_unsigned) {  // For callee to put return value
     string res = "";
-
+    // 52 = 4 * (1 (old ra) + 11 (old s1-s11) + 1 (old fp))
+    res += "\taddi t1, fp, 52\n";
+    res += get_mem_access(size, true, is_unsigned);
     return res;
 }
 
-string get_param_access(uint32_t param_pos, uint32_t offset) {
+string get_param_access(
+    uint32_t param_pos, uint32_t offset, bool has_retval, uint8_t size, bool dir, bool is_signed) {
     string res = "";
-
+    res += "\taddi t1, fp, 52\n";
+    if (has_retval) res += "\taddi t1, t1, 4\n";
+    res += get_load_imm(param_pos + offset);
+    res += "\tadd t1, t1, t0\n";
+    res += get_mem_access(size, dir, is_signed);
     return res;
 }
 
@@ -587,12 +611,40 @@ string get_stmt_until(string calc_expr, string stmts) {
     return res;
 }
 
-string get_read() {  // TODO
+string get_read(string type) {
     string res = "";
+    if (type == "char") {
+        res += "\taddi a0, x0, " + to_string(ECALL_READ_CHAR) + "\n";
+    } else if (type == "str_ptr") {
+        res += "\taddi a0, x0, " + to_string(ECALL_READ_STR) + "\n";
+        res += "\tadd a1, t1, x0\n";
+    } else if (type == "int") {
+        res += "\taddi a0, x0, " + to_string(ECALL_READ_INT) + "\n";
+    } else
+        return "";
+    res += "\tecall\n";
+    if (type == "char" || type == "int") res += "\taddi t0, a1, 0\n";
     return res;
 }
 
-string get_write() {  // TODO
+string get_write(string type) {
     string res = "";
+    res += "\tadd a1, t1, x0\n";
+    if (type == "char") {
+        res += "\taddi a0, x0, " + to_string(ECALL_PRT_CHAR) + "\n";
+    } else if (type == "str_ptr") {
+        res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
+    } else if (type == "int") {
+        res += "\taddi a0, x0, " + to_string(ECALL_PRT_INT) + "\n";
+    } else
+        return "";
+    res += "\tecall\n";
+    return res;
+}
+
+string get_exit(void) {
+    string res = "";
+    res += "\taddi a0, x0, 0\n";
+    res += "\tecall\n";
     return res;
 }
