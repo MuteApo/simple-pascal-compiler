@@ -11,6 +11,8 @@ using namespace std;
 // J-Type: jal, I-Type: jalr
 // U-Type: lui auipc
 
+#define INST_SIZE 4
+
 typedef enum {
     alu_reg = 101,  // R-Type Format
     alu_imm,        // I-Type Format
@@ -69,5 +71,18 @@ const map<string, uint8_t> inst_func7 = {
     {"slli", 0b0000000},
     {"srli", 0b0000000},
     {"srai", 0b0100000}};
+
+const map<string, uint8_t> pseudo_size = {{"la", 2}, {"li", 2}, {"j", 1}, {"jr", 1}};
+
+uint32_t addr_counter = 0;
+
+uint8_t get_inst_size(string operation) {
+    if (pseudo_size.count(operation) == 1) {
+        return pseudo_size.find(operation)->second * INST_SIZE;
+    } else if (inst_opcode_type.count(operation)) {
+        return INST_SIZE;
+    } else
+        return 0;
+}
 
 void gen_hex(FILE *output, string text, string data) {}
