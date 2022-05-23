@@ -9,7 +9,6 @@ class IdNode;
 class IdListNode;
 class FuncNode;
 
-#include "defs.hpp"
 #include "node_const.hpp"
 #include "node_type.hpp"
 #include "viz.hpp"
@@ -17,13 +16,12 @@ class FuncNode;
 #include <vector>
 
 extern int global_uid;
-
-enum expr_node_type { el_nonleaf = 30001, el_literal, el_var_access, el_id, el_fun_call };
-enum result_type { rt_unknown = 40001, rt_integer, rt_real, rt_boolean, rt_pointer, rt_record };
+extern int yylineno;
 
 class ExprNode {
   private:
     int            uid;
+    int            line_no;
     expr_node_type node_type;
     ExprEvalType   eval_type;
     ExprNode      *op1, *op2;
@@ -60,18 +58,19 @@ class ExprNode {
 
     std::string getNodeInfo();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     TypeAttrNode *getResultType();
 
-    bool is_value_equ(ExprNode *expr);
+    bool isValueEqual(ExprNode *expr);
 
-    std::string gen_asm_code(void);
+    std::string genAsmCode(void);
 };
 
 class ExprListNode {
   private:
     int                     uid;
+    int                     line_no;
     std::vector<ExprNode *> exprs;
 
   public:
@@ -85,12 +84,13 @@ class ExprListNode {
 
     void addExpr(ExprNode *expr);
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 };
 
 class LiteralNode {
   private:
     int            uid;
+    int            line_no;
     bool           is_nil;
     BasicAttrNode *type;
     bool           bval;
@@ -115,23 +115,23 @@ class LiteralNode {
 
     std::string getNodeInfo();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     TypeAttrNode *getResultType();
 
     int diff(LiteralNode *rhs);
 
-    bool is_value_equ(LiteralNode *expr);
+    bool isValueEqual(LiteralNode *expr);
 
-    std::string gen_asm_code(void);
+    std::string genAsmCode(void);
 
     std::string toString();
 };
 
-enum var_access_type { va_pointer = 40001, va_array, va_record };
 class VarAccessNode {
   private:
     int             uid;
+    int             line_no;
     var_access_type type;
     ExprNode       *host;
     ExprListNode   *index_list;  // array
@@ -148,16 +148,17 @@ class VarAccessNode {
 
     std::string getNodeInfo();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     TypeAttrNode *getResultType();
 
-    std::string gen_asm_code();
+    std::string genAsmCode();
 };
 
 class IdNode {
   private:
     int           uid;
+    int           line_no;
     std::string   name;
     TypeAttrNode *res_type;
 
@@ -174,16 +175,17 @@ class IdNode {
 
     std::string getNodeInfo();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     TypeAttrNode *getResultType();
 
-    std::string gen_asm_code(void);
+    std::string genAsmCode(void);
 };
 
 class IdListNode {
   private:
     int                   uid;
+    int                   line_no;
     std::vector<IdNode *> ids;
 
   public:
@@ -193,12 +195,15 @@ class IdListNode {
 
     std::vector<IdNode *> &getIdList();
 
+    std::string getIdString(std::string sep);
+
     void addId(IdNode *id);
 };
 
 class FuncNode {
   private:
     int           uid;
+    int           line_no;
     std::string   func_name;
     ExprListNode *arg_list;
     TypeAttrNode *res_type;
@@ -210,7 +215,7 @@ class FuncNode {
 
     std::string getNodeInfo();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     bool test_arg_type();
 

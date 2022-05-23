@@ -10,6 +10,7 @@ ExprNode::ExprNode(expr_node_type nt,
                    IdNode        *i_a,
                    FuncNode      *f_a)
         : uid(++global_uid),
+          line_no(yylineno),
           node_type(nt),
           eval_type(et),
           op1(op_1),
@@ -56,32 +57,32 @@ std::string ExprNode::getNodeInfo() {
     return result;
 }
 
-std::string ExprNode::gen_viz_code(int run) {
+std::string ExprNode::genVizCode(int run) {
     std::string result = vizNode(uid, getNodeInfo());
     switch (node_type) {
         case el_nonleaf:
-            result += vizChildEdge(uid, op1->getUid(), "op1", "Operand 1");
-            result += op1->gen_viz_code(run);
+            result += vizEdge(uid, op1->getUid(), "op1", "Operand 1");
+            result += op1->genVizCode(run);
             if (op2 != nullptr) {
-                result += vizChildEdge(uid, op2->getUid(), "op2", "Operand 2");
-                result += op2->gen_viz_code(run);
+                result += vizEdge(uid, op2->getUid(), "op2", "Operand 2");
+                result += op2->genVizCode(run);
             }
             break;
         case el_literal:
-            result += vizChildEdge(uid, literal_attr->getUid(), "literal", "Literal");
-            result += literal_attr->gen_viz_code(run);
+            result += vizEdge(uid, literal_attr->getUid(), "literal", "Literal");
+            result += literal_attr->genVizCode(run);
             break;
         case el_var_access:
-            result += vizChildEdge(uid, var_access_attr->getUid(), "var access", "Variable Access");
-            result += var_access_attr->gen_viz_code(run);
+            result += vizEdge(uid, var_access_attr->getUid(), "var access", "Variable Access");
+            result += var_access_attr->genVizCode(run);
             break;
         case el_id:
-            result += vizChildEdge(uid, id_attr->getUid(), "id", "Identifier");
-            result += id_attr->gen_viz_code(run);
+            result += vizEdge(uid, id_attr->getUid(), "id", "Identifier");
+            result += id_attr->genVizCode(run);
             break;
         case el_fun_call:
-            result += vizChildEdge(uid, func_attr->getUid(), "fun call", "Function Call");
-            result += func_attr->gen_viz_code(run);
+            result += vizEdge(uid, func_attr->getUid(), "fun call", "Function Call");
+            result += func_attr->genVizCode(run);
             break;
     }
     return result;
@@ -93,7 +94,7 @@ TypeAttrNode *ExprNode::getResultType() {
             TypeAttrNode *t1 = op1->getResultType();
             if (op2 != nullptr) {
                 TypeAttrNode *t2 = op2->getResultType();
-                if (!t1->is_type_equ(t2)) {
+                if (!t1->isTypeEqual(t2)) {
                     // TODO syntax error: type of operands is not equal
                     return nullptr;
                 }
@@ -108,17 +109,17 @@ TypeAttrNode *ExprNode::getResultType() {
     return nullptr;
 }
 
-bool ExprNode::is_value_equ(ExprNode *expr) {
+bool ExprNode::isValueEqual(ExprNode *expr) {
     if (node_type != expr->node_type) return false;
     switch (node_type) {
         case el_literal:
-            return literal_attr->is_value_equ(expr->literal_attr);
+            return literal_attr->isValueEqual(expr->literal_attr);
             // TODO: how to compare const expressions?
     }
     return false;
 }
 
-ExprListNode::ExprListNode() : uid(++global_uid) {
+ExprListNode::ExprListNode() : uid(++global_uid), line_no(yylineno) {
     exprs.clear();
 }
 
@@ -138,20 +139,27 @@ void ExprListNode::addExpr(ExprNode *expr) {
     exprs.push_back(expr);
 }
 
-std::string ExprListNode::gen_viz_code(int run) {
+std::string ExprListNode::genVizCode(int run) {
     std::string result = vizNode(uid, "ExprListNode");
     for (int i = 0; i < exprs.size(); i++) {
-        result += vizChildEdge(uid,
-                               exprs.at(i)->getUid(),
-                               "expr" + to_string(i + 1),
-                               "Expression " + to_string(i + 1));
-        result += exprs.at(i)->gen_viz_code(run);
+        result += vizEdge(uid,
+                          exprs.at(i)->getUid(),
+                          "expr" + to_string(i + 1),
+                          "Expression " + to_string(i + 1));
+        result += exprs.at(i)->genVizCode(run);
     }
     return result;
 }
 
 LiteralNode::LiteralNode(bool is_n, BasicAttrNode *t, bool bv, int iv, double dv, char cv)
-        : uid(++global_uid), is_nil(is_n), type(t), bval(bv), ival(iv), dval(dv), cval(cv) {}
+        : uid(++global_uid),
+          line_no(yylineno),
+          is_nil(is_n),
+          type(t),
+          bval(bv),
+          ival(iv),
+          dval(dv),
+          cval(cv) {}
 LiteralNode::LiteralNode(void) : LiteralNode(true, nullptr, 0, 0, 0, 0) {}
 LiteralNode::LiteralNode(bool b) : LiteralNode(false, new BasicAttrNode(boolean), b, 0, 0, 0) {}
 LiteralNode::LiteralNode(int i) : LiteralNode(false, new BasicAttrNode(integer), 0, i, 0, 0) {}
@@ -163,7 +171,7 @@ LiteralNode::~LiteralNode() {
 
 bool LiteralNode::operator<(const LiteralNode &rhs) const {
     if (is_nil) return !rhs.is_nil;
-    if (type->getType() != rhs.type->getType()) return false;
+    if (type->getType() != rhs.type->getType()) return type->line_no < rhs.type->line_no;
     switch (type->getType()) {
         case boolean: return bval < rhs.bval;
         case integer: return ival < rhs.ival;
@@ -192,7 +200,7 @@ std::string LiteralNode::getNodeInfo() {
     return result + "illegal literal";
 }
 
-std::string LiteralNode::gen_viz_code(int run) {
+std::string LiteralNode::genVizCode(int run) {
     return vizNode(uid, getNodeInfo());
 }
 
@@ -218,7 +226,7 @@ int LiteralNode::diff(LiteralNode *rhs) {
     return 0;
 }
 
-bool LiteralNode::is_value_equ(LiteralNode *expr) {
+bool LiteralNode::isValueEqual(LiteralNode *expr) {
     if (is_nil && expr->is_nil) return true;
     if (is_nil != expr->is_nil) return false;
     if (type->getType() != expr->type->getType()) return false;
@@ -242,7 +250,13 @@ std::string LiteralNode::toString() {
 }
 
 VarAccessNode::VarAccessNode(var_access_type t, ExprNode *h, ExprListNode *i_l, ExprNode *m)
-        : uid(++global_uid), type(t), host(h), index_list(i_l), member(m), res_type(nullptr) {}
+        : uid(++global_uid),
+          line_no(yylineno),
+          type(t),
+          host(h),
+          index_list(i_l),
+          member(m),
+          res_type(nullptr) {}
 VarAccessNode::VarAccessNode(ExprNode *h) : VarAccessNode(va_pointer, h, nullptr, nullptr) {}
 VarAccessNode::VarAccessNode(ExprNode *h, ExprListNode *indices)
         : VarAccessNode(va_array, h, indices, nullptr) {}
@@ -258,17 +272,17 @@ std::string VarAccessNode::getNodeInfo() {
     return result;
 }
 
-std::string VarAccessNode::gen_viz_code(int run) {
+std::string VarAccessNode::genVizCode(int run) {
     std::string result = vizNode(uid, getNodeInfo());
-    result += vizChildEdge(uid, host->getUid(), "host", "Host Name");
-    result += host->gen_viz_code(run);
+    result += vizEdge(uid, host->getUid(), "host", "Host Name");
+    result += host->genVizCode(run);
     if (type == va_array) {
-        result += vizChildEdge(uid, index_list->getUid(), "array index", "Array Index");
-        result += index_list->gen_viz_code(run);
+        result += vizEdge(uid, index_list->getUid(), "array index", "Array Index");
+        result += index_list->genVizCode(run);
     }
     if (type == va_record) {
-        result += vizChildEdge(uid, member->getUid(), "record field", "Record Field");
-        result += member->gen_viz_code(run);
+        result += vizEdge(uid, member->getUid(), "record field", "Record Field");
+        result += member->genVizCode(run);
     }
     return result;
 }
@@ -291,7 +305,8 @@ TypeAttrNode *VarAccessNode::getResultType() {
     return nullptr;
 }
 
-IdNode::IdNode(std::string id) : uid(++global_uid), name(id), res_type(nullptr) {}
+IdNode::IdNode(std::string id)
+        : uid(++global_uid), line_no(yylineno), name(id), res_type(nullptr) {}
 
 int IdNode::getUid() {
     return uid;
@@ -313,7 +328,7 @@ std::string IdNode::getNodeInfo() {
     return "IdNode\n" + name;
 }
 
-std::string IdNode::gen_viz_code(int run) {
+std::string IdNode::genVizCode(int run) {
     return vizNode(uid, getNodeInfo());
 }
 
@@ -321,7 +336,7 @@ TypeAttrNode *IdNode::getResultType() {
     return res_type = symbol_table.findVarSymbol(name)->getType();
 }
 
-IdListNode::IdListNode() : uid(++global_uid) {
+IdListNode::IdListNode() : uid(++global_uid), line_no(yylineno) {
     ids.clear();
 }
 
@@ -333,12 +348,19 @@ std::vector<IdNode *> &IdListNode::getIdList() {
     return ids;
 }
 
+std::string IdListNode::getIdString(std::string sep) {
+    if (ids.empty()) return "";
+    std::string result = "(" + ids.at(0)->getName();
+    for (int i = 1; i < ids.size(); i++) result += sep + ids.at(i)->getName();
+    return result + ")";
+}
+
 void IdListNode::addId(IdNode *id) {
     ids.push_back(id);
 }
 
 FuncNode::FuncNode(std::string id, ExprListNode *a_l)
-        : uid(++global_uid), func_name(id), arg_list(a_l), res_type(nullptr) {}
+        : uid(++global_uid), line_no(yylineno), func_name(id), arg_list(a_l), res_type(nullptr) {}
 
 int FuncNode::getUid() {
     return uid;
@@ -348,11 +370,11 @@ std::string FuncNode::getNodeInfo() {
     return "FuncNode\n" + func_name;
 }
 
-std::string FuncNode::gen_viz_code(int run) {
+std::string FuncNode::genVizCode(int run) {
     std::string result = vizNode(uid, getNodeInfo());
     if (arg_list != nullptr) {
-        result += vizChildEdge(uid, arg_list->getUid(), "args", "Arguments of Function Call");
-        result += arg_list->gen_viz_code(run);
+        result += vizEdge(uid, arg_list->getUid(), "args", "Arguments of Function Call");
+        result += arg_list->genVizCode(run);
     }
     return result;
 }

@@ -11,77 +11,63 @@ class ConstListNode;
 #include <string>
 
 extern int global_uid;
+extern int yylineno;
 
 class ConstDefNode {
   private:
     int         uid;
+    int         line_no;
     std::string name;
     ExprNode   *expr;
 
   public:
-    ConstDefNode(std::string id, ExprNode *v) : uid(++global_uid), name(id), expr(v) {}
+    ConstDefNode(std::string id, ExprNode *v);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    ExprNode *getExpr() {
-        return expr;
-    }
+    ExprNode *getExpr();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool gen_sym_tab();
+    bool genSymbolTable();
 };
 
 class ConstDefListNode {
   private:
     int                         uid;
+    int                         line_no;
     std::vector<ConstDefNode *> const_defs;
 
   public:
-    ConstDefListNode() : uid(++global_uid) {
-        const_defs.clear();
-    }
+    ConstDefListNode();
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    void addConstDef(ConstDefNode *const_def) {
-        const_defs.push_back(const_def);
-    }
+    void addConstDef(ConstDefNode *const_def);
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool gen_sym_tab();
+    bool genSymbolTable();
 
-    std::string gen_asm_def();
+    std::string genAsmDef();
 };
 
 class ConstListNode {
   private:
     int                     uid;
+    int                     line_no;
     std::vector<ExprNode *> const_list;
 
   public:
-    ConstListNode() : uid(++global_uid) {
-        const_list.clear();
-    }
+    ConstListNode();
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::vector<ExprNode *> &getConstList() {
-        return const_list;
-    }
+    std::vector<ExprNode *> &getConstList();
 
-    void addConst(ExprNode *const_expr) {
-        const_list.push_back(const_expr);
-    }
+    void addConst(ExprNode *const_expr);
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 };
 
 #endif

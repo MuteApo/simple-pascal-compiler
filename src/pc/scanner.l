@@ -2,7 +2,6 @@
 %option yylineno
 
 %{
-#include "include/defs.hpp"
 #include "include/node_const.hpp"
 #include "include/node_type.hpp"
 #include "include/node_var.hpp"

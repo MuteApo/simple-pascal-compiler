@@ -13,10 +13,12 @@ class ProgramNode;
 #include "viz.hpp"
 
 extern int global_uid;
+extern int yylineno;
 
 class BlockNode {
   private:
     int               uid;
+    int               line_no;
     bool              is_global;
     ConstDefListNode *const_defs;
     TypeDefListNode  *type_defs;
@@ -32,44 +34,38 @@ class BlockNode {
               FuncDefListNode  *f_defs = nullptr,
               StmtListNode     *s      = nullptr);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    void setGlobal() {
-        is_global = true;
-    }
+    void setGlobal();
 
     bool hasDecl();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    void gen_sym_tab();
+    void genSymbolTable();
 
-    std::string gen_asm_code();
+    std::string genAsmCode();
 
     std::string visit();
 };
 
 class ProgramNode {
   private:
-    int                   uid;
-    std::string           name;
-    std::vector<IdNode *> id_list;
-    BlockNode            *block;
+    int         uid;
+    int         line_no;
+    std::string name;
+    IdListNode *id_list;
+    BlockNode  *block;
 
   public:
-    ProgramNode(std::string id, BlockNode *b) : uid(++global_uid), name(id), block(b) {}
-    ProgramNode(std::string id, std::vector<IdNode *> i_l, BlockNode *b)
-            : uid(++global_uid), name(id), id_list(i_l), block(b) {}
+    ProgramNode(std::string id, BlockNode *b);
+    ProgramNode(std::string id, IdListNode *i_l, BlockNode *b);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
     std::string getNodeInfo();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     std::string visit();
 };

@@ -61,12 +61,12 @@ int main(int argc, char *argv[]) {
     }
     yyparse();
     if (viz_file_0 != NULL) {
-        fprintf(viz_file_0, "%s", root->gen_viz_code(0).c_str());
+        fprintf(viz_file_0, "%s", root->genVizCode(0).c_str());
         fclose(viz_file_0);
     }
     if (root != nullptr) root->visit();
     if (viz_file_1 != NULL) {
-        fprintf(viz_file_1, "%s", root->gen_viz_code(1).c_str());
+        fprintf(viz_file_1, "%s", root->genVizCode(1).c_str());
         fclose(viz_file_1);
     }
     return 0;

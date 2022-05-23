@@ -14,17 +14,20 @@ class FuncStmtNode;
 class ReadStmtNode;
 class WriteStmtNode;
 
-#include "defs.hpp"
 #include "node_const.hpp"
+#include "node_expr.hpp"
+#include "node_func.hpp"
 #include "viz.hpp"
 #include <string>
 #include <vector>
 
 extern int global_uid;
+extern int yylineno;
 
 class StmtNode {
   private:
     int             uid;
+    int             line_no;
     stmt_type       type;
     StmtListNode   *compound_stmt;
     AssignStmtNode *assign_stmt;
@@ -60,93 +63,78 @@ class StmtNode {
     StmtNode(ReadStmtNode *r_s);
     StmtNode(WriteStmtNode *w_s);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 
-    std::string gen_asm_code() {
-        return "";
-    }
+    std::string genAsmCode();
 };
 
 class StmtListNode {
   private:
     int                     uid;
+    int                     line_no;
     std::vector<StmtNode *> stmts;
 
   public:
-    StmtListNode() : uid(++global_uid) {
-        stmts.clear();
-    }
+    StmtListNode();
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    void addStmt(StmtNode *stmt) {
-        stmts.push_back(stmt);
-    }
+    void addStmt(StmtNode *stmt);
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 
-    std::string gen_asm_code() {
-        std::string asm_code = "";
-        for (StmtNode *s : stmts) asm_code += s->gen_asm_code();
-        return asm_code;
-    }
+    std::string genAsmCode();
 };
 
 class AssignStmtNode {
   private:
     int       uid;
+    int       line_no;
     ExprNode *dst;
     ExprNode *src;
 
   public:
-    AssignStmtNode(ExprNode *d, ExprNode *s) : uid(++global_uid), dst(d), src(s) {}
+    AssignStmtNode(ExprNode *d, ExprNode *s);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 
-    std::string gen_asm_code();
+    std::string genAsmCode();
 };
 
 class IfStmtNode {
   private:
     int       uid;
+    int       line_no;
     ExprNode *condition;
     StmtNode *then_part;
     StmtNode *else_part;
 
   public:
-    IfStmtNode(ExprNode *e, StmtNode *t_p, StmtNode *e_p = nullptr)
-            : uid(++global_uid), condition(e), then_part(t_p), else_part(e_p) {}
+    IfStmtNode(ExprNode *e, StmtNode *t_p, StmtNode *e_p = nullptr);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 
-    std::string gen_asm_code();
+    std::string genAsmCode();
 };
 
 class ForStmtNode {
   private:
     int         uid;
+    int         line_no;
     std::string name;
     bool        is_to;
     ExprNode   *start_expr;
@@ -154,186 +142,158 @@ class ForStmtNode {
     StmtNode   *body_part;
 
   public:
-    ForStmtNode(std::string id, bool is_t, ExprNode *s_e, ExprNode *e_e, StmtNode *b_p)
-            : uid(++global_uid),
-              name(id),
-              is_to(is_t),
-              start_expr(s_e),
-              end_expr(e_e),
-              body_part(b_p) {}
+    ForStmtNode(std::string id, bool is_t, ExprNode *s_e, ExprNode *e_e, StmtNode *b_p);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string getNodeInfo() {
-        std::string result = "ForStmtNode\n" + name;
-        return result + (is_to ? "\n→" : "\n←");
-    }
+    std::string getNodeInfo();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 };
 
 class WhileStmtNode {
   private:
     int       uid;
+    int       line_no;
     ExprNode *condition;
     StmtNode *body_part;
 
   public:
-    WhileStmtNode(ExprNode *c, StmtNode *b_p) : uid(++global_uid), condition(c), body_part(b_p) {}
+    WhileStmtNode(ExprNode *c, StmtNode *b_p);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 
-    std::string gen_asm_code();
+    std::string genAsmCode();
 };
 
 class RepeatStmtNode {
   private:
     int           uid;
+    int           line_no;
     StmtListNode *body_part;
     ExprNode     *condition;
 
   public:
-    RepeatStmtNode(StmtListNode *b_p, ExprNode *c)
-            : uid(++global_uid), body_part(b_p), condition(c) {}
+    RepeatStmtNode(StmtListNode *b_p, ExprNode *c);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 
-    std::string gen_asm_code();
+    std::string genAsmCode();
 };
 
 class CaseStmtNode {
   private:
     int            uid;
+    int            line_no;
     ConstListNode *const_list;
     StmtNode      *body_part;
 
   public:
-    CaseStmtNode(ConstListNode *c_l, StmtNode *b_p)
-            : uid(++global_uid), const_list(c_l), body_part(b_p) {}
+    CaseStmtNode(ConstListNode *c_l, StmtNode *b_p);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 
-    std::string gen_asm_code();
+    std::string genAsmCode();
 };
 
 class CaseListNode {
   private:
     int                         uid;
+    int                         line_no;
     std::vector<CaseStmtNode *> case_list;
 
   public:
-    CaseListNode() : uid(++global_uid) {
-        case_list.clear();
-    }
+    CaseListNode();
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::vector<CaseStmtNode *> &getCaseList() {
-        return case_list;
-    }
+    std::vector<CaseStmtNode *> &getCaseList();
 
-    void addCase(CaseStmtNode *c) {
-        case_list.push_back(c);
-    }
+    void addCase(CaseStmtNode *c);
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 };
 
 class SwitchStmtNode {
   private:
     int           uid;
+    int           line_no;
     ExprNode     *condition;
     CaseListNode *case_list;
 
   public:
-    SwitchStmtNode(ExprNode *c, CaseListNode *c_l)
-            : uid(++global_uid), condition(c), case_list(c_l) {}
+    SwitchStmtNode(ExprNode *c, CaseListNode *c_l);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 };
 
 class FuncStmtNode {
   private:
     int       uid;
+    int       line_no;
     FuncNode *func;
 
   public:
-    FuncStmtNode(FuncNode *f) : uid(++global_uid), func(f) {}
+    FuncStmtNode(FuncNode *f);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 };
 
 class ReadStmtNode {
   private:
     int           uid;
+    int           line_no;
     ExprListNode *exprs;
 
   public:
-    ReadStmtNode(ExprListNode *e) : uid(++global_uid), exprs(e) {}
+    ReadStmtNode(ExprListNode *e);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 };
 
 class WriteStmtNode {
   private:
     int           uid;
+    int           line_no;
     bool          is_writeln;
     ExprListNode *exprs;
 
   public:
-    WriteStmtNode(bool is_ln, ExprListNode *e) : uid(++global_uid), is_writeln(is_ln), exprs(e) {}
+    WriteStmtNode(bool is_ln, ExprListNode *e);
 
-    int getUid() {
-        return uid;
-    }
+    int getUid();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool test_result_type();
+    bool testExprType();
 };
 
 #endif

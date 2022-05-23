@@ -1,7 +1,7 @@
 #ifndef _ERRORHANDLER_H
 #define _ERRORHANDLER_H
 
-#include "defs.hpp"
+#include "viz.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
