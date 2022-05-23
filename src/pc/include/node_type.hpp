@@ -23,6 +23,7 @@ class PtrAttrNode;
 #include <vector>
 
 extern int global_uid;
+extern int yylineno;
 
 #define BASIC_BOOL_LEN 1
 #define BASIC_INT_LEN 2
@@ -31,12 +32,10 @@ extern int global_uid;
 #define BASIC_PTR_LEN 4
 #define ALIGN_LEN 4
 
-typedef enum { basic = 101, ordinal, structured, pointer, type_identifier } type_kind;
-typedef enum { boolean = 201, integer, real, character } basic_type_kind;
-
 class TypeDefNode {
   private:
     int           uid;
+    int           line_no;
     bool          is_type_id;
     std::string   name;
     TypeAttrNode *type;
@@ -46,14 +45,15 @@ class TypeDefNode {
 
     int getUid();
 
-    bool gen_sym_tab();
+    bool genSymbolTable();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 };
 
 class TypeDefListNode {
   private:
     int                        uid;
+    int                        line_no;
     std::vector<TypeDefNode *> type_defs;
 
   public:
@@ -63,14 +63,15 @@ class TypeDefListNode {
 
     void addTypeDef(TypeDefNode *type_def);
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool gen_sym_tab();
+    bool genSymbolTable();
 };
 
 class TypeAttrNode {
   private:
     int             uid;
+    int             line_no;
     type_kind       root_type;
     std::string     name;
     BasicAttrNode  *basic_attr;
@@ -117,23 +118,21 @@ class TypeAttrNode {
 
     std::string getNodeInfo();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     void translateId();
 
-    bool gen_sym_tab();
+    bool genSymbolTable();
 
-    bool is_type_equ(TypeAttrNode *type, bool use_struct = true);
+    bool isTypeEqual(TypeAttrNode *type, bool use_struct = true);
 
-    std::string gen_asm_def() {
-        // TODO
-        return "";
-    }
+    std::string genAsmDef();
 };
 
 class TypeAttrListNode {
   private:
     int                         uid;
+    int                         line_no;
     std::vector<bool>           is_type_id;
     std::vector<TypeAttrNode *> type_attrs;
 
@@ -150,16 +149,17 @@ class TypeAttrListNode {
 
     void addTypeAttr(TypeAttrNode *type_attr);
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     void translateId();
 
-    bool is_type_equ(TypeAttrListNode *type);
+    bool isTypeEqual(TypeAttrListNode *type);
 };
 
 class BasicAttrNode {
   private:
     int             uid;
+    int             line_no;
     basic_type_kind type;
     friend class LiteralNode;
 
@@ -176,14 +176,15 @@ class BasicAttrNode {
 
     std::string getNodeInfo();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool is_type_equ(BasicAttrNode *type);
+    bool isTypeEqual(BasicAttrNode *type);
 };
 
 class OrdAttrNode {
   private:
     int               uid;
+    int               line_no;
     bool              is_subrange;
     SubrangeAttrNode *subrange_attr;
     EnumAttrNode     *enum_attr;
@@ -204,18 +205,19 @@ class OrdAttrNode {
 
     int getSize();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     void translateId();
 
-    bool gen_sym_tab();
+    bool genSymbolTable();
 
-    bool is_type_equ(OrdAttrNode *type);
+    bool isTypeEqual(OrdAttrNode *type);
 };
 
 class SubrangeAttrNode {
   private:
     int       uid;
+    int       line_no;
     ExprNode *low_bound, *up_bound;  // Integer or Char
     bool      is_low_id, is_up_id;
     friend class OrdAttrNode;
@@ -231,16 +233,17 @@ class SubrangeAttrNode {
 
     int getSize();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     void translateId();
 
-    bool is_type_equ(SubrangeAttrNode *type);
+    bool isTypeEqual(SubrangeAttrNode *type);
 };
 
 class EnumAttrNode {
   private:
     int                     uid;
+    int                     line_no;
     std::vector<ExprNode *> items;
     friend class OrdAttrNode;
 
@@ -255,16 +258,17 @@ class EnumAttrNode {
 
     int getSize();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
-    bool gen_sym_tab();
+    bool genSymbolTable();
 
-    bool is_type_equ(EnumAttrNode *type);
+    bool isTypeEqual(EnumAttrNode *type);
 };
 
 class StructAttrNode {
   private:
     int             uid;
+    int             line_no;
     bool            is_array;
     ArrayAttrNode  *array_attr;
     RecordAttrNode *record_attr;
@@ -286,16 +290,17 @@ class StructAttrNode {
 
     int getOffset(std::string member);
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     void translateId();
 
-    bool is_type_equ(StructAttrNode *type);
+    bool isTypeEqual(StructAttrNode *type);
 };
 
 class SetAttrNode {  // TODO
   private:
     int           uid;
+    int           line_no;
     TypeAttrNode *basic_type;
 
   public:
@@ -304,6 +309,7 @@ class SetAttrNode {  // TODO
 class ArrayAttrNode {
   private:
     int               uid;
+    int               line_no;
     bool              is_ele_type_id;
     TypeAttrListNode *index_type;
     TypeAttrNode     *element_type;
@@ -322,16 +328,17 @@ class ArrayAttrNode {
 
     int getOffset();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     void translateId();
 
-    bool is_type_equ(ArrayAttrNode *type);
+    bool isTypeEqual(ArrayAttrNode *type);
 };
 
 class RecordAttrNode {
   private:
     int             uid;
+    int             line_no;
     VarDefListNode *defs;
 
   public:
@@ -347,16 +354,17 @@ class RecordAttrNode {
 
     int getOffset(std::string member);
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     void translateId();
 
-    bool is_type_equ(RecordAttrNode *type);
+    bool isTypeEqual(RecordAttrNode *type);
 };
 
 class PtrAttrNode {
   private:
     int           uid;
+    int           line_no;
     bool          is_base_id;
     TypeAttrNode *base_attr;
 
@@ -369,7 +377,7 @@ class PtrAttrNode {
 
     int getOffset();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     void translateId();
 };

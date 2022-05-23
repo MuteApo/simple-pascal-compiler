@@ -2,31 +2,59 @@
 
 SymbolTable symbol_table;
 
+TableItem::TableItem(std::string id, int lv) : name(id), level(lv) {}
+
 std::string TableItem::toString() {
     return "<TableItem Root Class>";
 }
+
+ConstTableItem::ConstTableItem(std::string id, int lv, ConstDefNode *c_d)
+        : TableItem(id, lv), const_def(c_d) {}
+
+bool ConstTableItem::operator<(const ConstTableItem &rhs) const {
+    if (level != rhs.level) return level < rhs.level;
+    return const_def->getExpr()->getLiteralNode() < rhs.const_def->getExpr()->getLiteralNode();
+}
+
 std::string ConstTableItem::toString() {
     return name + "\t[level: " + to_string(level) +
            "\tvalue:" + to_string(const_def->getExpr()->getLiteralNode()->toString()) + "]";
 }
+
+TypeTableItem::TypeTableItem(std::string id, int lv, TypeAttrNode *t_a)
+        : TableItem(id, lv), type_attr(t_a) {}
+
+bool TypeTableItem::operator<(const TypeTableItem &rhs) const {
+    return level < rhs.level || level == rhs.level && name < rhs.name;
+}
+
 std::string TypeTableItem::toString() {
     return name + "\t[level: " + to_string(level) + "]";
 }
+
+VarTableItem::VarTableItem(std::string id, int lv, VarDefNode *v_d, int ord)
+        : TableItem(id, lv), var_def(v_d), order(ord) {}
+
+bool VarTableItem::operator<(const VarTableItem &rhs) const {
+    return level < rhs.level || level == rhs.level && order < rhs.order;
+}
+
 std::string VarTableItem::toString() {
     return name + "\t[level: " + to_string(level) + "\torder: " + to_string(order) + "]";
 }
+
+FuncTableItem::FuncTableItem(std::string id, int lv, FuncDefNode *f_d)
+        : TableItem(id, lv), func_def(f_d) {}
+
+bool FuncTableItem::operator<(const FuncTableItem &rhs) const {
+    return level < rhs.level || level == rhs.level && name < rhs.name;
+}
+
 std::string FuncTableItem::toString() {
     return name + "\t[level: " + to_string(level) + "]";
 }
 
-bool ConstTableItem::operator<(const ConstTableItem &rhs) const {
-    return level < rhs.level ||
-           level == rhs.level &&
-               const_def->getExpr()->getExprType() < rhs.const_def->getExpr()->getExprType() ||
-           level == rhs.level &&
-               const_def->getExpr()->getExprType() == rhs.const_def->getExpr()->getExprType() &&
-               const_def->getExpr()->getLiteralNode() < rhs.const_def->getExpr()->getLiteralNode();
-}
+SymbolTable::SymbolTable() : currLevel(-1) {}
 
 int SymbolTable::getLevel() {
     return currLevel;
@@ -183,6 +211,19 @@ void SymbolTable::printSymbol(const std::map<std::string, std::list<T>> &decl_ma
     for (auto symbol : symbols) std::cout << symbol.toString() << std::endl;
 }
 
+void SymbolTable::printTable() {
+    std::cout << "current level: " << to_string(currLevel) << std::endl;
+    std::cout << "--------------Const--------------" << std::endl;
+    printSymbol<ConstTableItem>(ConstDeclMap);
+    std::cout << "--------------Type---------------" << std::endl;
+    printSymbol<TypeTableItem>(TypeDeclMap);
+    std::cout << "--------------Var----------------" << std::endl;
+    printSymbol<VarTableItem>(VarDeclMap);
+    std::cout << "--------------Func---------------" << std::endl;
+    printSymbol<FuncTableItem>(FuncDeclMap);
+    std::cout << std::endl;
+}
+
 void SymbolTable::enterScope() {
     std::cout << "Before Enter Scope, ";
     printTable();
@@ -197,17 +238,4 @@ void SymbolTable::leaveScope() {
     popVarSymbol();
     popFuncSymbol();
     currLevel--;
-}
-
-void SymbolTable::printTable() {
-    std::cout << "current level: " << to_string(currLevel) << std::endl;
-    std::cout << "--------------Const--------------" << std::endl;
-    printSymbol<ConstTableItem>(ConstDeclMap);
-    std::cout << "--------------Type---------------" << std::endl;
-    printSymbol<TypeTableItem>(TypeDeclMap);
-    std::cout << "--------------Var----------------" << std::endl;
-    printSymbol<VarTableItem>(VarDeclMap);
-    std::cout << "--------------Func---------------" << std::endl;
-    printSymbol<FuncTableItem>(FuncDeclMap);
-    std::cout << std::endl;
 }

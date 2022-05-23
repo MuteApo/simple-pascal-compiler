@@ -11,6 +11,7 @@ class VarDefListNode;
 #include <vector>
 
 extern int global_uid;
+extern int yylineno;
 
 extern std::vector<int> ar_lvars_length;
 extern std::vector<int> ar_args_length;
@@ -18,6 +19,7 @@ extern std::vector<int> ar_args_length;
 class VarDefNode {
   private:
     int           uid;
+    int           line_no;
     bool          is_type_id;
     std::string   name;
     TypeAttrNode *type;
@@ -32,20 +34,21 @@ class VarDefNode {
     TypeAttrNode *getType();
 
     // Find if "type_id" exists in variable symble table
-    bool is_legal();
+    bool isLegal();
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     void translateId();
 
-    bool gen_sym_tab(int ord);
+    bool genSymbolTable(int ord);
 
-    std::string gen_asm_def();
+    std::string genAsmDef();
 };
 
 class VarDefListNode {
   private:
     int                       uid;
+    int                       line_no;
     std::vector<VarDefNode *> var_defs;
 
   public:
@@ -68,15 +71,15 @@ class VarDefListNode {
 
     void mergeVarDefList(VarDefListNode *defs);
 
-    std::string gen_viz_code(int run);
+    std::string genVizCode(int run);
 
     void translateId();
 
-    bool gen_sym_tab();
+    bool genSymbolTable();
 
-    bool is_type_equ(VarDefListNode *rhs);
+    bool isTypeEqual(VarDefListNode *rhs);
 
-    std::string gen_asm_def();
+    std::string genAsmDef();
 };
 
 #endif

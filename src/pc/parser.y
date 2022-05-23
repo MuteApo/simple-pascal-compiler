@@ -1,5 +1,4 @@
 %{
-#include "include/defs.hpp"
 #include "include/node_const.hpp"
 #include "include/node_type.hpp"
 #include "include/node_var.hpp"
@@ -148,7 +147,7 @@ Program:  WSYM_PROGRAM Id SYM_SEMI Block SYM_DOT {
     $4->setGlobal();
     root = $$;
 }| WSYM_PROGRAM Id SYM_LPAR IdList SYM_RPAR SYM_SEMI Block SYM_DOT {
-    $$ = new ProgramNode($2->getIdNode()->getName(), $4->getIdList(), $7);
+    $$ = new ProgramNode($2->getIdNode()->getName(), $4, $7);
     $7->setGlobal();
     root = $$;
 }

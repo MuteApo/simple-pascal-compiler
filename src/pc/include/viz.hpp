@@ -4,9 +4,120 @@
 #include <sstream>
 #include <string>
 
+enum expr_node_type { el_nonleaf = 101, el_literal, el_var_access, el_id, el_fun_call };
+enum result_type { rt_unknown = 201, rt_integer, rt_real, rt_boolean, rt_pointer, rt_record };
+enum var_access_type { va_pointer = 301, va_array, va_record };
+enum ExprEvalType {
+    EK_None = 401,
+    /* arithmetic */
+    EK_Add,   // a+b
+    EK_Sub,   // a-b
+    EK_Mul,   // a*b
+    EK_Div,   // a/b
+    EK_Mod,   // a%b
+    EK_Fdiv,  // a/b
+    /* comparative */
+    EK_Eq,  // =, equal to
+    EK_Ne,  // <>, not equal to
+    EK_Lt,  // <, less than
+    EK_Gt,  // >, greater than
+    EK_Le,  // <=, less than or equal to
+    EK_Ge,  // >=, greater than or equal to
+    /* logical */
+    EK_Not,  // not
+    EK_And,  // and
+    EK_Or,   // or
+    EK_Xor,  // xor
+    EK_Shl,  // shl
+    EK_Shr,  // shr
+    EK_In,   // in
+    /* temporary(will be removed) */
+    EK_Access
+};
+
+enum type_kind { basic = 1001, ordinal, structured, pointer, type_identifier };
+enum basic_type_kind { boolean = 2001, integer, real, character };
+
+enum stmt_type {
+    SK_Compound = 10001,
+    SK_Assign,
+    SK_If,
+    SK_Then,
+    SK_Else,
+    SK_For,
+    SK_While,
+    SK_Repeat,
+    SK_Switch,
+    SK_Case,
+    SK_Func,
+    /* built-in (optional) */
+    SK_Chr,      // chr(x), converts to char type of x
+    SK_Ord,      // ord(x), original value of x, usually used for char/enum
+    SK_Abs,      // abs(x), absolute value of x
+    SK_Odd,      // odd(x), if x is odd(true) or even(false)
+    SK_Sqr,      // sqr(x), equals to x*x
+    SK_Sqrt,     // sqrt(x), square root of x
+    SK_Succ,     // succ(x), which succeeds x
+    SK_Pred,     // pred(x), which precedes x
+    SK_Read,     // read(x,y), read from input
+    SK_Write,    // write(x,y), write to output
+    SK_Writeln,  // writeln(x,y), write to output with an extra line feed
+};
+
+enum errorType {
+    NO_PERIOD = 100001,  // 缺少句点
+    ILLEGAL_CHAR,        // 非法字符
+    NO_FINISH,           // 希望结束而没有结束
+    FINISH,              // 程序尚不完整而文件结束
+    NO_CONST,            // 缺少 const 关键字
+    NO_SEMICOLON,        // 缺少分号
+    NO_IDENTIFIER,       // 缺少标识符
+    REDEFINE,            // 标识符重定义
+    NO_EQUAL,            // 缺少等号
+    NO_CHNUM,            // 缺少字符或整数（<常量>）
+    NO_SINGLEQUOTE,      // 缺少单引号
+    NO_DOUBLEQUOTE,      // 缺少双引号
+    ILLEGAL_STRING,      // 非法字符串
+    NO_NUMBER,           // 希望是数字而不是
+    INT_OVERFLOW,        // 整数溢出
+    NO_VAR,              // 缺少 var 关键字
+    NO_COLON,            // 缺少冒号
+    NO_LEFTSQUARE,       // 缺少左方括号
+    NO_RIGHTSQUARE,      // 缺少右方括号
+    NO_OF,               // 缺少 of 关键字
+    NO_BASICTYPE,        // 缺少基本类型
+    NO_PROCEDURE,        // 缺少 procedure 关键字
+    NO_FUNCTION,         // 缺少 function 关键字
+    NO_LEFTBRACKET,      // 缺少左括号
+    NO_RIGHTBRACKET,     // 缺少右括号
+    CONSTANT,            // 意外的常量标识符
+    NO_ASSIGN,           // 缺少赋值符，即希望是赋值语句，实际不是
+    NO_VALUE,            // 缺少值
+    UNDEFINED,           // 标识符未定义
+    CANNOT_CALL,         // 标识符不能用于函数或过程调用
+    INT_TO_CHAR,         // 将整型数转化为字符型
+    TOO_LESS_ARG,        // 参数太少
+    TOO_MANY_ARG,        // 参数太多
+    UNVARIABLE,          // 需要变量表达式
+    NO_RELATION,         // 需要关系运算符而没有
+    NO_IF,               // 缺少 if 关键字
+    NO_THEN,             // 缺少 then 关键字
+    NO_ELSE,             // 缺少 else 关键字
+    NO_DO,               // 缺少 do 关键字
+    NO_WHILE,            // 缺少 while 关键字
+    NO_FOR,              // 缺少 for 关键字
+    NO_DOWN_TO,          // 缺少 to 或 downto 关键字
+    NO_BEGIN,            // 缺少 begin 关键字
+    NO_END,              // 缺少 end 关键字
+    NO_READ,             // 缺少 read 关键字
+    NO_WRITE             // 缺少 write 关键字
+};
+
+std::string enum2str(int e);
+
 std::string vizNode(int uid, std::string info);
 
-std::string vizChildEdge(int fa_uid, int son_uid, std::string info = "", std::string tip = "");
+std::string vizEdge(int fa_uid, int son_uid, std::string info = "", std::string tip = "");
 
 template <class T> std::string to_string(T v) {
     std::ostringstream oss;

@@ -45,9 +45,9 @@ std::string get_define_global(std::string          name,
                               std::vector<uint8_t> field_rep);
 
 std::string
-get_func_def(string name, uint32_t args_len, uint32_t local_vars_len, std::string func_body);
+get_func_def(std::string name, uint32_t args_len, uint32_t local_vars_len, std::string func_body);
 
-std::string get_func_call(string name, std::string parem_copy, bool has_retval);
+std::string get_func_call(std::string name, std::string parem_copy, bool has_retval);
 
 std::string get_func_cleanup(uint32_t args_len, bool has_retval);
 

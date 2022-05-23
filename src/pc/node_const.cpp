@@ -1,43 +1,82 @@
 #include "include/node_const.hpp"
 #include "include/symbol_table.hpp"
 
-std::string ConstDefNode::gen_viz_code(int run) {
+ConstDefNode::ConstDefNode(std::string id, ExprNode *v)
+        : uid(++global_uid), line_no(yylineno), name(id), expr(v) {}
+
+int ConstDefNode::getUid() {
+    return uid;
+}
+
+ExprNode *ConstDefNode::getExpr() {
+    return expr;
+}
+
+std::string ConstDefNode::genVizCode(int run) {
     std::string result = vizNode(uid, "ConstDefNode\n" + name);
-    result += vizChildEdge(uid, expr->getUid(), "constdef", "Const Definition");
-    result += expr->gen_viz_code(run);
+    result += vizEdge(uid, expr->getUid(), "constdef", "Const Definition");
+    result += expr->genVizCode(run);
     return result;
 }
 
-bool ConstDefNode::gen_sym_tab() {
+bool ConstDefNode::genSymbolTable() {
     return symbol_table.addSymbol(name, this);
 }
 
-std::string ConstDefListNode::gen_viz_code(int run) {
+ConstDefListNode::ConstDefListNode() : uid(++global_uid), line_no(yylineno) {
+    const_defs.clear();
+}
+
+int ConstDefListNode::getUid() {
+    return uid;
+}
+
+void ConstDefListNode::addConstDef(ConstDefNode *const_def) {
+    const_defs.push_back(const_def);
+}
+
+std::string ConstDefListNode::genVizCode(int run) {
     std::string result = vizNode(uid, "ConstDefListNode");
     for (int i = 0; i < const_defs.size(); i++) {
-        result += vizChildEdge(uid,
-                               const_defs.at(i)->getUid(),
-                               "constdef" + to_string(i + 1),
-                               "Const Definition " + to_string(i + 1));
-        result += const_defs.at(i)->gen_viz_code(run);
+        result += vizEdge(uid,
+                          const_defs.at(i)->getUid(),
+                          "constdef" + to_string(i + 1),
+                          "Const Definition " + to_string(i + 1));
+        result += const_defs.at(i)->genVizCode(run);
     }
     return result;
 }
 
-bool ConstDefListNode::gen_sym_tab() {
+bool ConstDefListNode::genSymbolTable() {
     bool result = true;
-    for (ConstDefNode *def : const_defs) result &= def->gen_sym_tab();
+    for (ConstDefNode *def : const_defs) result &= def->genSymbolTable();
     return result;
 }
 
-std::string ConstListNode::gen_viz_code(int run) {
+ConstListNode::ConstListNode() : uid(++global_uid), line_no(yylineno) {
+    const_list.clear();
+}
+
+int ConstListNode::getUid() {
+    return uid;
+}
+
+std::vector<ExprNode *> &ConstListNode::getConstList() {
+    return const_list;
+}
+
+void ConstListNode::addConst(ExprNode *const_expr) {
+    const_list.push_back(const_expr);
+}
+
+std::string ConstListNode::genVizCode(int run) {
     std::string result = vizNode(uid, "ConstDefListNode");
     for (int i = 0; i < const_list.size(); i++) {
-        result += vizChildEdge(uid,
-                               const_list.at(i)->getUid(),
-                               "const" + to_string(i + 1),
-                               "Const " + to_string(i + 1));
-        result += const_list.at(i)->gen_viz_code(run);
+        result += vizEdge(uid,
+                          const_list.at(i)->getUid(),
+                          "const" + to_string(i + 1),
+                          "Const " + to_string(i + 1));
+        result += const_list.at(i)->genVizCode(run);
     }
     return result;
 }
