@@ -58,7 +58,7 @@ vector<string> read_label(string &line, uint32_t &size, bool is_data_segment) {
             string         operation;
             vector<string> operands;
             read_inst(line, operation, operands);
-            size = get_inst_size(operation);
+            size = get_inst_size(operation, operands);
         }
         line += "\n";
     } else

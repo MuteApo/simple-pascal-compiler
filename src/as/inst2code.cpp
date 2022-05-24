@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <map>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -72,17 +73,21 @@ const map<string, uint8_t> inst_func7 = {
     {"srli", 0b0000000},
     {"srai", 0b0100000}};
 
-const map<string, uint8_t> pseudo_size = {{"la", 2}, {"li", 2}, {"j", 1}, {"jr", 1}};
+const map<string, uint8_t> pseudo_size = {{"la", 2}, {"li", 2}, {"call", 2}};
 
 uint32_t addr_counter = 0;
 
-uint8_t get_inst_size(string operation) {
+uint8_t get_inst_size(string operation, vector<string> operands) {
     if (pseudo_size.count(operation) == 1) {
         return pseudo_size.find(operation)->second * INST_SIZE;
+    } else if (operation == "lw" || operation == "lh" || operation == "lb" || operation == "lhu" ||
+               operation == "lbu" || operation == "sb" || operation == "sh" || operation == "sw") {
+        // lb lh lw lbu lhu sb sh sw, with symbol immediate
     } else if (inst_opcode_type.count(operation)) {
         return INST_SIZE;
-    } else
+    } else {
         return 0;
+    }
 }
 
 void gen_hex(FILE *output, string text, string data) {}
