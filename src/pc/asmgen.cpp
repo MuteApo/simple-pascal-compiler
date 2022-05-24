@@ -410,6 +410,7 @@ string get_params_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {
 
 string get_func_def(string name, uint32_t args_len, uint32_t local_vars_len, string func_body) {
     string res = "";
+    res += name + ":\n";
     res += "\taddi sp, sp, -4\n";
     res += "\tsw ra, 0(sp)\n";
     res += "\taddi sp, sp, -44\n";
@@ -440,7 +441,7 @@ string get_func_call(string name, string parem_copy, bool has_retval) {
     string res = "";
     res += parem_copy;
     if (has_retval) res += "\taddi sp, sp, -4\n";
-    res += "\tjal ra, " + name + "\n";
+    res += "\tcall " + name + "\n";
     return res;
 }
 
@@ -576,6 +577,7 @@ string get_ordinal_bound_check(uint32_t lower_bound, uint32_t upper_bound) {
     return res;
 }
 
+// BUG: stmts can not be too long
 // calc_expr must store its result in t1, and saved temperary registers itself
 string get_stmt_cond(string calc_expr, string then_stmts, string else_stmts) {
     string res = "";
