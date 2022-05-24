@@ -1,16 +1,16 @@
-#ifndef _NODE_BLOCK_H_
-#define _NODE_BLOCK_H_
+#ifndef __NODE_BLOCK_H__
+#define __NODE_BLOCK_H__
 
 class BlockNode;
 class ProgramNode;
 
+#include "defs.hpp"
 #include "node_expr.hpp"
 #include "node_func.hpp"
 #include "node_stmt.hpp"
 #include "node_type.hpp"
 #include "node_var.hpp"
 #include "symbol_table.hpp"
-#include "viz.hpp"
 
 extern int global_uid;
 extern int yylineno;

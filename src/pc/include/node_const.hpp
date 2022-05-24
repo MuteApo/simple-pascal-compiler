@@ -1,13 +1,13 @@
-#ifndef _NODE_CONST_H_
-#define _NODE_CONST_H_
+#ifndef __NODE_CONST_H__
+#define __NODE_CONST_H__
 
 class ConstDefNode;
 class ConstDefListNode;
 class ConstListNode;
 
+#include "defs.hpp"
 #include "node_expr.hpp"
 #include "symbol_table.hpp"
-#include "viz.hpp"
 #include <string>
 
 extern int global_uid;

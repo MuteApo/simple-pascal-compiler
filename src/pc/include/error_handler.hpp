@@ -1,49 +1,22 @@
-#ifndef _ERRORHANDLER_H
-#define _ERRORHANDLER_H
+#ifndef __ERROR_HANDLER_H__
+#define __ERROR_HANDLER_H__
 
-#include "viz.hpp"
-#include <iostream>
+#include "exception.hpp"
 #include <string>
 #include <vector>
 
-class errorRecord {
+class ErrorHandler {
   private:
-    errorType   err_type;
-    std::string name;
-    int         line;
+    std::vector<Exception> errors;
 
   public:
-    errorRecord(errorType e, std::string n, int l) : err_type(e), name(n), line(l) {}
-    std::string toString() {
-        switch (err_type) {
-            case UNDEFINED:
-                return "line " + std::to_string(line) + ": Undefined identifier \"" + name + "\"";
-            case REDEFINE:
-                return "line " + std::to_string(line) + ": Duplicate identifier \"" + name + "\"";
-        }
-        return "";
-    }
+    ErrorHandler();
+
+    void addMsg(Exception e);
+
+    std::string dump();
 };
 
-class errorHandler {
-  public:
-    std::vector<errorRecord> errors;
-
-    errorHandler() {}
-    void add(errorType e, std::string n, int l) {
-        errorRecord newrecord = errorRecord(e, n, l);
-        errors.push_back(newrecord);
-    }
-    std::string toString() {
-        std::string s = "";
-        for (int i = 0; i < errors.size(); i++) {
-            s = s + "[" + std::to_string(i) + "]" + errors[i].toString() + "\n";
-        }
-        return s;
-    }
-    void printError() {
-        std::cout << toString() << std::endl;
-    }
-};
+extern ErrorHandler error_handler;
 
 #endif

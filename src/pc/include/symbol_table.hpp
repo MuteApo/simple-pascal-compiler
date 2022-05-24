@@ -1,5 +1,5 @@
-#ifndef _SYMBOLTABLE_H
-#define _SYMBOLTABLE_H
+#ifndef __SYMBOL_TABLE_H__
+#define __SYMBOL_TABLE_H__
 
 #include "error_handler.hpp"
 #include "node_const.hpp"
@@ -81,8 +81,6 @@ class SymbolTable {
     void popFuncSymbol();
 
   public:
-    errorHandler err;
-
     SymbolTable();
 
     int getLevel();

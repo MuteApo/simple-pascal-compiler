@@ -1,5 +1,5 @@
-#ifndef _NODE_STMT_H_
-#define _NODE_STMT_H_
+#ifndef __NODE_STMT_H__
+#define __NODE_STMT_H__
 
 class StmtListNode;
 class AssignStmtNode;
@@ -14,10 +14,10 @@ class FuncStmtNode;
 class ReadStmtNode;
 class WriteStmtNode;
 
+#include "defs.hpp"
 #include "node_const.hpp"
 #include "node_expr.hpp"
 #include "node_func.hpp"
-#include "viz.hpp"
 #include <string>
 #include <vector>
 
@@ -28,7 +28,7 @@ class StmtNode {
   private:
     int             uid;
     int             line_no;
-    stmt_type       type;
+    StmtType        type;
     StmtListNode   *compound_stmt;
     AssignStmtNode *assign_stmt;
     IfStmtNode     *if_stmt;
@@ -41,7 +41,7 @@ class StmtNode {
     WriteStmtNode  *write_stmt;
 
   public:
-    StmtNode(stmt_type       t,
+    StmtNode(StmtType        t,
              StmtListNode   *c_s,
              AssignStmtNode *a_s,
              IfStmtNode     *i_s,

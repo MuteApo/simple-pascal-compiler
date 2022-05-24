@@ -1,5 +1,5 @@
-#ifndef _NODE_FUNC_H_
-#define _NODE_FUNC_H_
+#ifndef __NODE_FUNC_H__
+#define __NODE_FUNC_H__
 
 class ParamDefNode;
 class ParamDefListNode;

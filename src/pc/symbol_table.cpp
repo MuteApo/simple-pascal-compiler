@@ -1,4 +1,5 @@
 #include "include/symbol_table.hpp"
+#include <iostream>
 
 SymbolTable symbol_table;
 
@@ -183,7 +184,7 @@ std::set<VarTableItem> SymbolTable::getVarScope(int level) {
 }
 
 ExprNode *SymbolTable::translateConstId(ExprNode *id) {
-    if (id->getExprType() != el_id) return id;
+    if (id->getNodeType() != el_id) return id;
     ConstDefNode *const_def = findConstSymbol(id->getIdNode()->getName());
     if (const_def == nullptr) {
         // TODO syntax error: symbol not found
