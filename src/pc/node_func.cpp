@@ -10,6 +10,10 @@ int ParamDefNode::getUid() {
     return uid;
 }
 
+VarDefNode *ParamDefNode::getVarDef() {
+    return var_def;
+}
+
 std::string ParamDefNode::getNodeInfo() {
     std::string result = "ParamDefNode";
     if (is_ref) result += "(ref)";
@@ -24,11 +28,17 @@ std::string ParamDefNode::genVizCode(int run) {
 }
 
 bool ParamDefNode::genSymbolTable(int order) {
-    var_def->translateId();
+    try {
+        var_def->translateId();
+    } catch (UndefineError &e) {
+        throw e;
+    }
+    if (symbol_table.existSymbol(var_def->getName()))
+        throw RedefineError(line_no, var_def->getName());
     return symbol_table.addSymbol(var_def->getName(), var_def, order);
 }
 
-bool ParamDefNode::test_arg_type(TypeAttrNode *type) {
+bool ParamDefNode::testArgType(TypeAttrNode *type) {
     return var_def->getType()->isTypeEqual(type);
 }
 
@@ -68,16 +78,23 @@ std::string ParamDefListNode::genVizCode(int run) {
 }
 
 bool ParamDefListNode::genSymbolTable() {
-    bool result = true;
-    int  ord    = 0;
-    for (ParamDefNode *def : param_defs) result &= def->genSymbolTable(ord++);
-    return result;
+    for (int i = 0; i < param_defs.size(); i++) try {
+            param_defs.at(i)->genSymbolTable(i);
+        } catch (RedefineError &e) {
+            throw e;
+        }
+    return true;
 }
 
-bool ParamDefListNode::test_arg_type(std::vector<ExprNode *> args) {
-    if (param_defs.size() != args.size()) return false;
+bool ParamDefListNode::testArgType(const std::vector<ExprNode *> &args) {
+    if (param_defs.size() != args.size())
+        throw ArgumentNumberError(line_no, param_defs.size(), args.size());
     for (int i = 0; i < param_defs.size(); i++)
-        if (!param_defs.at(i)->test_arg_type(args.at(i)->getResultType())) return false;
+        if (!param_defs.at(i)->testArgType(args.at(i)->getResultType()))
+            throw ArgumentTypeError(line_no,
+                                    i + 1,
+                                    param_defs.at(i)->getVarDef()->getType()->getTypeString(),
+                                    args.at(i)->getResultType()->getTypeString());
     return true;
 }
 
@@ -90,10 +107,20 @@ FuncDefNode::FuncDefNode(std::string id, ParamDefListNode *p_d, BlockNode *b)
           retval_type(nullptr),
           block(b) {}
 FuncDefNode::FuncDefNode(std::string id, ParamDefListNode *p_d, TypeAttrNode *r_v, BlockNode *b)
-        : uid(++global_uid), is_func(true), name(id), param_defs(p_d), retval_type(r_v), block(b) {}
+        : uid(++global_uid),
+          line_no(yylineno),
+          is_func(true),
+          name(id),
+          param_defs(p_d),
+          retval_type(r_v),
+          block(b) {}
 
 int FuncDefNode::getUid() {
     return uid;
+}
+
+int FuncDefNode::getLineNumber() {
+    return line_no;
 }
 
 TypeAttrNode *FuncDefNode::getRetValType() {
@@ -129,14 +156,28 @@ std::string FuncDefNode::genVizCode(int run) {
 bool FuncDefNode::genSymbolTable() {
     symbol_table.addSymbol(name, this);
     if (hasDecl()) symbol_table.enterScope();
-    if (param_defs != nullptr) param_defs->genSymbolTable();
+    try {
+        if (param_defs != nullptr) param_defs->genSymbolTable();
+    } catch (UndefineError &e) {
+        throw e;
+    }
     block->visit();
     if (hasDecl()) symbol_table.leaveScope();
     return true;
 }
 
-bool FuncDefNode::test_arg_type(ExprListNode *args) {
-    return param_defs->test_arg_type(args->getExprList());
+bool FuncDefNode::testArgType(ExprListNode *args) {
+    if (param_defs == nullptr && args->getDim())
+        throw ArgumentNumberError(line_no, 0, args->getDim());
+    try {
+        param_defs->testArgType(args->getExprList());
+    } catch (ArgumentNumberError &e) {
+        throw e;
+    } catch (ArgumentTypeError &e) {
+        throw e;
+    }
+
+    return true;
 }
 
 FuncDefListNode::FuncDefListNode() : uid(++global_uid), line_no(yylineno) {
@@ -164,7 +205,10 @@ std::string FuncDefListNode::genVizCode(int run) {
 }
 
 bool FuncDefListNode::genSymbolTable() {
-    bool result = true;
-    for (FuncDefNode *def : func_defs) result &= def->genSymbolTable();
-    return result;
+    for (FuncDefNode *def : func_defs) try {
+            def->genSymbolTable();
+        } catch (RedefineError &e) {
+            throw e;
+        }
+    return true;
 }

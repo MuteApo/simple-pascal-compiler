@@ -95,6 +95,8 @@ class SymbolTable {
     VarDefNode   *findVarSymbol(std::string id);
     FuncDefNode  *findFuncSymbol(std::string id);
 
+    bool existSymbol(std::string id);
+
     std::vector<ConstDefNode *> getValidConsts();
     std::vector<TypeAttrNode *> getValidTypes();
     std::vector<VarDefNode *>   getValidVars();

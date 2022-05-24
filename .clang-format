@@ -23,7 +23,7 @@ AlignTrailingComments:	true
 # 允许函数声明的所有参数在放在下一行
 AllowAllParametersOfDeclarationOnNextLine:	true
 # 允许短的块放在同一行
-AllowShortBlocksOnASingleLine:	true
+AllowShortBlocksOnASingleLine:	false
 # 允许短的case标签放在同一行
 AllowShortCaseLabelsOnASingleLine:	true
 # 允许短的函数放在同一行: None, InlineOnly(定义在类中), Empty(空函数), Inline(定义在类中，空函数), All

@@ -25,6 +25,8 @@ class ConstDefNode {
 
     int getUid();
 
+    int getLineNumber();
+
     ExprNode *getExpr();
 
     std::string genVizCode(int run);

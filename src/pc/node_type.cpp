@@ -13,9 +13,16 @@ int TypeDefNode::getUid() {
 }
 
 bool TypeDefNode::genSymbolTable() {
-    type = symbol_table.translateTypeId(type);
-    type->translateId();
-    type->genSymbolTable();  // insert (enum, int) pairs into const symbol table
+    try {
+        type = symbol_table.translateTypeId(type);
+        type->translateId();
+        type->genSymbolTable();  // insert (enum, int) pairs into const symbol table
+    } catch (UndefineError &e) {
+        error_handler.addMsg(e);
+    } catch (RedefineError &e) {
+        throw e;
+    }
+    if (symbol_table.existSymbol(name)) throw RedefineError(line_no, name);
     return symbol_table.addSymbol(name, type);
 }
 
@@ -51,9 +58,12 @@ std::string TypeDefListNode::genVizCode(int run) {
 }
 
 bool TypeDefListNode::genSymbolTable() {
-    bool result = true;
-    for (TypeDefNode *type : type_defs) result &= type->genSymbolTable();
-    return result;
+    for (TypeDefNode *type : type_defs) try {
+            type->genSymbolTable();
+        } catch (RedefineError &e) {
+            throw e;
+        }
+    return true;
 }
 
 TypeAttrNode::TypeAttrNode(TypeKind        type,
@@ -85,12 +95,27 @@ int TypeAttrNode::getUid() {
     return uid;
 }
 
+int TypeAttrNode::getLineNumber() {
+    return line_no;
+}
+
 std::string TypeAttrNode::getName() {
     return name;
 }
 
 TypeKind TypeAttrNode::getType() {
     return root_type;
+}
+
+std::string TypeAttrNode::getTypeString() {
+    switch (root_type) {
+        case basic: return basic_attr->getTypeString();
+        case ordinal: return ord_attr->getTypeString();
+        case structured: return struct_attr->getTypeString();
+        case pointer: return ptr_attr->getTypeString();
+        case type_identifier: return getName();
+    }
+    return "";
 }
 
 BasicAttrNode *TypeAttrNode::getBasicAttrNode() {
@@ -159,17 +184,25 @@ std::string TypeAttrNode::genVizCode(int run) {
 }
 
 void TypeAttrNode::translateId() {
-    switch (root_type) {
-        case basic: break;  // nothing to do
-        case ordinal: ord_attr->translateId(); break;
-        case structured: struct_attr->translateId(); break;
-        case pointer: ptr_attr->translateId(); break;
-        case type_identifier: break;  // done in upper level
+    try {
+        switch (root_type) {
+            case basic: break;  // nothing to do
+            case ordinal: ord_attr->translateId(); break;
+            case structured: struct_attr->translateId(); break;
+            case pointer: ptr_attr->translateId(); break;
+            case type_identifier: break;  // done in upper level
+        }
+    } catch (UndefineError &e) {
+        throw e;
     }
 }
 
 bool TypeAttrNode::genSymbolTable() {
-    if (root_type == ordinal) return ord_attr->genSymbolTable();
+    try {
+        if (root_type == ordinal) return ord_attr->genSymbolTable();
+    } catch (RedefineError &e) {
+        throw e;
+    }
     return true;
 }
 
@@ -184,6 +217,7 @@ bool TypeAttrNode::isTypeEqual(TypeAttrNode *type, bool use_struct) {
         case type_identifier: {
             TypeAttrNode *lut_this = symbol_table.findTypeSymbol(name);
             TypeAttrNode *lut_type = symbol_table.findTypeSymbol(name);
+            if (lut_this == nullptr || lut_type == nullptr) throw UndefineError(line_no, name);
             return lut_this->isTypeEqual(lut_type);
         }
     }
@@ -205,6 +239,13 @@ int TypeAttrListNode::getUid() {
 
 int TypeAttrListNode::getDim() {
     return type_attrs.size();
+}
+
+std::string TypeAttrListNode::getTypeString() {
+    std::string result = "";
+    if (!type_attrs.empty()) result += type_attrs.at(0)->getTypeString();
+    for (int i = 1; i <= type_attrs.size(); i++) result += "," + type_attrs.at(i)->getTypeString();
+    return result;
 }
 
 std::vector<TypeAttrNode *> TypeAttrListNode::getAttrList() {
@@ -235,16 +276,30 @@ std::string TypeAttrListNode::genVizCode(int run) {
 }
 
 void TypeAttrListNode::translateId() {
-    for (int i = 0; i < type_attrs.size(); i++) {
-        type_attrs.at(i) = symbol_table.translateTypeId(type_attrs.at(i));
-        type_attrs.at(i)->translateId();
-    }
+    for (int i = 0; i < type_attrs.size(); i++) try {
+            type_attrs.at(i) = symbol_table.translateTypeId(type_attrs.at(i));
+            type_attrs.at(i)->translateId();
+        } catch (UndefineError &e) {
+            throw e;
+        }
 }
 
 bool TypeAttrListNode::isTypeEqual(TypeAttrListNode *type) {
     if (type_attrs.size() != type->type_attrs.size()) return false;
     for (int i = 0; i < type_attrs.size(); i++)
         if (!type_attrs.at(i)->isTypeEqual(type->type_attrs.at(i))) return false;
+    return true;
+}
+
+bool TypeAttrListNode::testIndexType(const std::vector<ExprNode *> &indices) {
+    if (type_attrs.size() != indices.size())
+        throw IndexDimensionError(line_no, type_attrs.size(), indices.size());
+    for (int i = 0; i < type_attrs.size(); i++)
+        if (!type_attrs.at(i)->isTypeEqual(indices.at(i)->getResultType()))
+            throw IndexTypeError(line_no,
+                                 i + 1,
+                                 type_attrs.at(i)->getTypeString(),
+                                 indices.at(i)->getResultType()->getTypeString());
     return true;
 }
 
@@ -258,6 +313,16 @@ BasicTypeKind BasicAttrNode::getType() {
     return type;
 }
 
+std::string BasicAttrNode::getTypeString() {
+    switch (type) {
+        case boolean: return "boolean";
+        case integer: return "integer";
+        case real: return "real";
+        case character: return "character";
+    }
+    return "";
+}
+
 int BasicAttrNode::getLength() {
     return ALIGN_LEN;
 }
@@ -267,11 +332,7 @@ int BasicAttrNode::getOffset() {
 }
 
 std::string BasicAttrNode::getNodeInfo() {
-    if (type == boolean) return "boolean";
-    if (type == integer) return "integer";
-    if (type == real) return "real";
-    if (type == character) return "character";
-    return "unkown type";
+    return getTypeString();
 }
 
 std::string BasicAttrNode::genVizCode(int run) {
@@ -299,6 +360,10 @@ int OrdAttrNode::getUid() {
     return uid;
 }
 
+std::string OrdAttrNode::getTypeString() {
+    return is_subrange ? subrange_attr->getTypeString() : enum_attr->getTypeString();
+}
+
 int OrdAttrNode::getLength() {
     return is_subrange ? subrange_attr->getLength() : enum_attr->getLength();
 }
@@ -324,11 +389,19 @@ std::string OrdAttrNode::genVizCode(int run) {
 }
 
 void OrdAttrNode::translateId() {
-    if (is_subrange) subrange_attr->translateId();
+    try {
+        if (is_subrange) subrange_attr->translateId();
+    } catch (UndefineError &e) {
+        throw e;
+    }
 }
 
 bool OrdAttrNode::genSymbolTable() {
-    if (!is_subrange) return enum_attr->genSymbolTable();
+    try {
+        if (!is_subrange) return enum_attr->genSymbolTable();
+    } catch (RedefineError &e) {
+        throw e;
+    }
     return true;
 }
 
@@ -348,6 +421,11 @@ SubrangeAttrNode::SubrangeAttrNode(ExprNode *lb, ExprNode *ub)
 
 int SubrangeAttrNode::getUid() {
     return uid;
+}
+
+std::string SubrangeAttrNode::getTypeString() {
+    return low_bound->getResultType()->getTypeString() + ".." +
+           up_bound->getResultType()->getTypeString();
 }
 
 int SubrangeAttrNode::getLength() {
@@ -372,8 +450,12 @@ std::string SubrangeAttrNode::genVizCode(int run) {
 }
 
 void SubrangeAttrNode::translateId() {
-    low_bound = symbol_table.translateConstId(low_bound);
-    up_bound  = symbol_table.translateConstId(up_bound);
+    try {
+        low_bound = symbol_table.translateConstId(low_bound);
+        up_bound  = symbol_table.translateConstId(up_bound);
+    } catch (UndefineError &e) {
+        throw e;
+    }
 }
 
 bool SubrangeAttrNode::isTypeEqual(SubrangeAttrNode *type) {
@@ -382,13 +464,18 @@ bool SubrangeAttrNode::isTypeEqual(SubrangeAttrNode *type) {
     return true;
 }
 
-EnumAttrNode::EnumAttrNode(std::vector<ExprNode *> exprs) : uid(++global_uid), line_no(yylineno) {
+EnumAttrNode::EnumAttrNode(std::vector<ExprNode *> exprs)
+        : uid(++global_uid), line_no(yylineno), is_sym_gen(false) {
     items.clear();
     for (ExprNode *expr : exprs) items.push_back(expr);
 }
 
 int EnumAttrNode::getUid() {
     return uid;
+}
+
+std::string EnumAttrNode::getTypeString() {
+    return "enum";
 }
 
 int EnumAttrNode::getLength() {
@@ -416,12 +503,14 @@ std::string EnumAttrNode::genVizCode(int run) {
 }
 
 bool EnumAttrNode::genSymbolTable() {
-    bool result = true;
-    for (int i = 0; i < items.size(); i++)
-        result &= symbol_table.addSymbol(items.at(i)->getIdNode()->getName(),
-                                         new ConstDefNode(items.at(i)->getIdNode()->getName(),
-                                                          new ExprNode(new LiteralNode(i))));
-    return result;
+    if (is_sym_gen) return true;
+    is_sym_gen = true;
+    for (int i = 0; i < items.size(); i++) {
+        std::string id = items.at(i)->getIdNode()->getName();
+        if (symbol_table.existSymbol(id)) throw RedefineError(items.at(i)->getLineNumber(), id);
+        symbol_table.addSymbol(id, new ConstDefNode(id, new ExprNode(new LiteralNode(i))));
+    }
+    return true;
 }
 
 bool EnumAttrNode::isTypeEqual(EnumAttrNode *type) {
@@ -438,6 +527,10 @@ StructAttrNode::StructAttrNode(RecordAttrNode *r_a)
 
 int StructAttrNode::getUid() {
     return uid;
+}
+
+std::string StructAttrNode::getTypeString() {
+    return is_array ? array_attr->getTypeString() : record_attr->getTypeString();
 }
 
 ArrayAttrNode *StructAttrNode::getArrayAttr() {
@@ -469,10 +562,11 @@ std::string StructAttrNode::genVizCode(int run) {
 }
 
 void StructAttrNode::translateId() {
-    if (is_array)
-        array_attr->translateId();
-    else
-        record_attr->translateId();
+    try {
+        is_array ? array_attr->translateId() : record_attr->translateId();
+    } catch (UndefineError &e) {
+        throw e;
+    }
 }
 
 bool StructAttrNode::isTypeEqual(StructAttrNode *type) {
@@ -500,6 +594,10 @@ TypeAttrNode *ArrayAttrNode::getElementType() {
     return element_type;
 }
 
+std::string ArrayAttrNode::getTypeString() {
+    return "[" + index_type->getTypeString() + "] of " + element_type->getTypeString();
+}
+
 int ArrayAttrNode::getLength() {
     return index_type->getSize() * element_type->getLength();
 }
@@ -518,14 +616,29 @@ std::string ArrayAttrNode::genVizCode(int run) {
 }
 
 void ArrayAttrNode::translateId() {
-    element_type = symbol_table.translateTypeId(element_type);
-    element_type->translateId();
-    index_type->translateId();
+    try {
+        element_type = symbol_table.translateTypeId(element_type);
+        element_type->translateId();
+        index_type->translateId();
+    } catch (UndefineError &e) {
+        throw e;
+    }
 }
 
 bool ArrayAttrNode::isTypeEqual(ArrayAttrNode *type) {
     if (!element_type->isTypeEqual(type->element_type)) return false;
     return index_type->isTypeEqual(type->index_type);
+}
+
+bool ArrayAttrNode::testIndexType(ExprListNode *indices) {
+    try {
+        index_type->testIndexType(indices->getExprList());
+    } catch (IndexDimensionError &e) {
+        throw e;
+    } catch (IndexTypeError &e) {
+        throw e;
+    }
+    return true;
 }
 
 RecordAttrNode::RecordAttrNode(VarDefListNode *d) : uid(++global_uid), line_no(yylineno), defs(d) {}
@@ -536,6 +649,10 @@ int RecordAttrNode::getUid() {
 
 int RecordAttrNode::getDim() {
     return defs->getDim();
+}
+
+std::string RecordAttrNode::getTypeString() {
+    return defs->getTypeString();
 }
 
 VarDefNode *RecordAttrNode::getVarDef(std::string id) {
@@ -558,7 +675,11 @@ std::string RecordAttrNode::genVizCode(int run) {
 }
 
 void RecordAttrNode::translateId() {
-    defs->translateId();
+    try {
+        defs->translateId();
+    } catch (UndefineError &e) {
+        throw e;
+    }
 }
 
 bool RecordAttrNode::isTypeEqual(RecordAttrNode *type) {
@@ -573,6 +694,10 @@ PtrAttrNode::PtrAttrNode(TypeAttrNode *e)
 
 int PtrAttrNode::getUid() {
     return uid;
+}
+
+std::string PtrAttrNode::getTypeString() {
+    return "pointer to " + base_attr->getTypeString();
 }
 
 int PtrAttrNode::getLength() {
@@ -591,5 +716,9 @@ std::string PtrAttrNode::genVizCode(int run) {
 }
 
 void PtrAttrNode::translateId() {
-    base_attr = symbol_table.translateTypeId(base_attr);
+    try {
+        base_attr = symbol_table.translateTypeId(base_attr);
+    } catch (UndefineError &e) {
+        throw e;
+    }
 }

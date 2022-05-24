@@ -197,19 +197,23 @@ std::string StmtNode::genVizCode(int run) {
 }
 
 bool StmtNode::testExprType() {
-    switch (type) {
-        case SK_Compound: return compound_stmt->testExprType();
-        case SK_Assign: return assign_stmt->testExprType();
-        case SK_If: return if_stmt->testExprType();
-        case SK_For: return for_stmt->testExprType();
-        case SK_While: return while_stmt->testExprType();
-        case SK_Repeat: return repeat_stmt->testExprType();
-        case SK_Switch: return switch_stmt->testExprType();
-        case SK_Func: return func_stmt->testExprType();
-        case SK_Read: return read_stmt->testExprType();
-        case SK_Write: return write_stmt->testExprType();
+    try {
+        switch (type) {
+            case SK_Compound: return compound_stmt->testExprType();
+            case SK_Assign: return assign_stmt->testExprType();
+            case SK_If: return if_stmt->testExprType();
+            case SK_For: return for_stmt->testExprType();
+            case SK_While: return while_stmt->testExprType();
+            case SK_Repeat: return repeat_stmt->testExprType();
+            case SK_Switch: return switch_stmt->testExprType();
+            case SK_Func: return func_stmt->testExprType();
+            case SK_Read: return read_stmt->testExprType();
+            case SK_Write: return write_stmt->testExprType();
+        }
+    } catch (Exception &e) {
+        error_handler.addMsg(e);
     }
-    return false;
+    return true;
 }
 
 std::string StmtNode::genAsmCode() {
@@ -239,8 +243,11 @@ std::string StmtListNode::genVizCode(int run) {
 }
 
 bool StmtListNode::testExprType() {
-    for (StmtNode *stmt : stmts)
-        if (!stmt->testExprType()) return false;
+    for (StmtNode *stmt : stmts) try {
+            stmt->testExprType();
+        } catch (Exception &e) {
+            error_handler.addMsg(e);
+        }
     return true;
 }
 
@@ -267,7 +274,12 @@ std::string AssignStmtNode::genVizCode(int run) {
 }
 
 bool AssignStmtNode::testExprType() {
-    return dst->getResultType()->isTypeEqual(src->getResultType());
+    TypeAttrNode *dst_type = dst->getResultType();
+    TypeAttrNode *src_type = src->getResultType();
+    if (!dst_type->isTypeEqual(src_type))
+        throw ExpressionTypeError(
+            line_no, to_string(dst_type->getTypeString()), to_string(src_type->getTypeString()));
+    return true;
 }
 
 IfStmtNode::IfStmtNode(ExprNode *e, StmtNode *t_p, StmtNode *e_p)
@@ -292,10 +304,14 @@ std::string IfStmtNode::genVizCode(int run) {
 
 bool IfStmtNode::testExprType() {
     TypeAttrNode *type = condition->getResultType();
-    if (type->getType() != basic) return false;
-    if (type->getBasicAttrNode()->getType() != boolean) return false;
-    if (!then_part->testExprType()) return false;
-    if (else_part != nullptr && !else_part->testExprType()) return false;
+    if (type->getType() != basic || type->getBasicAttrNode()->getType() != boolean)
+        throw ExpressionTypeError(line_no, "boolean", type->getName());
+    try {
+        then_part->testExprType();
+        if (else_part != nullptr) else_part->testExprType();
+    } catch (ExpressionTypeError &e) {
+        throw e;
+    }
     return true;
 }
 
@@ -329,8 +345,16 @@ std::string ForStmtNode::genVizCode(int run) {
 }
 
 bool ForStmtNode::testExprType() {
-    if (!start_expr->getResultType()->isTypeEqual(end_expr->getResultType())) return false;
-    return body_part->testExprType();
+    TypeAttrNode *start_type = start_expr->getResultType();
+    TypeAttrNode *end_type   = end_expr->getResultType();
+    if (!start_type->isTypeEqual(end_type))
+        throw ExpressionTypeError(line_no, start_type->getName(), end_type->getName());
+    try {
+        body_part->testExprType();
+    } catch (ExpressionTypeError &e) {
+        throw e;
+    }
+    return true;
 }
 
 WhileStmtNode::WhileStmtNode(ExprNode *c, StmtNode *b_p)
@@ -351,9 +375,14 @@ std::string WhileStmtNode::genVizCode(int run) {
 
 bool WhileStmtNode::testExprType() {
     TypeAttrNode *type = condition->getResultType();
-    if (type->getType() != basic) return false;
-    if (type->getBasicAttrNode()->getType() != boolean) return false;
-    return body_part->testExprType();
+    if (type->getType() != basic || type->getBasicAttrNode()->getType() != boolean)
+        throw ExpressionTypeError(line_no, "boolean", type->getName());
+    try {
+        body_part->testExprType();
+    } catch (ExpressionTypeError &e) {
+        throw e;
+    }
+    return true;
 }
 
 RepeatStmtNode::RepeatStmtNode(StmtListNode *b_p, ExprNode *c)
@@ -374,9 +403,14 @@ std::string RepeatStmtNode::genVizCode(int run) {
 
 bool RepeatStmtNode::testExprType() {
     TypeAttrNode *type = condition->getResultType();
-    if (type->getType() != basic) return false;
-    if (type->getBasicAttrNode()->getType() != boolean) return false;
-    return body_part->testExprType();
+    if (type->getType() != basic || type->getBasicAttrNode()->getType() != boolean)
+        throw ExpressionTypeError(line_no, "boolean", type->getName());
+    try {
+        body_part->testExprType();
+    } catch (ExpressionTypeError &e) {
+        throw e;
+    }
+    return true;
 }
 
 CaseStmtNode::CaseStmtNode(ConstListNode *c_l, StmtNode *b_p)
@@ -397,7 +431,12 @@ std::string CaseStmtNode::genVizCode(int run) {
 
 bool CaseStmtNode::testExprType() {
     // TODO incomplete, what about const_list?
-    return body_part->testExprType();
+    try {
+        body_part->testExprType();
+    } catch (ExpressionTypeError &e) {
+        throw e;
+    }
+    return true;
 }
 
 CaseListNode::CaseListNode() : uid(++global_uid), line_no(yylineno) {
@@ -427,8 +466,11 @@ std::string CaseListNode::genVizCode(int run) {
 }
 
 bool CaseListNode::testExprType() {
-    for (CaseStmtNode *stmt : case_list)
-        if (!stmt->testExprType()) return false;
+    for (CaseStmtNode *stmt : case_list) try {
+            stmt->testExprType();
+        } catch (ExpressionTypeError &e) {
+            throw e;
+        }
     return true;
 }
 
@@ -449,7 +491,12 @@ std::string SwitchStmtNode::genVizCode(int run) {
 }
 
 bool SwitchStmtNode::testExprType() {
-    return case_list->testExprType();
+    try {
+        case_list->testExprType();
+    } catch (ExpressionTypeError &e) {
+        throw e;
+    }
+    return true;
 }
 
 FuncStmtNode::FuncStmtNode(FuncNode *f) : uid(++global_uid), line_no(yylineno), func(f) {}
@@ -466,7 +513,14 @@ std::string FuncStmtNode::genVizCode(int run) {
 }
 
 bool FuncStmtNode::testExprType() {
-    return func->test_arg_type();
+    try {
+        func->testArgType();
+    } catch (ArgumentNumberError &e) {
+        error_handler.addMsg(e);
+    } catch (ArgumentTypeError &e) {
+        error_handler.addMsg(e);
+    }
+    return true;
 }
 
 ReadStmtNode::ReadStmtNode(ExprListNode *e) : uid(++global_uid), line_no(yylineno), exprs(e) {}
@@ -483,6 +537,7 @@ std::string ReadStmtNode::genVizCode(int run) {
 }
 
 bool ReadStmtNode::testExprType() {
+    // TODO
     return true;
 }
 
@@ -501,5 +556,6 @@ std::string WriteStmtNode::genVizCode(int run) {
 }
 
 bool WriteStmtNode::testExprType() {
+    // TODO
     return true;
 }

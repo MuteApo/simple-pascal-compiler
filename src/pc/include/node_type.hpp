@@ -102,9 +102,13 @@ class TypeAttrNode {
 
     int getUid();
 
+    int getLineNumber();
+
     std::string getName();
 
     TypeKind getType();
+
+    std::string getTypeString();
 
     BasicAttrNode *getBasicAttrNode();
 
@@ -143,6 +147,8 @@ class TypeAttrListNode {
 
     int getDim();
 
+    std::string getTypeString();
+
     std::vector<TypeAttrNode *> getAttrList();
 
     int getSize();
@@ -154,6 +160,8 @@ class TypeAttrListNode {
     void translateId();
 
     bool isTypeEqual(TypeAttrListNode *type);
+
+    bool testIndexType(const std::vector<ExprNode *> &indices);
 };
 
 class BasicAttrNode {
@@ -169,6 +177,8 @@ class BasicAttrNode {
     int getUid();
 
     BasicTypeKind getType();
+
+    std::string getTypeString();
 
     int getLength();
 
@@ -199,6 +209,8 @@ class OrdAttrNode {
 
     int getUid();
 
+    std::string getTypeString();
+
     int getLength();
 
     int getOffset();
@@ -227,6 +239,8 @@ class SubrangeAttrNode {
 
     int getUid();
 
+    std::string getTypeString();
+
     int getLength();
 
     int getOffset();
@@ -244,6 +258,7 @@ class EnumAttrNode {
   private:
     int                     uid;
     int                     line_no;
+    bool                    is_sym_gen;
     std::vector<ExprNode *> items;
     friend class OrdAttrNode;
 
@@ -251,6 +266,8 @@ class EnumAttrNode {
     EnumAttrNode(std::vector<ExprNode *> exprs);
 
     int getUid();
+
+    std::string getTypeString();
 
     int getLength();
 
@@ -281,6 +298,8 @@ class StructAttrNode {
     StructAttrNode(RecordAttrNode *r_a);
 
     int getUid();
+
+    std::string getTypeString();
 
     ArrayAttrNode *getArrayAttr();
 
@@ -324,6 +343,8 @@ class ArrayAttrNode {
 
     TypeAttrNode *getElementType();
 
+    std::string getTypeString();
+
     int getLength();
 
     int getOffset();
@@ -333,6 +354,8 @@ class ArrayAttrNode {
     void translateId();
 
     bool isTypeEqual(ArrayAttrNode *type);
+
+    bool testIndexType(ExprListNode *indices);
 };
 
 class RecordAttrNode {
@@ -347,6 +370,8 @@ class RecordAttrNode {
     int getUid();
 
     int getDim();
+
+    std::string getTypeString();
 
     VarDefNode *getVarDef(std::string id);
 
@@ -372,6 +397,8 @@ class PtrAttrNode {
     PtrAttrNode(TypeAttrNode *e);
 
     int getUid();
+
+    std::string getTypeString();
 
     int getLength();
 

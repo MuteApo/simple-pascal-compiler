@@ -28,13 +28,15 @@ class ParamDefNode {
 
     int getUid();
 
+    VarDefNode *getVarDef();
+
     std::string getNodeInfo();
 
     std::string genVizCode(int run);
 
     bool genSymbolTable(int order);
 
-    bool test_arg_type(TypeAttrNode *type);
+    bool testArgType(TypeAttrNode *type);
 };
 
 class ParamDefListNode {
@@ -59,7 +61,7 @@ class ParamDefListNode {
 
     bool genSymbolTable();
 
-    bool test_arg_type(std::vector<ExprNode *> args);
+    bool testArgType(const std::vector<ExprNode *> &args);
 };
 
 class FuncDefNode {
@@ -78,6 +80,8 @@ class FuncDefNode {
 
     int getUid();
 
+    int getLineNumber();
+
     TypeAttrNode *getRetValType();
 
     bool hasDecl();
@@ -86,7 +90,7 @@ class FuncDefNode {
 
     bool genSymbolTable();
 
-    bool test_arg_type(ExprListNode *args);
+    bool testArgType(ExprListNode *args);
 
     std::string genAsmCode();
 };

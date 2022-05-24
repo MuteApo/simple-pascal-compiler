@@ -1,4 +1,5 @@
 #include "include/symbol_table.hpp"
+#include "include/exception.hpp"
 #include <iostream>
 
 SymbolTable symbol_table;
@@ -67,7 +68,8 @@ bool SymbolTable::addSymbol(std::string id, ConstDefNode *c_d) {
         ConstDeclMap.insert(make_pair(id, std::list<ConstTableItem>()));
         item = ConstDeclMap.find(id);
     }
-    if (!item->second.empty() && item->second.front().level >= currLevel) return false;
+    if (!item->second.empty() && item->second.front().level >= currLevel)
+        throw RedefineError(c_d->getLineNumber(), id);
     item->second.push_front(ConstTableItem(id, currLevel, c_d));
     return true;
 }
@@ -77,7 +79,8 @@ bool SymbolTable::addSymbol(std::string id, TypeAttrNode *t_a) {
         TypeDeclMap.insert(make_pair(id, std::list<TypeTableItem>()));
         item = TypeDeclMap.find(id);
     }
-    if (!item->second.empty() && item->second.front().level >= currLevel) return false;
+    if (!item->second.empty() && item->second.front().level >= currLevel)
+        throw RedefineError(t_a->getLineNumber(), id);
     item->second.push_front(TypeTableItem(id, currLevel, t_a));
     return true;
 }
@@ -87,7 +90,8 @@ bool SymbolTable::addSymbol(std::string id, VarDefNode *v_d, int ord) {
         VarDeclMap.insert(make_pair(id, std::list<VarTableItem>()));
         item = VarDeclMap.find(id);
     }
-    if (!item->second.empty() && item->second.front().level >= currLevel) return false;
+    if (!item->second.empty() && item->second.front().level >= currLevel)
+        throw RedefineError(v_d->getLineNumber(), id);
     item->second.push_front(VarTableItem(id, currLevel, v_d, ord));
     return true;
 }
@@ -97,7 +101,8 @@ bool SymbolTable::addSymbol(std::string id, FuncDefNode *f_d) {
         FuncDeclMap.insert(make_pair(id, std::list<FuncTableItem>()));
         item = FuncDeclMap.find(id);
     }
-    if (!item->second.empty() && item->second.front().level >= currLevel) return false;
+    if (!item->second.empty() && item->second.front().level >= currLevel)
+        throw RedefineError(f_d->getLineNumber(), id);
     item->second.push_front(FuncTableItem(id, currLevel, f_d));
     return true;
 }
@@ -138,6 +143,14 @@ VarDefNode *SymbolTable::findVarSymbol(std::string id) {
 FuncDefNode *SymbolTable::findFuncSymbol(std::string id) {
     auto item = FuncDeclMap.find(id);
     return item == FuncDeclMap.end() ? nullptr : item->second.front().func_def;
+}
+
+bool SymbolTable::existSymbol(std::string id) {
+    if (findConstSymbol(id) != nullptr) return true;
+    if (findTypeSymbol(id) != nullptr) return true;
+    if (findVarSymbol(id) != nullptr) return true;
+    if (findFuncSymbol(id) != nullptr) return true;
+    return false;
 }
 
 std::vector<ConstDefNode *> SymbolTable::getValidConsts() {
@@ -186,20 +199,14 @@ std::set<VarTableItem> SymbolTable::getVarScope(int level) {
 ExprNode *SymbolTable::translateConstId(ExprNode *id) {
     if (id->getNodeType() != el_id) return id;
     ConstDefNode *const_def = findConstSymbol(id->getIdNode()->getName());
-    if (const_def == nullptr) {
-        // TODO syntax error: symbol not found
-        return nullptr;
-    }
+    if (const_def == nullptr) throw UndefineError(id->getLineNumber(), id->getIdNode()->getName());
     return const_def->getExpr();
 }
 
 TypeAttrNode *SymbolTable::translateTypeId(TypeAttrNode *id) {
     if (id->getType() != type_identifier) return id;
     TypeAttrNode *type_attr = findTypeSymbol(id->getName());
-    if (type_attr == nullptr) {
-        // TODO syntax error: symbol not found
-        return nullptr;
-    }
+    if (type_attr == nullptr) throw UndefineError(id->getLineNumber(), id->getName());
     return type_attr;
 }
 
@@ -226,14 +233,14 @@ void SymbolTable::printTable() {
 }
 
 void SymbolTable::enterScope() {
-    std::cout << "Before Enter Scope, ";
-    printTable();
+    // std::cout << "Before Enter Scope, ";
+    // printTable();
     currLevel++;
 }
 
 void SymbolTable::leaveScope() {
-    std::cout << "Before Leave Scope, ";
-    printTable();
+    // std::cout << "Before Leave Scope, ";
+    // printTable();
     popConstSymbol();
     popTypeSymbol();
     popVarSymbol();

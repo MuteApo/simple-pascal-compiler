@@ -12,6 +12,10 @@ int VarDefNode::getUid() {
     return uid;
 }
 
+int VarDefNode::getLineNumber() {
+    return line_no;
+}
+
 std::string VarDefNode::getName() {
     return name;
 }
@@ -32,13 +36,23 @@ std::string VarDefNode::genVizCode(int run) {
 }
 
 void VarDefNode::translateId() {
-    type = symbol_table.translateTypeId(type);
-    type->translateId();
+    try {
+        type = symbol_table.translateTypeId(type);
+        type->translateId();
+    } catch (UndefineError &e) {
+        error_handler.addMsg(e);
+        throw e;
+    }
 }
 
 bool VarDefNode::genSymbolTable(int ord) {
-    type = symbol_table.translateTypeId(type);
-    type->translateId();
+    try {
+        type = symbol_table.translateTypeId(type);
+        type->translateId();
+    } catch (UndefineError &e) {
+        throw e;
+    }
+    if (symbol_table.existSymbol(name)) throw RedefineError(line_no, name);
     return symbol_table.addSymbol(name, this, ord);
 }
 
@@ -58,6 +72,14 @@ int VarDefListNode::getUid() {
 
 int VarDefListNode::getDim() {
     return var_defs.size();
+}
+
+std::string VarDefListNode::getTypeString() {
+    std::string result = "";
+    if (!var_defs.empty()) result += var_defs.at(0)->getType()->getTypeString();
+    for (int i = 1; i < var_defs.size(); i++)
+        result += ";" + var_defs.at(i)->getType()->getTypeString();
+    return result;
 }
 
 std::vector<VarDefNode *> &VarDefListNode::getVarList() {
@@ -109,19 +131,24 @@ std::string VarDefListNode::genVizCode(int run) {
 }
 
 void VarDefListNode::translateId() {
-    for (int i = 0; i < var_defs.size(); i++) var_defs.at(i)->translateId();
+    for (int i = 0; i < var_defs.size(); i++) try {
+            var_defs.at(i)->translateId();
+        } catch (UndefineError &e) {
+            throw e;
+        }
 }
 
 bool VarDefListNode::genSymbolTable() {
-    bool result       = true;
-    int  lvars_length = 0;
-    int  ord          = 0;
-    for (VarDefNode *var : var_defs) {
-        result &= var->genSymbolTable(ord++);
-        lvars_length += var->getType()->getLength();
-    }
+    int lvars_length = 0;
+    int ord          = 0;
+    for (VarDefNode *var : var_defs) try {
+            var->genSymbolTable(ord++);
+            lvars_length += var->getType()->getLength();
+        } catch (RedefineError &e) {
+            throw e;
+        }
     ar_lvars_length.push_back(lvars_length);
-    return result;
+    return true;
 }
 
 bool VarDefListNode::isTypeEqual(VarDefListNode *rhs) {
