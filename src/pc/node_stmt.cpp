@@ -1,6 +1,6 @@
 #include "include/node_stmt.hpp"
 
-StmtNode::StmtNode(stmt_type       t,
+StmtNode::StmtNode(StmtType        t,
                    StmtListNode   *c_s,
                    AssignStmtNode *a_s,
                    IfStmtNode     *i_s,

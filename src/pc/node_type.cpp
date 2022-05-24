@@ -56,7 +56,7 @@ bool TypeDefListNode::genSymbolTable() {
     return result;
 }
 
-TypeAttrNode::TypeAttrNode(type_kind       type,
+TypeAttrNode::TypeAttrNode(TypeKind        type,
                            std::string     id,
                            BasicAttrNode  *b_attr,
                            OrdAttrNode    *o_attr,
@@ -89,7 +89,7 @@ std::string TypeAttrNode::getName() {
     return name;
 }
 
-type_kind TypeAttrNode::getType() {
+TypeKind TypeAttrNode::getType() {
     return root_type;
 }
 
@@ -248,13 +248,13 @@ bool TypeAttrListNode::isTypeEqual(TypeAttrListNode *type) {
     return true;
 }
 
-BasicAttrNode::BasicAttrNode(basic_type_kind t) : uid(++global_uid), line_no(yylineno), type(t) {}
+BasicAttrNode::BasicAttrNode(BasicTypeKind t) : uid(++global_uid), line_no(yylineno), type(t) {}
 
 int BasicAttrNode::getUid() {
     return uid;
 }
 
-basic_type_kind BasicAttrNode::getType() {
+BasicTypeKind BasicAttrNode::getType() {
     return type;
 }
 
@@ -343,8 +343,8 @@ SubrangeAttrNode::SubrangeAttrNode(ExprNode *lb, ExprNode *ub)
           line_no(yylineno),
           low_bound(lb),
           up_bound(ub),
-          is_low_id(lb->getExprType() == el_id),
-          is_up_id(ub->getExprType() == el_id) {}
+          is_low_id(lb->getNodeType() == el_id),
+          is_up_id(ub->getNodeType() == el_id) {}
 
 int SubrangeAttrNode::getUid() {
     return uid;

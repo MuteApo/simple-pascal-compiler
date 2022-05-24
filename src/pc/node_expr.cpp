@@ -1,7 +1,7 @@
 #include "include/node_expr.hpp"
 #include "include/symbol_table.hpp"
 
-ExprNode::ExprNode(expr_node_type nt,
+ExprNode::ExprNode(ExprNodeType   nt,
                    ExprEvalType   et,
                    ExprNode      *op_1,
                    ExprNode      *op_2,
@@ -35,8 +35,34 @@ int ExprNode::getUid() {
     return uid;
 }
 
-expr_node_type ExprNode::getExprType() {
+ExprNodeType ExprNode::getNodeType() {
     return node_type;
+}
+
+std::string ExprNode::getExprTypeString(ExprEvalType e) {
+    switch (e) {
+        case EK_Add: return "Add";
+        case EK_Sub: return "Sub";
+        case EK_Mul: return "Mul";
+        case EK_Div: return "Div";
+        case EK_Mod: return "Mod";
+        case EK_Fdiv: return "Float Div";
+        case EK_Eq: return "=";
+        case EK_Ne: return "<>";
+        case EK_Lt: return "<";
+        case EK_Gt: return ">";
+        case EK_Le: return "<=";
+        case EK_Ge: return ">=";
+        case EK_Not: return "!";
+        case EK_And: return "&";
+        case EK_Or: return "|";
+        case EK_Xor: return "^";
+        case EK_Shl: return "<<";
+        case EK_Shr: return ">>";
+        case EK_In: return "In";
+        case EK_Access: return "Access";
+    }
+    return "";
 }
 
 IdNode *ExprNode::getIdNode() {
@@ -53,7 +79,7 @@ VarAccessNode *ExprNode::getVarAccessNode() {
 
 std::string ExprNode::getNodeInfo() {
     std::string result = "ExprNode\n";
-    if (node_type == el_nonleaf) result += enum2str(eval_type);
+    if (node_type == el_nonleaf) result += getExprTypeString(eval_type);
     return result;
 }
 
@@ -249,7 +275,7 @@ std::string LiteralNode::toString() {
     return "";
 }
 
-VarAccessNode::VarAccessNode(var_access_type t, ExprNode *h, ExprListNode *i_l, ExprNode *m)
+VarAccessNode::VarAccessNode(VarAccessType t, ExprNode *h, ExprListNode *i_l, ExprNode *m)
         : uid(++global_uid),
           line_no(yylineno),
           type(t),
@@ -289,7 +315,7 @@ std::string VarAccessNode::genVizCode(int run) {
 
 TypeAttrNode *VarAccessNode::getResultType() {
     TypeAttrNode *type_attr =
-        host->getExprType() == el_literal ?
+        host->getNodeType() == el_literal ?
             symbol_table.findVarSymbol(host->getIdNode()->getName())->getType() :
             host->getResultType();
     switch (type) {

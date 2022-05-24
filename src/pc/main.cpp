@@ -1,3 +1,4 @@
+#include "include/asmgen.hpp"
 #include "include/node_block.hpp"
 #include "include/node_const.hpp"
 #include "include/node_expr.hpp"
@@ -5,13 +6,9 @@
 #include "include/node_stmt.hpp"
 #include "include/node_type.hpp"
 #include "include/node_var.hpp"
-// #include "include/semantics.hpp"
 #include "parser.tab.h"
 #include <cstring>
-#include <fstream>
 #include <iostream>
-
-#include "include/asmgen.hpp"
 
 extern ProgramNode *root;
 

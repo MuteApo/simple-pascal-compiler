@@ -1,5 +1,5 @@
-#ifndef _NODE_TYPE_H_
-#define _NODE_TYPE_H_
+#ifndef __NODE_TYPE_H__
+#define __NODE_TYPE_H__
 
 class TypeDefNode;
 class TypeDefListNode;
@@ -15,9 +15,9 @@ class ArrayAttrNode;
 class RecordAttrNode;
 class PtrAttrNode;
 
+#include "defs.hpp"
 #include "node_expr.hpp"
 #include "node_var.hpp"
-#include "viz.hpp"
 #include <set>
 #include <string>
 #include <vector>
@@ -72,7 +72,7 @@ class TypeAttrNode {
   private:
     int             uid;
     int             line_no;
-    type_kind       root_type;
+    TypeKind        root_type;
     std::string     name;
     BasicAttrNode  *basic_attr;
     OrdAttrNode    *ord_attr;
@@ -88,7 +88,7 @@ class TypeAttrNode {
     friend class PtrAttrNode;
 
   public:
-    TypeAttrNode(type_kind       type,
+    TypeAttrNode(TypeKind        type,
                  std::string     id,
                  BasicAttrNode  *b_attr = nullptr,
                  OrdAttrNode    *o_attr = nullptr,
@@ -104,7 +104,7 @@ class TypeAttrNode {
 
     std::string getName();
 
-    type_kind getType();
+    TypeKind getType();
 
     BasicAttrNode *getBasicAttrNode();
 
@@ -158,17 +158,17 @@ class TypeAttrListNode {
 
 class BasicAttrNode {
   private:
-    int             uid;
-    int             line_no;
-    basic_type_kind type;
+    int           uid;
+    int           line_no;
+    BasicTypeKind type;
     friend class LiteralNode;
 
   public:
-    BasicAttrNode(basic_type_kind t);
+    BasicAttrNode(BasicTypeKind t);
 
     int getUid();
 
-    basic_type_kind getType();
+    BasicTypeKind getType();
 
     int getLength();
 

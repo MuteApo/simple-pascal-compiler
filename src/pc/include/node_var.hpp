@@ -1,12 +1,12 @@
-#ifndef _NODE_VAR_H_
-#define _NODE_VAR_H_
+#ifndef __NODE_VAR_H__
+#define __NODE_VAR_H__
 
 class VarDefNode;
 class VarDefListNode;
 
+#include "defs.hpp"
 #include "node_expr.hpp"
 #include "node_type.hpp"
-#include "viz.hpp"
 #include <string>
 #include <vector>
 

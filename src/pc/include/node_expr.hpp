@@ -1,5 +1,5 @@
-#ifndef _NODE_EXPR_H_
-#define _NODE_EXPR_H_
+#ifndef __NODE_EXPR_H__
+#define __NODE_EXPR_H__
 
 class ExprNode;
 class ExprListNode;
@@ -9,9 +9,9 @@ class IdNode;
 class IdListNode;
 class FuncNode;
 
+#include "defs.hpp"
 #include "node_const.hpp"
 #include "node_type.hpp"
-#include "viz.hpp"
 #include <string>
 #include <vector>
 
@@ -22,7 +22,7 @@ class ExprNode {
   private:
     int            uid;
     int            line_no;
-    expr_node_type node_type;
+    ExprNodeType   node_type;
     ExprEvalType   eval_type;
     ExprNode      *op1, *op2;
     LiteralNode   *literal_attr;
@@ -32,7 +32,7 @@ class ExprNode {
     TypeAttrNode  *res_type;
 
   public:
-    ExprNode(expr_node_type nt,
+    ExprNode(ExprNodeType   nt,
              ExprEvalType   et,
              ExprNode      *op_1,
              ExprNode      *op_2,
@@ -48,7 +48,9 @@ class ExprNode {
 
     int getUid();
 
-    expr_node_type getExprType();
+    ExprNodeType getNodeType();
+
+    std::string getExprTypeString(ExprEvalType e);
 
     IdNode *getIdNode();
 
@@ -130,16 +132,16 @@ class LiteralNode {
 
 class VarAccessNode {
   private:
-    int             uid;
-    int             line_no;
-    var_access_type type;
-    ExprNode       *host;
-    ExprListNode   *index_list;  // array
-    ExprNode       *member;      // record
-    TypeAttrNode   *res_type;
+    int           uid;
+    int           line_no;
+    VarAccessType type;
+    ExprNode     *host;
+    ExprListNode *index_list;  // array
+    ExprNode     *member;      // record
+    TypeAttrNode *res_type;
 
   public:
-    VarAccessNode(var_access_type t, ExprNode *h, ExprListNode *i_l, ExprNode *m);
+    VarAccessNode(VarAccessType t, ExprNode *h, ExprListNode *i_l, ExprNode *m);
     VarAccessNode(ExprNode *h);
     VarAccessNode(ExprNode *h, ExprListNode *indices);
     VarAccessNode(ExprNode *h, ExprNode *m);
