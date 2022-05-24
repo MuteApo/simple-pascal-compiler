@@ -4,8 +4,8 @@
 #include <string>
 
 #include "include/inst2code.hpp"
-#include "include/preproc.hpp"
 #include "include/reader.hpp"
+#include "include/utility.hpp"
 
 using namespace std;
 
@@ -14,9 +14,8 @@ bool read_const(string const_def, string &const_name, int32_t &const_val) {
     stringstream ss(const_def);
     string       name_str, val_str;
     ss >> name_str >> val_str;
-    char   *endptr = nullptr;
-    int32_t val    = strtol(val_str.data(), &endptr, 0);
-    if (val == 0 && endptr == val_str.data()) {
+    int32_t val;
+    if (!is_literal_integer(val_str, val)) {
         cout << "In '.equiv': ";
         cout << "wrong format of constant" << endl;
         return false;
@@ -102,8 +101,7 @@ bool read_inst(string line, string &operation, vector<string> &operands) {
 uint8_t data_align = 1;
 
 bool read_data(string line, vector<string> &hex_strings, uint32_t &size) {
-    // BUG: Comma in string is also substituted
-    replace_all_char(line, ',', ' ');
+    // replace_all_char(line, ',', ' '); // BUG: Comma in string is also substituted
     line = trim(line);
     stringstream ss(line);
     string       mode;
@@ -142,13 +140,13 @@ bool read_data(string line, vector<string> &hex_strings, uint32_t &size) {
             cout << "wrong number of argument" << endl;
             return false;
         }
-        char   *endptr = nullptr;
-        int32_t val    = strtol(align_str.data(), &endptr, 0);
-        if (val == 0 && endptr == align_str.data()) {
+        int32_t val;
+        if (!is_literal_integer(align_str, val)) {
             cout << "In '.data': ";
             cout << "wrong format of argument" << endl;
             return false;
-        } else if (val == 0 || val % 2 != 0) {
+        }
+        if (val <= 0 || val % 2 != 0) {
             cout << "In '.data': ";
             cout << "align value is not times of 2" << endl;
             return false;
@@ -158,9 +156,8 @@ bool read_data(string line, vector<string> &hex_strings, uint32_t &size) {
         string elem;
         size = 0;
         while (ss >> elem) {
-            char   *endptr = nullptr;
-            int32_t val    = strtol(elem.data(), &endptr, 0);
-            if (val == 0 && endptr == elem.data()) {
+            int32_t val;
+            if (!is_literal_integer(elem, val)) {
                 cout << "In '.data': ";
                 cout << "wrong format of element" << endl;
                 return false;
@@ -188,7 +185,7 @@ bool read_data(string line, vector<string> &hex_strings, uint32_t &size) {
             }
         }
     } else {
-        cout << "In .data: ";
+        cout << "In '.data': ";
         cout << "directive not found" << endl;
         return false;
     }

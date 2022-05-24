@@ -6,6 +6,15 @@
 
 using namespace std;
 
+bool is_literal_integer(string s, int32_t &val) {
+    char *endptr = nullptr;
+    val          = strtol(s.data(), &endptr, 0);
+    if (val == 0 && endptr == s.data())
+        return false;
+    else
+        return true;
+}
+
 bool is_blank(char c) {
     if (c == ' ' || c == '\n' || c == '\r' || c == '\t')
         return true;

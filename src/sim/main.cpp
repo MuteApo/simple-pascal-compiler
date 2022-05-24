@@ -18,18 +18,18 @@ void display_help(void) {
 
 int main(int argc, char *argv[]) {
     uint32_t load_base = 0, ram_size = -1, init_pc = 0;
-    bool debug_flag = false;
+    bool     debug_flag = false;
     if (argc <= 2) {
         if (argc == 2 && strcmp(argv[1], "-h") == 0) {
             display_help();
             return 0;
-        } else {
+        } else if (argc < 2 || (argc == 2 && argv[1][0] == '-')) {
             printf("missing binary filename\n");
             return 1;
         }
     }
     string binary_filename = string(argv[1]);
-    FILE *binary_file = fopen(binary_filename.data(), "rb");
+    FILE  *binary_file     = fopen(binary_filename.data(), "rb");
     if (binary_file == NULL) {
         printf("can not open binary file\n");
         return 1;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
             load_base = strtol(argv[i + 1], NULL, 16);
-            load_base &= ~((uint32_t)0b11); // Align to 1 word
+            load_base &= ~((uint32_t)0b11);  // Align to 1 word
             i += 1;
         } else if (strcmp(argv[i], "-r") == 0) {
             if (i + 1 >= argc || argv[i + 1][0] == '-') {

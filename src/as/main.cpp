@@ -3,12 +3,12 @@
 #include <string>
 
 #include "include/inst2code.hpp"
-#include "include/preproc.hpp"
 #include "include/symbol.hpp"
+#include "include/utility.hpp"
 
 using namespace std;
 
-// Suported Pseudo-instructions: la, li, call and load/store with symbol offset
+// Suported Pseudo-instructions: la(non-PIC), li, call and load/store with symbol offset
 
 // All comma is seen as delimiter, which is just as white space
 // Only one instruction in one line, and comma between oprand is optional
@@ -72,11 +72,17 @@ int main(int argc, char *argv[]) {
     split_segment(input_buffer, text_seg, data_seg);
     split_equiv(text_seg, equiv_part);
     split_equiv(data_seg, equiv_part);
-    if (!scan_symbol(equiv_part, text_seg, data_seg)) return 1;
+    if (!scan_symbol(equiv_part, text_seg, data_seg)) {
+        fclose(output_file);
+        remove(output_filename.data());
+        return 1;
+    }
     if (print_symtbl) print_symbol();
-    // printf("%s", data_seg.data());
-    // printf("%s", text_seg.data());
-    gen_hex(output_file, text_seg, data_seg);
+    if (!gen_hex(output_file, text_seg, data_seg)) {
+        fclose(output_file);
+        remove(output_filename.data());
+        return 1;
+    }
     fclose(output_file);
     return 0;
 }

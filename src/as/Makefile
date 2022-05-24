@@ -3,7 +3,7 @@
 CC = g++
 CFLAG = -std=c++11 -Wall
 EXE = ../../bin/as
-OBJ = main.o preproc.o reader.o symbol.o inst2code.o
+OBJ = main.o utility.o reader.o symbol.o inst2code.o
 
 all: $(EXE)
 

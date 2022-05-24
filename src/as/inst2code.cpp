@@ -1,7 +1,12 @@
 #include <cstdio>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
+
+#include "include/reader.hpp"
+#include "include/symbol.hpp"
+#include "include/utility.hpp"
 
 using namespace std;
 
@@ -73,6 +78,18 @@ const map<string, uint8_t> inst_func7 = {
     {"srli", 0b0000000},
     {"srai", 0b0100000}};
 
+const map<string, uint8_t> reg_alias2id = {
+    {"zero", 0}, {"x0", 0},   {"ra", 1},   {"x1", 1},   {"sp", 2},   {"x2", 2},   {"gp", 3},
+    {"x3", 3},   {"tp", 4},   {"x4", 4},   {"t0", 5},   {"x5", 5},   {"t1", 6},   {"x6", 6},
+    {"t2", 7},   {"x7", 7},   {"s0", 8},   {"fp", 8},   {"x8", 8},   {"s1", 9},   {"x9", 9},
+    {"a0", 10},  {"x10", 10}, {"a1", 11},  {"x11", 11}, {"a2", 12},  {"x12", 12}, {"a3", 13},
+    {"x13", 13}, {"a4", 14},  {"x14", 14}, {"a5", 15},  {"x15", 15}, {"a6", 16},  {"x16", 16},
+    {"a7", 17},  {"x17", 17}, {"s2", 18},  {"x18", 18}, {"s3", 19},  {"x19", 19}, {"s4", 20},
+    {"x20", 20}, {"s5", 21},  {"x21", 21}, {"s6", 22},  {"x22", 22}, {"s7", 23},  {"x23", 23},
+    {"s8", 24},  {"x24", 24}, {"s9", 25},  {"x25", 25}, {"s10", 26}, {"x26", 26}, {"s11", 27},
+    {"x27", 27}, {"t3", 28},  {"x28", 28}, {"t4", 29},  {"x29", 29}, {"t5", 30},  {"x30", 30},
+    {"t6", 31},  {"x31", 31}};
+
 const map<string, uint8_t> pseudo_size = {{"la", 2}, {"li", 2}, {"call", 2}};
 
 uint32_t addr_counter = 0;
@@ -83,6 +100,16 @@ uint8_t get_inst_size(string operation, vector<string> operands) {
     } else if (operation == "lw" || operation == "lh" || operation == "lb" || operation == "lhu" ||
                operation == "lbu" || operation == "sb" || operation == "sh" || operation == "sw") {
         // lb lh lw lbu lhu sb sh sw, with symbol immediate
+        if (operands.size() == 3) {
+            string  label_or_imm = operands[2];
+            int32_t imm_val;
+            if (!is_literal_integer(label_or_imm, imm_val)) {  // May be a label
+                return 2 * INST_SIZE;
+            } else {
+                return INST_SIZE;
+            }
+        } else
+            return 0;
     } else if (inst_opcode_type.count(operation)) {
         return INST_SIZE;
     } else {
@@ -90,4 +117,380 @@ uint8_t get_inst_size(string operation, vector<string> operands) {
     }
 }
 
-void gen_hex(FILE *output, string text, string data) {}
+bool get_reg_id(string reg_str, uint8_t &id) {
+    if (reg_alias2id.count(reg_str) == 0) {
+        printf("invalid register identifier\n");
+        return false;
+    } else {
+        id = reg_alias2id.find(reg_str)->second;
+        return true;
+    }
+}
+
+bool get_r_type_inst(uint32_t &inst,
+                     uint8_t   opcode,
+                     uint8_t   func3,
+                     uint8_t   func7,
+                     uint8_t   rs1,
+                     uint8_t   rs2,
+                     uint8_t   rd) {
+    inst = 0;
+    inst |= opcode & 0x7F;
+    inst |= (rd & 0x1F) << 7;
+    inst |= (func3 & 0x7) << (5 + 7);
+    inst |= (rs1 & 0x1F) << (3 + 5 + 7);
+    inst |= (rs2 & 0x1F) << (5 + 3 + 5 + 7);
+    inst |= (func7 & 0x7F) << (5 + 5 + 3 + 5 + 7);
+    return true;
+}
+
+bool get_i_type_inst(
+    uint32_t &inst, uint8_t opcode, uint8_t func3, uint8_t rs1, uint8_t rd, uint32_t imm_12bits) {
+    bool is_overflow = !((imm_12bits & ~0xFFF) == 0x0 || (imm_12bits & ~0xFFF) == 0xFFFFF000);
+    if (is_overflow) {
+        printf("immediate of I-Type instruction is too big\n");
+        return false;
+    }
+    inst = 0;
+    inst |= opcode & 0x7F;
+    inst |= (rd & 0x1F) << 7;
+    inst |= (func3 & 0x7) << (5 + 7);
+    inst |= (rs1 & 0x1F) << (3 + 5 + 7);
+    inst |= (imm_12bits & 0xFFF) << (5 + 3 + 5 + 7);
+    return true;
+}
+
+bool get_s_type_inst(
+    uint32_t &inst, uint8_t opcode, uint8_t func3, uint8_t rs1, uint8_t rs2, uint32_t imm_12bits) {
+    bool is_overflow = !((imm_12bits & ~0xFFF) == 0x0 || (imm_12bits & ~0xFFF) == 0xFFFFF000);
+    if (is_overflow) {
+        printf("immediate of S-Type instruction is too big\n");
+        return false;
+    }
+    inst = 0;
+    inst |= opcode & 0x7F;
+    inst |= (imm_12bits & 0x1F) << 7;
+    inst |= (func3 & 0x7) << (5 + 7);
+    inst |= (rs1 & 0x1F) << (3 + 5 + 7);
+    inst |= (rs2 & 0x1F) << (5 + 3 + 5 + 7);
+    inst |= ((imm_12bits & 0xFE0) >> 5) << (5 + 5 + 3 + 5 + 7);
+    return true;
+}
+
+bool get_b_type_inst(
+    uint32_t &inst, uint8_t opcode, uint8_t func3, uint8_t rs1, uint8_t rs2, uint32_t imm_13bits) {
+    bool is_overflow = !((imm_13bits & ~0x1FFF) == 0x0 || (imm_13bits & ~0x1FFF) == 0xFFFFE000);
+    if (is_overflow) {
+        printf("immediate of B-Type instruction is too big\n");
+        return false;
+    } else if (imm_13bits & 0x1) {
+        printf("illegal offset of B-Type instruction\n");
+        return false;
+    }
+    inst = 0;
+    inst |= opcode & 0x7F;
+    uint32_t rearr_imm_low = 0;
+    rearr_imm_low |= (imm_13bits & (0x1 << 11)) >> 11;
+    rearr_imm_low |= imm_13bits & (0xF << 1);
+    inst |= rearr_imm_low << 7;
+    inst |= (func3 & 0x7) << (5 + 7);
+    inst |= (rs1 & 0x1F) << (3 + 5 + 7);
+    inst |= (rs2 & 0x1F) << (5 + 3 + 5 + 7);
+    uint32_t rearr_imm_high = 0;
+    rearr_imm_high |= (imm_13bits & (0x3F << 5)) >> 5;
+    rearr_imm_high |= (imm_13bits & (0x1 << 12)) ? 0x40 : 0x00;
+    inst |= rearr_imm_high << (5 + 5 + 3 + 5 + 7);
+    return true;
+}
+
+bool get_u_type_inst(uint32_t &inst, uint8_t opcode, uint8_t rd, uint32_t imm_high_20bits) {
+    bool is_overflow =
+        (!(imm_high_20bits & ~0xFFFFF) == 0x0 || (imm_high_20bits & ~0xFFFFF) == 0xFFF00000);
+    if (is_overflow) {
+        printf("immediate of U-Type instruction is too big\n");
+        return false;
+    }
+    inst = 0;
+    inst |= opcode & 0x7F;
+    inst |= (rd & 0x1F) << 7;
+    inst |= (imm_high_20bits & 0xFFFFF) << (5 + 7);
+    return true;
+}
+
+bool get_j_type_inst(uint32_t &inst, uint8_t opcode, uint8_t rd, uint32_t imm_21bits) {
+    bool is_overflow = !((imm_21bits & ~0x1FFFFF) == 0x0 || (imm_21bits & ~0x1FFFFF) == 0xFFE00000);
+    if (is_overflow) {
+        printf("immediate of J-Type instruction is too big\n");
+        return false;
+    } else if (imm_21bits & 0x1) {
+        printf("illegal offset of J-Type instruction\n");
+        return false;
+    }
+    inst = 0;
+    inst |= opcode & 0x7F;
+    inst |= (rd & 0x1F) << 7;
+    uint32_t rearr_imm = 0;
+    rearr_imm |= (imm_21bits & (0xFF << 12)) >> 12;
+    rearr_imm |= (imm_21bits & (0x1 << 11)) ? 0x100 : 0x0;
+    rearr_imm |= ((imm_21bits & (0x3FF << 1)) >> 1) << 9;
+    rearr_imm |= (imm_21bits & (0x1 << 20)) ? (0x1 << 19) : 0x0;
+    inst |= rearr_imm << (5 + 7);
+    return true;
+}
+
+bool gen_machine_code(FILE *output, string inst) {
+    string         operation;
+    vector<string> operands;
+    uint32_t       machine_code = 0;
+    read_inst(inst, operation, operands);
+    if (operands.size() > 3) {
+        printf("excessive operand\n");
+        return false;
+    } else {
+        if (operation == "la") {
+            // TODO
+        } else if (operation == "li") {
+            // TODO
+        } else if (operation == "call") {
+            // TODO
+        } else if (inst_opcode_type.count(operation) == 0) {
+            printf("unknown instruction\n");
+            return false;
+        } else {
+            opcode_type type = inst_opcode_type.find(operation)->second;
+            switch (type) {
+                case alu_reg: {
+                    if (operands.size() != 3) {
+                        printf("wrong number of operand\n");
+                        return false;
+                    }
+                    uint8_t rs1, rs2, rd;
+                    if (!get_reg_id(operands[0], rd)) return false;
+                    if (!get_reg_id(operands[1], rs1)) return false;
+                    if (!get_reg_id(operands[2], rs2)) return false;
+                    if (!get_r_type_inst(machine_code,
+                                         inst_opcode.find(alu_reg)->second,
+                                         inst_func3.find(operation)->second,
+                                         inst_func7.find(operation)->second,
+                                         rs1,
+                                         rs2,
+                                         rd))
+                        return false;
+                    fprintf(output, "0x%08X\n", machine_code);
+                    break;
+                }
+                case alu_imm: {
+                    if (operands.size() != 3) {
+                        printf("wrong number of operand\n");
+                        return false;
+                    }
+                    uint8_t rs1, rd;
+                    if (!get_reg_id(operands[0], rd)) return false;
+                    if (!get_reg_id(operands[1], rs1)) return false;
+                    int32_t imm_val;
+                    if (!is_literal_integer(operands[2], imm_val)) {
+                        if (!get_symbol_const(operands[2], imm_val)) {
+                            printf("constant not found\n");
+                            return false;
+                        }
+                    }
+                    if (operation == "slli" || operation == "srli" || operation == "srai") {
+                        if ((imm_val & 0x1F) != imm_val) {
+                            printf("immediate for shift instruction is too big\n");
+                            printf("%s\n", operation.data());
+                            return false;
+                        } else {
+                            imm_val &= 0x1F;
+                            imm_val |= (inst_func7.find(operation)->second & 0x7F) << 5;
+                        }
+                    }
+                    if (!get_i_type_inst(machine_code,
+                                         inst_opcode.find(alu_imm)->second,
+                                         inst_func3.find(operation)->second,
+                                         rs1,
+                                         rd,
+                                         imm_val))
+                        return false;
+                    fprintf(output, "0x%08X\n", machine_code);
+                    break;
+                }
+                case store: {
+                    if (operands.size() != 3) {
+                        printf("wrong number of operand\n");
+                        return false;
+                    }
+                    int32_t offset;
+                    uint8_t rs1, rs2;
+                    if (!get_reg_id(operands[0], rs2)) return false;
+                    if (!get_reg_id(operands[1], rs1)) return false;
+                    if (!is_literal_integer(operands[2], offset)) {
+                        // TODO: auipc + store
+                    } else {
+                        if (!get_s_type_inst(machine_code,
+                                             inst_opcode.find(store)->second,
+                                             inst_func3.find(operation)->second,
+                                             rs1,
+                                             rs2,
+                                             offset))
+                            return false;
+                    }
+                    fprintf(output, "0x%08X\n", machine_code);
+                    break;
+                }
+                case load: {
+                    if (operands.size() != 3) {
+                        printf("wrong number of operand\n");
+                        return false;
+                    }
+                    int32_t offset;
+                    uint8_t rs1, rd;
+                    if (!get_reg_id(operands[0], rd)) return false;
+                    if (!get_reg_id(operands[1], rs1)) return false;
+                    if (!is_literal_integer(operands[2], offset)) {
+                        // TODO: auipc + store
+                    } else {
+                        if (!get_i_type_inst(machine_code,
+                                             inst_opcode.find(load)->second,
+                                             inst_func3.find(operation)->second,
+                                             rs1,
+                                             rd,
+                                             offset))
+                            return false;
+                    }
+                    fprintf(output, "0x%08X\n", machine_code);
+                    break;
+                }
+                case branch: {
+                    if (operands.size() != 3) {
+                        printf("wrong number of operand\n");
+                        return false;
+                    }
+                    int32_t offset;
+                    uint8_t rs1, rs2;
+                    if (!get_reg_id(operands[0], rs1)) return false;
+                    if (!get_reg_id(operands[1], rs2)) return false;
+                    if (!is_literal_integer(operands[2], offset)) {
+                        uint32_t target;
+                        if (!get_symbol_label(operands[2], target)) {
+                            printf("label not found\n");
+                            return false;
+                        }
+                        offset = target - addr_counter;
+                    }
+                    if (!get_b_type_inst(machine_code,
+                                         inst_opcode.find(branch)->second,
+                                         inst_func3.find(operation)->second,
+                                         rs1,
+                                         rs2,
+                                         offset))
+                        return false;
+                    fprintf(output, "0x%08X\n", machine_code);
+                    break;
+                }
+                case lui:
+                case auipc: {
+                    if (operands.size() != 2) {
+                        printf("wrong number of operand\n");
+                        return false;
+                    }
+                    uint8_t rd;
+                    int32_t imm_high;
+                    if (!is_literal_integer(operands[1], imm_high)) {
+                        if (!get_symbol_const(operands[1], imm_high)) {
+                            printf("constant not found\n");
+                            return false;
+                        }
+                    }
+                    if (!get_reg_id(operands[0], rd)) return false;
+                    if (!get_u_type_inst(
+                            machine_code, inst_opcode.find(type)->second, rd, imm_high))
+                        return false;
+                    fprintf(output, "0x%08X\n", machine_code);
+                    break;
+                }
+                case jal: {
+                    if (operands.size() != 2) {
+                        printf("wrong number of operand\n");
+                        return false;
+                    }
+                    uint8_t rd;
+                    int32_t offset;
+                    if (!get_reg_id(operands[0], rd)) return false;
+                    if (!is_literal_integer(operands[1], offset)) {
+                        uint32_t target;
+                        if (!get_symbol_label(operands[1], target)) {
+                            printf("label not found\n");
+                            return false;
+                        }
+                        offset = target - addr_counter;
+                    }
+                    if (!get_j_type_inst(machine_code, inst_opcode.find(jal)->second, rd, offset))
+                        return false;
+                    fprintf(output, "0x%08X\n", machine_code);
+                    break;
+                }
+                case jalr: {
+                    if (operands.size() != 3) {
+                        printf("wrong number of operand\n");
+                        return false;
+                    }
+                    uint8_t rs1, rd;
+                    int32_t offset;
+                    if (!get_reg_id(operands[0], rd)) return false;
+                    if (!get_reg_id(operands[1], rs1)) return false;
+                    if (!is_literal_integer(operands[2], offset)) {
+                        if (!get_symbol_const(operands[1], offset)) {
+                            printf("constant not found\n");
+                            return false;
+                        }
+                    }
+                    if (!get_i_type_inst(machine_code,
+                                         inst_opcode.find(jalr)->second,
+                                         inst_func3.find(operation)->second,
+                                         rs1,
+                                         rd,
+                                         offset))
+                        return false;
+                    fprintf(output, "0x%08X\n", machine_code);
+                    break;
+                }
+                case sys: {
+                    if (operands.size() != 0) {
+                        printf("wrong number of operand\n");
+                        return false;
+                    }
+                    get_i_type_inst(machine_code,
+                                    inst_opcode.find(sys)->second,
+                                    inst_func3.find(operation)->second,
+                                    0,
+                                    0,
+                                    0);
+                    fprintf(output, "0x%08X\n", machine_code);
+                    break;
+                }
+            }
+        }
+    }
+    addr_counter += get_inst_size(operation, operands);
+    return true;
+}
+
+bool gen_hex(FILE *output, string text, string data) {
+    stringstream ss;
+    string       line;
+    ss           = stringstream(text);
+    addr_counter = 0;
+    while (getline(ss, line)) {
+        if (!gen_machine_code(output, line)) return false;
+    }
+    ss = stringstream(data);
+    while (getline(ss, line)) {
+        uint32_t       size;
+        vector<string> data_hex_strs;
+        read_data(line, data_hex_strs, size);
+        for (int i = 0; i < data_hex_strs.size(); i++) {
+            fprintf(output, "%s\n", data_hex_strs[i].data());
+        }
+    }
+    return true;
+}
