@@ -1,4 +1,5 @@
 #include "include/node_expr.hpp"
+#include "include/exception.hpp"
 #include "include/symbol_table.hpp"
 
 ExprNode::ExprNode(ExprNodeType   nt,
@@ -33,6 +34,10 @@ ExprNode::ExprNode(FuncNode *f_a)
 
 int ExprNode::getUid() {
     return uid;
+}
+
+int ExprNode::getLineNumber() {
+    return line_no;
 }
 
 ExprNodeType ExprNode::getNodeType() {
@@ -115,34 +120,34 @@ std::string ExprNode::genVizCode(int run) {
 }
 
 TypeAttrNode *ExprNode::getResultType() {
-    switch (node_type) {
-        case el_nonleaf: {
-            TypeAttrNode *t1 = op1->getResultType();
-            if (op2 != nullptr) {
-                TypeAttrNode *t2 = op2->getResultType();
-                if (!t1->isTypeEqual(t2)) {
-                    // TODO syntax error: type of operands is not equal
-                    return nullptr;
+    try {
+        switch (node_type) {
+            case el_nonleaf: {
+                TypeAttrNode *t1 = op1->getResultType();
+                if (op2 != nullptr) {
+                    TypeAttrNode *t2 = op2->getResultType();
+                    if (!t1->isTypeEqual(t2))
+                        throw ExpressionTypeError(line_no, t1->getName(), t2->getName());
                 }
+                return res_type = t1;
             }
-            return res_type = t1;
+            case el_literal: return res_type = literal_attr->getResultType();
+            case el_var_access: return res_type = var_access_attr->getResultType();
+            case el_id: return res_type = id_attr->getResultType();
+            case el_fun_call: return res_type = func_attr->getResultType();
         }
-        case el_literal: return res_type = literal_attr->getResultType();
-        case el_var_access: return res_type = var_access_attr->getResultType();
-        case el_id: return res_type = id_attr->getResultType();
-        case el_fun_call: return res_type = func_attr->getResultType();
+    } catch (UndefineError &e) {
+        throw e;
+    } catch (ExpressionTypeError &e) {
+        throw e;
     }
     return nullptr;
 }
 
 bool ExprNode::isValueEqual(ExprNode *expr) {
     if (node_type != expr->node_type) return false;
-    switch (node_type) {
-        case el_literal:
-            return literal_attr->isValueEqual(expr->literal_attr);
-            // TODO: how to compare const expressions?
-    }
-    return false;
+    if (node_type != el_literal) return false;
+    return literal_attr->isValueEqual(expr->literal_attr);
 }
 
 ExprListNode::ExprListNode() : uid(++global_uid), line_no(yylineno) {
@@ -219,11 +224,13 @@ std::string LiteralNode::getNodeInfo() {
     std::string result = "LiteralNode\n";
     if (is_nil) return result + "NIL";
     result += type->getNodeInfo() + "\n";
-    if (type->getType() == boolean) return result + to_string(bval);
-    if (type->getType() == integer) return result + to_string(ival);
-    if (type->getType() == real) return result + to_string(dval);
-    if (type->getType() == character) return result + to_string(cval);
-    return result + "illegal literal";
+    switch (type->getType()) {
+        case boolean: return result + to_string(bval);
+        case integer: return result + to_string(ival);
+        case real: return result + to_string(dval);
+        case character: return result + to_string(cval);
+    }
+    return result;
 }
 
 std::string LiteralNode::genVizCode(int run) {
@@ -235,14 +242,9 @@ TypeAttrNode *LiteralNode::getResultType() {
 }
 
 int LiteralNode::diff(LiteralNode *rhs) {
-    if (is_nil || rhs->is_nil) {
-        // TODO syntax error: cannot differ between pointers
-        return 0;
-    }
-    if (type != rhs->type) {
-        // TODO syntax error: cannot cannot differ between two types
-        return 0;
-    }
+    if (is_nil || rhs->is_nil) throw ExpressionTypeError(line_no, "real basic type", "pointer");
+    if (type->getType() != rhs->type->getType())
+        throw ExpressionTypeError(line_no, type->getTypeString(), rhs->type->getTypeString());
     switch (type->getType()) {
         case boolean: return bval - rhs->bval;
         case integer: return ival - rhs->ival;
@@ -314,19 +316,35 @@ std::string VarAccessNode::genVizCode(int run) {
 }
 
 TypeAttrNode *VarAccessNode::getResultType() {
-    TypeAttrNode *type_attr =
-        host->getNodeType() == el_literal ?
-            symbol_table.findVarSymbol(host->getIdNode()->getName())->getType() :
-            host->getResultType();
+    TypeAttrNode *type_attr = nullptr;
+    if (host->getNodeType() == el_literal) {
+        VarDefNode *def = symbol_table.findVarSymbol(host->getIdNode()->getName());
+        if (def == nullptr) throw UndefineError(line_no, host->getIdNode()->getName());
+        type_attr = def->getType();
+    } else
+        type_attr = host->getResultType();
     switch (type) {
         case va_pointer: return res_type = type_attr;
-        case va_array:
-            return res_type = type_attr->getStructAttr()->getArrayAttr()->getElementType();
-        case va_record:
-            return res_type = type_attr->getStructAttr()
-                                  ->getRecordAttr()
-                                  ->getVarDef(member->getIdNode()->getName())
-                                  ->getType();
+        case va_array: {
+            ArrayAttrNode *array_attr = type_attr->getStructAttr()->getArrayAttr();
+            try {
+                array_attr->testIndexType(index_list);
+            } catch (IndexDimensionError &e) {
+                throw e;
+            } catch (IndexTypeError &e) {
+                throw e;
+            }
+            return res_type = array_attr->getElementType();
+        }
+        case va_record: {
+            VarDefNode *var_def = type_attr->getStructAttr()->getRecordAttr()->getVarDef(
+                member->getIdNode()->getName());
+            if (var_def == nullptr)
+                throw MemberNotFoundError(line_no,
+                                          host->getResultType()->getTypeString(),
+                                          member->getIdNode()->getName());
+            return res_type = var_def->getType();
+        }
     }
     return nullptr;
 }
@@ -343,11 +361,15 @@ std::string IdNode::getName() {
 }
 
 ConstDefNode *IdNode::getConst() {
-    return symbol_table.findConstSymbol(name);
+    ConstDefNode *result = symbol_table.findConstSymbol(name);
+    if (result == nullptr) throw UndefineError(line_no, name);
+    return result;
 }
 
 TypeAttrNode *IdNode::getType() {
-    return symbol_table.findTypeSymbol(name);
+    TypeAttrNode *result = symbol_table.findTypeSymbol(name);
+    if (result == nullptr) throw UndefineError(line_no, name);
+    return result;
 }
 
 std::string IdNode::getNodeInfo() {
@@ -359,7 +381,9 @@ std::string IdNode::genVizCode(int run) {
 }
 
 TypeAttrNode *IdNode::getResultType() {
-    return res_type = symbol_table.findVarSymbol(name)->getType();
+    VarDefNode *result = symbol_table.findVarSymbol(name);
+    if (result == nullptr) throw UndefineError(line_no, name);
+    return res_type = result->getType();
 }
 
 IdListNode::IdListNode() : uid(++global_uid), line_no(yylineno) {
@@ -405,11 +429,21 @@ std::string FuncNode::genVizCode(int run) {
     return result;
 }
 
-bool FuncNode::test_arg_type() {
+bool FuncNode::testArgType() {
     FuncDefNode *func = symbol_table.findFuncSymbol(func_name);
-    return func->test_arg_type(arg_list);
+    if (func == nullptr) throw UndefineError(line_no, func_name);
+    try {
+        func->testArgType(arg_list);
+    } catch (ArgumentNumberError &e) {
+        throw e;
+    } catch (ArgumentTypeError &e) {
+        throw e;
+    }
+    return true;
 }
 
 TypeAttrNode *FuncNode::getResultType() {
-    return res_type = symbol_table.findFuncSymbol(func_name)->getRetValType();
+    FuncDefNode *func = symbol_table.findFuncSymbol(func_name);
+    if (func == nullptr) throw UndefineError(line_no, func_name);
+    return res_type = func->getRetValType();
 }

@@ -14,6 +14,7 @@ type
     end;
 var
     k: array [digit, char] of y;
+    a: integer;
 
     function ff: week;
 
@@ -27,16 +28,19 @@ var
         end;
 
     begin
-
+        v := 1;  { identifier v is undefined }
     end;
 
     procedure gg(var x: integer; q: digit);
     var
         w: y;
     begin
-        x := k[1, 'a'].i;
+        x := k[1, 'a'].u;  { expect integer, got digit(integer..integer), in deed this is correct, but not supported yet }
+        x := k[2, 'b'].p;  { record type y does not have member r }
+        w := k[3].c;       { illegal access to 2-dimension array k }
     end;
 
 begin
-    
+    ff(1);     { ff can accept zero arguments }
+    gg(a, 0);  { argument 2 expects digit(integer..integer), got integer, in deed this is correct, but no supported yet }
 end.

@@ -29,6 +29,8 @@ class VarDefNode {
 
     int getUid();
 
+    int getLineNumber();
+
     std::string getName();
 
     TypeAttrNode *getType();
@@ -57,6 +59,8 @@ class VarDefListNode {
     int getUid();
 
     int getDim();
+
+    std::string getTypeString();
 
     std::vector<VarDefNode *> &getVarList();
 

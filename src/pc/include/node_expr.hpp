@@ -48,6 +48,8 @@ class ExprNode {
 
     int getUid();
 
+    int getLineNumber();
+
     ExprNodeType getNodeType();
 
     std::string getExprTypeString(ExprEvalType e);
@@ -154,6 +156,8 @@ class VarAccessNode {
 
     TypeAttrNode *getResultType();
 
+    bool testAccess();
+
     std::string genAsmCode();
 };
 
@@ -219,7 +223,7 @@ class FuncNode {
 
     std::string genVizCode(int run);
 
-    bool test_arg_type();
+    bool testArgType();
 
     TypeAttrNode *getResultType();
 };

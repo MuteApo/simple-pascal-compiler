@@ -1,4 +1,5 @@
 #include "include/error_handler.hpp"
+#include <iostream>
 
 ErrorHandler error_handler;
 
@@ -7,6 +8,7 @@ ErrorHandler::ErrorHandler() {
 }
 
 void ErrorHandler::addMsg(Exception e) {
+    // std::cout << e.what() << std::endl;
     errors.push_back(e);
 }
 

@@ -8,6 +8,10 @@ int ConstDefNode::getUid() {
     return uid;
 }
 
+int ConstDefNode::getLineNumber() {
+    return line_no;
+}
+
 ExprNode *ConstDefNode::getExpr() {
     return expr;
 }
@@ -20,6 +24,7 @@ std::string ConstDefNode::genVizCode(int run) {
 }
 
 bool ConstDefNode::genSymbolTable() {
+    if (symbol_table.existSymbol(name)) throw RedefineError(line_no, name);
     return symbol_table.addSymbol(name, this);
 }
 
@@ -48,9 +53,12 @@ std::string ConstDefListNode::genVizCode(int run) {
 }
 
 bool ConstDefListNode::genSymbolTable() {
-    bool result = true;
-    for (ConstDefNode *def : const_defs) result &= def->genSymbolTable();
-    return result;
+    for (ConstDefNode *def : const_defs) try {
+            def->genSymbolTable();
+        } catch (RedefineError &e) {
+            throw e;
+        }
+    return true;
 }
 
 ConstListNode::ConstListNode() : uid(++global_uid), line_no(yylineno) {
