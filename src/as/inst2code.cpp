@@ -238,6 +238,13 @@ bool get_j_type_inst(uint32_t &inst, uint8_t opcode, uint8_t rd, uint32_t imm_21
     return true;
 }
 
+void split_int32(int32_t integer_32bits, uint32_t &low_12bits, uint32_t &high_20bits) {
+    int32_t LoSEXT;
+    low_12bits  = integer_32bits & 0xFFF;
+    LoSEXT      = (low_12bits & 0x800) ? (low_12bits | 0xFFFFF000) : low_12bits;
+    high_20bits = ((integer_32bits - LoSEXT) & 0xFFFFF000) >> 12;
+}
+
 bool gen_machine_code(FILE *output, string inst) {
     string         operation;
     vector<string> operands;
@@ -247,14 +254,95 @@ bool gen_machine_code(FILE *output, string inst) {
         printf("excessive operand\n");
         return false;
     } else {
-        if (operation == "la") {
-            // TODO
+        if (operation == "la") {  // Non-PIC, or 'lla'
+            if (operands.size() != 2) {
+                printf("wrong number of operand\n");
+                return false;
+            }
+            uint8_t rd;
+            int32_t imm_addr;
+            if (!get_reg_id(operands[0], rd)) return false;
+            if (!is_literal_integer(operands[1], imm_addr)) {
+                uint32_t label_addr;
+                if (!get_symbol_label(operands[1], label_addr)) {
+                    printf("label not found\n");
+                    return false;
+                }
+                imm_addr = label_addr;
+            }
+            uint32_t offsetHi, offsetLo, offset;
+            offset = imm_addr - addr_counter;
+            split_int32(offset, offsetLo, offsetHi);
+            // auipc rd, offsetHi
+            get_u_type_inst(machine_code, inst_opcode.find(auipc)->second, rd, offsetHi);
+            fprintf(output, "0x%08X\n", machine_code);
+            // addi rd, rd, offsetLo
+            get_i_type_inst(machine_code,
+                            inst_opcode.find(alu_imm)->second,
+                            inst_func3.find("addi")->second,
+                            rd,
+                            rd,
+                            offsetLo);
+            fprintf(output, "0x%08X\n", machine_code);
         } else if (operation == "li") {
-            // TODO
+            if (operands.size() != 2) {
+                printf("wrong number of operand\n");
+                return false;
+            }
+            uint8_t rd;
+            int32_t imm;
+            if (!get_reg_id(operands[0], rd)) return false;
+            if (!is_literal_integer(operands[1], imm)) {
+                if (!get_symbol_const(operands[1], imm)) {
+                    printf("constant not found\n");
+                    return false;
+                }
+            }
+            uint32_t immHi, immLo;
+            split_int32(imm, immLo, immHi);
+            // lui rd, immHi
+            get_u_type_inst(machine_code, inst_opcode.find(lui)->second, rd, immHi);
+            fprintf(output, "0x%08X\n", machine_code);
+            // addi rd, rd, immLo
+            get_i_type_inst(machine_code,
+                            inst_opcode.find(alu_imm)->second,
+                            inst_func3.find("addi")->second,
+                            rd,
+                            rd,
+                            immLo);
+            fprintf(output, "0x%08X\n", machine_code);
         } else if (operation == "call") {
-            // TODO
+            if (operands.size() != 1) {
+                printf("wrong number of operand\n");
+                return false;
+            }
+            int32_t imm_addr;
+            if (!is_literal_integer(operands[0], imm_addr)) {
+                uint32_t label_addr;
+                if (!get_symbol_label(operands[0], label_addr)) {
+                    printf("label not found\n");
+                    return false;
+                }
+                imm_addr = label_addr;
+            }
+            imm_addr = imm_addr - addr_counter;
+            uint8_t reg_ra;
+            get_reg_id("ra", reg_ra);
+            uint32_t addrHi, addrLo;
+            split_int32(imm_addr, addrLo, addrHi);
+            // auipc ra, addrHi
+            get_u_type_inst(machine_code, inst_opcode.find(auipc)->second, reg_ra, addrHi);
+            fprintf(output, "0x%08X\n", machine_code);
+            // jalr ra, addrLo(ra)
+            get_i_type_inst(machine_code,
+                            inst_opcode.find(jalr)->second,
+                            inst_func3.find("jalr")->second,
+                            reg_ra,
+                            reg_ra,
+                            addrLo);
+            fprintf(output, "0x%08X\n", machine_code);
         } else if (inst_opcode_type.count(operation) == 0) {
-            printf("unknown instruction\n");
+            printf("unknown instruction: '%s'\n", operation.data());
             return false;
         } else {
             opcode_type type = inst_opcode_type.find(operation)->second;

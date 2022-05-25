@@ -101,7 +101,8 @@ bool read_inst(string line, string &operation, vector<string> &operands) {
 uint8_t data_align = 1;
 
 bool read_data(string line, vector<string> &hex_strings, uint32_t &size) {
-    // replace_all_char(line, ',', ' '); // BUG: Comma in string is also substituted
+    // // BUG: Comma in string is also substituted
+    // replace_all_char(line, ',', ' ');
     line = trim(line);
     stringstream ss(line);
     string       mode;

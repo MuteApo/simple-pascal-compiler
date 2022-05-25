@@ -42,11 +42,8 @@ void init_asm(uint32_t init_stack_top) {
     }
     fprintf(asm_file, ".text\n");
     fprintf(asm_file, "init:\n");
-    int32_t low_12_bits = init_stack_top & 0xFFF;
-    if (low_12_bits & 0x800) low_12_bits |= ~0xFFF;
-    int32_t high_20_bits = (init_stack_top - low_12_bits) >> 12;
-    fprintf(asm_file, "\tlui sp, %d\n", high_20_bits);
-    fprintf(asm_file, "\taddi sp, sp, %d\n", low_12_bits);
+    string sp_set_inst = "\tli sp, " + to_string(init_stack_top) + "\n";
+    fprintf(asm_file, sp_set_inst.data());
 }
 
 // Use Static Register Allocation Policy:
@@ -87,12 +84,8 @@ string get_reg_xchg(uint8_t dst_reg, uint8_t src_reg) {
 
 // Only break content in t0
 string get_load_imm(int32_t imm) {
-    string  res         = "";
-    int32_t low_12_bits = imm & 0xFFF;
-    if (low_12_bits & 0x800) low_12_bits |= ~0xFFF;
-    int32_t high_20_bits = (imm - low_12_bits) >> 12;
-    res += "\tlui t0, " + to_string(high_20_bits) + "\n";
-    res += "\taddi t0, t0, " + to_string(low_12_bits) + "\n";
+    string res = "";
+    res += "\tli t0, " + to_string(imm) + "\n";
     return res;
 }
 
