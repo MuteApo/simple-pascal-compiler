@@ -1,6 +1,7 @@
 .DS_Store
 .vscode
 bin/*
+!bin/as
 !bin/hex2bin
 !bin/rvsim
 src/pc/lex.yy.c

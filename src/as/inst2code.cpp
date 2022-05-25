@@ -97,19 +97,6 @@ uint32_t addr_counter = 0;
 uint8_t get_inst_size(string operation, vector<string> operands) {
     if (pseudo_size.count(operation) == 1) {
         return pseudo_size.find(operation)->second * INST_SIZE;
-    } else if (operation == "lw" || operation == "lh" || operation == "lb" || operation == "lhu" ||
-               operation == "lbu" || operation == "sb" || operation == "sh" || operation == "sw") {
-        // lb lh lw lbu lhu sb sh sw, with symbol immediate
-        if (operands.size() == 3) {
-            string  label_or_imm = operands[2];
-            int32_t imm_val;
-            if (!is_literal_integer(label_or_imm, imm_val)) {  // May be a label
-                return 2 * INST_SIZE;
-            } else {
-                return INST_SIZE;
-            }
-        } else
-            return 0;
     } else if (inst_opcode_type.count(operation)) {
         return INST_SIZE;
     } else {
@@ -412,16 +399,20 @@ bool gen_machine_code(FILE *output, string inst) {
                     if (!get_reg_id(operands[0], rs2)) return false;
                     if (!get_reg_id(operands[1], rs1)) return false;
                     if (!is_literal_integer(operands[2], offset)) {
-                        // TODO: auipc + store
-                    } else {
-                        if (!get_s_type_inst(machine_code,
-                                             inst_opcode.find(store)->second,
-                                             inst_func3.find(operation)->second,
-                                             rs1,
-                                             rs2,
-                                             offset))
+                        uint32_t label_offset;
+                        if (!get_symbol_label(operands[2], label_offset)) {
+                            printf("label not found\n");
                             return false;
+                        }
+                        offset = label_offset;
                     }
+                    if (!get_s_type_inst(machine_code,
+                                         inst_opcode.find(store)->second,
+                                         inst_func3.find(operation)->second,
+                                         rs1,
+                                         rs2,
+                                         offset))
+                        return false;
                     fprintf(output, "0x%08X\n", machine_code);
                     break;
                 }
@@ -435,16 +426,20 @@ bool gen_machine_code(FILE *output, string inst) {
                     if (!get_reg_id(operands[0], rd)) return false;
                     if (!get_reg_id(operands[1], rs1)) return false;
                     if (!is_literal_integer(operands[2], offset)) {
-                        // TODO: auipc + store
-                    } else {
-                        if (!get_i_type_inst(machine_code,
-                                             inst_opcode.find(load)->second,
-                                             inst_func3.find(operation)->second,
-                                             rs1,
-                                             rd,
-                                             offset))
+                        uint32_t label_offset;
+                        if (!get_symbol_label(operands[2], label_offset)) {
+                            printf("label not found\n");
                             return false;
+                        }
+                        offset = label_offset;
                     }
+                    if (!get_i_type_inst(machine_code,
+                                         inst_opcode.find(load)->second,
+                                         inst_func3.find(operation)->second,
+                                         rs1,
+                                         rd,
+                                         offset))
+                        return false;
                     fprintf(output, "0x%08X\n", machine_code);
                     break;
                 }

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-// Suported Pseudo-instructions: la(non-PIC), li, call and load/store with symbol offset
+// Suported Pseudo-instructions: la(non-PIC), li, call
 
 // All comma is seen as delimiter, which is just as white space
 // Only one instruction in one line, and comma between oprand is optional
