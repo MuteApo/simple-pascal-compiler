@@ -61,7 +61,7 @@ class ParamDefListNode {
 
     bool genSymbolTable();
 
-    bool testArgType(const std::vector<ExprNode *> &args);
+    bool testArgType(ExprListNode *args);
 };
 
 class FuncDefNode {

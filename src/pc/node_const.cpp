@@ -56,7 +56,7 @@ bool ConstDefListNode::genSymbolTable() {
     for (ConstDefNode *def : const_defs) try {
             def->genSymbolTable();
         } catch (RedefineError &e) {
-            throw e;
+            error_handler.addMsg(e);
         }
     return true;
 }

@@ -146,10 +146,18 @@ FuncDefNode *SymbolTable::findFuncSymbol(std::string id) {
 }
 
 bool SymbolTable::existSymbol(std::string id) {
-    if (findConstSymbol(id) != nullptr) return true;
-    if (findTypeSymbol(id) != nullptr) return true;
-    if (findVarSymbol(id) != nullptr) return true;
-    if (findFuncSymbol(id) != nullptr) return true;
+    auto const_item = ConstDeclMap.find(id);
+    if (const_item != ConstDeclMap.end())
+        if (const_item->second.front().level >= currLevel) return true;
+    auto type_item = TypeDeclMap.find(id);
+    if (type_item != TypeDeclMap.end())
+        if (type_item->second.front().level >= currLevel) return true;
+    auto var_item = VarDeclMap.find(id);
+    if (var_item != VarDeclMap.end())
+        if (var_item->second.front().level >= currLevel) return true;
+    auto func_item = FuncDeclMap.find(id);
+    if (func_item != FuncDeclMap.end())
+        if (func_item->second.front().level >= currLevel) return true;
     return false;
 }
 

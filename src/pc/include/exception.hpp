@@ -20,8 +20,9 @@ class Exception {
 class RedefineError : public Exception {
   public:
     RedefineError(int line_no, std::string id)
-            : Exception("RedefineError at line " + to_string(line_no) + ": Identifier \"" + id +
-                        "\" is redefined.") {
+            : Exception("Line " + to_string(line_no) +
+                        "(\033[31mRedefineError\033[0m): Identifier \"\033[33m" + id +
+                        "\033[0m\" is redefined.") {
         std::cout << what() << std::endl;
     }
 };
@@ -29,8 +30,9 @@ class RedefineError : public Exception {
 class UndefineError : public Exception {
   public:
     UndefineError(int line_no, std::string id)
-            : Exception("UndefineError at line " + to_string(line_no) + ": Identifier \"" + id +
-                        "\" is undefined.") {
+            : Exception("Line " + to_string(line_no) +
+                        "(\033[31mUndefineError\033[0m): Identifier \"\033[33m" + id +
+                        "\033[0m\" is undefined.") {
         std::cout << what() << std::endl;
     }
 };
@@ -38,8 +40,9 @@ class UndefineError : public Exception {
 class ExpressionTypeError : public Exception {
   public:
     ExpressionTypeError(int line_no, std::string expected, std::string got)
-            : Exception("ExpressionTypeError at line " + to_string(line_no) + ": Expect type \"" +
-                        expected + "\" but got \"" + got + "\".") {
+            : Exception("Line " + to_string(line_no) +
+                        "(\033[31mExpressionTypeError\033[0m): Expect type \"\033[32m" + expected +
+                        "\033[0m\" but got \"\033[33m" + got + "\033[0m\".") {
         std::cout << what() << std::endl;
     }
 };
@@ -47,8 +50,9 @@ class ExpressionTypeError : public Exception {
 class LeftValueError : public Exception {
   public:
     LeftValueError(int line_no, std::string lval)
-            : Exception("LeftValueError at line " + to_string(line_no) + ": " + to_string(lval) +
-                        "\" is not a legal left-value.") {
+            : Exception("Line " + to_string(line_no) +
+                        "(\033[31mLeftValueError\033[0m): \"\033[33m" + to_string(lval) +
+                        "\033[0m\" is not a legal left-value.") {
         std::cout << what() << std::endl;
     }
 };
@@ -56,9 +60,10 @@ class LeftValueError : public Exception {
 class IndexDimensionError : public Exception {
   public:
     IndexDimensionError(int line_no, int expected, int got)
-            : Exception("IndexDimensionError at line " + to_string(line_no) +
-                        ": Expect index dimension of " + to_string(expected) + " but got " +
-                        to_string(got) + ".") {
+            : Exception("Line " + to_string(line_no) +
+                        "(\033[31mIndexDimensionError\033[0m): Expect index dimension of \033[32m" +
+                        to_string(expected) + "\033[0m but got \033[33m" + to_string(got) +
+                        "\033[0m.") {
         std::cout << what() << std::endl;
     }
 };
@@ -66,9 +71,10 @@ class IndexDimensionError : public Exception {
 class IndexTypeError : public Exception {
   public:
     IndexTypeError(int line_no, int order, std::string expected, std::string got)
-            : Exception("IndexTypeError at line " + to_string(line_no) + ": Expect type \"" +
-                        expected + "\" but got \"" + got + "\" for index " + to_string(order) +
-                        ".") {
+            : Exception("Line " + to_string(line_no) +
+                        "(\033[31mIndexTypeError\033[0m): Expect type \"\033[32m" + expected +
+                        "\033[0m\" but got \"\033[33m" + got + "\033[0m\" for index \033[34m" +
+                        to_string(order) + "\033[0m.") {
         std::cout << what() << std::endl;
     }
 };
@@ -76,8 +82,9 @@ class IndexTypeError : public Exception {
 class MemberNotFoundError : public Exception {
   public:
     MemberNotFoundError(int line_no, std::string record, std::string member)
-            : Exception("MemberNotFoundError at line " + to_string(line_no) + ": Record \"" +
-                        record + "\" does not have member named \"" + member + "\".") {
+            : Exception("Line " + to_string(line_no) +
+                        "(\033[31mMemberNotFoundError\033[0m): Record \"\033[33m" + record +
+                        "\033[0m\" does not have member named \"\033[33m" + member + "\033[0m\".") {
         std::cout << what() << std::endl;
     }
 };
@@ -85,8 +92,10 @@ class MemberNotFoundError : public Exception {
 class ArgumentNumberError : public Exception {
   public:
     ArgumentNumberError(int line_no, int expected, int got)
-            : Exception("ArgumentNumberError at line " + to_string(line_no) + ": Expect " +
-                        to_string(expected) + " arguments but got " + to_string(got) + ".") {
+            : Exception("Line " + to_string(line_no) +
+                        "(\033[31mArgumentNumberError\033[0m): Expect \033[32m" +
+                        to_string(expected) + "\033[0m arguments but got \033[33m" +
+                        to_string(got) + "\033[0m.") {
         std::cout << what() << std::endl;
     }
 };
@@ -94,9 +103,10 @@ class ArgumentNumberError : public Exception {
 class ArgumentTypeError : public Exception {
   public:
     ArgumentTypeError(int line_no, int order, std::string expected, std::string got)
-            : Exception("ArgumentTypeError at line " + to_string(line_no) + ": Expect type \"" +
-                        expected + "\" but got \"" + got + "\" for argument " + to_string(order) +
-                        ".") {
+            : Exception("Line " + to_string(line_no) +
+                        "(\033[31mArgumentTypeError\033[0m): Expect type \"\033[32m" + expected +
+                        "\033[0m\" but got \"\033[33m" + got + "\033[0m\" for argument \033[34m" +
+                        to_string(order) + "\033[0m.") {
         std::cout << what() << std::endl;
     }
 };

@@ -86,15 +86,16 @@ bool ParamDefListNode::genSymbolTable() {
     return true;
 }
 
-bool ParamDefListNode::testArgType(const std::vector<ExprNode *> &args) {
-    if (param_defs.size() != args.size())
-        throw ArgumentNumberError(line_no, param_defs.size(), args.size());
+bool ParamDefListNode::testArgType(ExprListNode *args) {
+    std::vector<ExprNode *> &arg_list = args->getExprList();
+    if (param_defs.size() != arg_list.size())
+        throw ArgumentNumberError(args->getLineNumber(), param_defs.size(), arg_list.size());
     for (int i = 0; i < param_defs.size(); i++)
-        if (!param_defs.at(i)->testArgType(args.at(i)->getResultType()))
-            throw ArgumentTypeError(line_no,
+        if (!param_defs.at(i)->testArgType(arg_list.at(i)->getResultType()))
+            throw ArgumentTypeError(args->getLineNumber(),
                                     i + 1,
                                     param_defs.at(i)->getVarDef()->getType()->getTypeString(),
-                                    args.at(i)->getResultType()->getTypeString());
+                                    arg_list.at(i)->getResultType()->getTypeString());
     return true;
 }
 
@@ -168,9 +169,9 @@ bool FuncDefNode::genSymbolTable() {
 
 bool FuncDefNode::testArgType(ExprListNode *args) {
     if (param_defs == nullptr && args->getDim())
-        throw ArgumentNumberError(line_no, 0, args->getDim());
+        throw ArgumentNumberError(args->getLineNumber(), 0, args->getDim());
     try {
-        param_defs->testArgType(args->getExprList());
+        param_defs->testArgType(args);
     } catch (ArgumentNumberError &e) {
         throw e;
     } catch (ArgumentTypeError &e) {
@@ -212,7 +213,7 @@ bool FuncDefListNode::genSymbolTable() {
     for (FuncDefNode *def : func_defs) try {
             def->genSymbolTable();
         } catch (RedefineError &e) {
-            throw e;
+            error_handler.addMsg(e);
         }
     return true;
 }

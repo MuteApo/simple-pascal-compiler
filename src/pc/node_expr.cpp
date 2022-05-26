@@ -136,9 +136,7 @@ TypeAttrNode *ExprNode::getResultType() {
             case el_id: return res_type = id_attr->getResultType();
             case el_fun_call: return res_type = func_attr->getResultType();
         }
-    } catch (UndefineError &e) {
-        throw e;
-    } catch (ExpressionTypeError &e) {
+    } catch (Exception &e) {
         throw e;
     }
     return nullptr;
@@ -160,6 +158,10 @@ int ExprListNode::getUid() {
 
 int ExprListNode::getDim() {
     return exprs.size();
+}
+
+int ExprListNode::getLineNumber() {
+    return line_no;
 }
 
 std::vector<ExprNode *> &ExprListNode::getExprList() {

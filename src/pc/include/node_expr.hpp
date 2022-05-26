@@ -84,6 +84,8 @@ class ExprListNode {
 
     int getDim();
 
+    int getLineNumber();
+
     std::vector<ExprNode *> &getExprList();
 
     void addExpr(ExprNode *expr);

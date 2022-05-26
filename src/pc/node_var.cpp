@@ -144,7 +144,7 @@ bool VarDefListNode::genSymbolTable() {
             var->genSymbolTable(ord++);
             lvars_length += var->getType()->getLength();
         } catch (RedefineError &e) {
-            throw e;
+            error_handler.addMsg(e);
         }
     ar_lvars_length.push_back(lvars_length);
     return true;
