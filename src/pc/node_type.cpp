@@ -593,7 +593,10 @@ std::string StructAttrNode::genVizCode(int run) {
 void StructAttrNode::getFieldInfo(std::vector<uint8_t> &field_size,
                                   std::vector<uint8_t> &field_rep) {
     if (is_array) {
-        // TODO
+        std::cout << array_attr->getElemLength() << std::endl;  // BUG?
+        std::cout << array_attr->getIndexSize() << std::endl;   // BUG
+        field_size.push_back(array_attr->getElemLength());
+        field_rep.push_back(array_attr->getIndexSize());
     } else {
         // TODO
     }
@@ -638,6 +641,14 @@ std::string ArrayAttrNode::getTypeString() {
 
 int ArrayAttrNode::getLength() {
     return index_type->getSize() * element_type->getLength();
+}
+
+int ArrayAttrNode::getIndexSize() {
+    return index_type->getSize();
+}
+
+int ArrayAttrNode::getElemLength() {
+    return element_type->getLength();
 }
 
 int ArrayAttrNode::getOffset() {

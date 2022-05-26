@@ -26,10 +26,10 @@ FILE    *asm_file          = NULL;
 uint32_t internal_label_id = (uint32_t)((int32_t)-1);
 
 const map<string, string> internal_msg = {
-    {"msg_div_zero", "illegal: divided by zero"},
-    {"msg_signed_overflow", "illegal: signed arithmetic overflow"},
-    {"msg_unsigned_overflow", "illegal: unsigned arithmetic overflow"},
-    {"msg_out_of_bounds", "illegal: ordinal variable out of bounds"}};
+    {"msg_div_zero", "illegal: divide by zero\n"},
+    {"msg_signed_overflow", "illegal: signed arithmetic overflow\n"},
+    {"msg_unsigned_overflow", "illegal: unsigned arithmetic overflow\n"},
+    {"msg_out_of_bounds", "illegal: ordinal variable out of bounds\n"}};
 
 void init_asm(uint32_t init_stack_top) {
     fprintf(asm_file, ".data\n");

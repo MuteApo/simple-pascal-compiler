@@ -192,7 +192,7 @@ bool get_b_type_inst(
 
 bool get_u_type_inst(uint32_t &inst, uint8_t opcode, uint8_t rd, uint32_t imm_high_20bits) {
     bool is_overflow =
-        (!(imm_high_20bits & ~0xFFFFF) == 0x0 || (imm_high_20bits & ~0xFFFFF) == 0xFFF00000);
+        !((imm_high_20bits & ~0xFFFFF) == 0x0 || (imm_high_20bits & ~0xFFFFF) == 0xFFF00000);
     if (is_overflow) {
         printf("immediate of U-Type instruction is too big\n");
         return false;

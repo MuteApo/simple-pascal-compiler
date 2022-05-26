@@ -349,6 +349,10 @@ class ArrayAttrNode {
 
     int getLength();
 
+    int getIndexSize();
+    
+    int getElemLength();
+
     int getOffset();
 
     std::string genVizCode(int run);
