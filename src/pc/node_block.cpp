@@ -67,32 +67,21 @@ void BlockNode::genSymbolTable() {
     if (func_defs != nullptr) func_defs->genSymbolTable();
 }
 
-std::string BlockNode::genAsmDef() {
-    if (is_global && var_defs != nullptr) {
-        return var_defs->genAsmDef();
-    } else
-        return "";
-}
-
-std::string BlockNode::genAsmCode() {
-    std::string asm_code = "";
-    if (stmts != nullptr) asm_code += stmts->genAsmCode();
-    if (func_defs != nullptr) asm_code += func_defs->genAsmCode();
-    return asm_code;
-}
-
 void BlockNode::visit() {
     try {
         genSymbolTable();
-        if (is_global) {
-            std::string text_seg = genAsmCode();
-            text_seg += get_exit();
-            write_segment(text_seg, false);
-            std::string data_seg = genAsmDef();
-            if (data_seg != "") write_segment(data_seg, true);
+        std::string asm_code = "";
+        if (is_global) asm_code += "main:\n";
+        if (stmts != nullptr) {
+            stmts->testExprType();
+            asm_code += stmts->genAsmCode();
         }
+        if (is_global) asm_code += get_exit();
+        write_segment(asm_code, false);
         if (func_defs != nullptr) func_defs->visit();
-        if (stmts != nullptr) stmts->testExprType();
+        if (is_global && var_defs != nullptr) {
+            write_segment(var_defs->genAsmDef(), true);
+        }
     } catch (Exception &e) {
         error_handler.addMsg(e);
     }

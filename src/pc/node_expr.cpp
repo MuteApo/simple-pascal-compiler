@@ -65,7 +65,6 @@ std::string ExprNode::getExprTypeString(ExprEvalType e) {
         case EK_Shl: return "<<";
         case EK_Shr: return ">>";
         case EK_In: return "In";
-        case EK_Access: return "Access";
     }
     return "";
 }
@@ -322,7 +321,7 @@ std::string VarAccessNode::genVizCode(int run) {
     return result;
 }
 
-std::string VarAccessNode::genAsmCode() {  // TODO
+std::string VarAccessNode::genAsmCode(bool access_write) {  // TODO
     switch (type) {
         case va_pointer: {
             break;
@@ -410,7 +409,8 @@ TypeAttrNode *IdNode::getResultType() {
     throw UndefineError(line_no, name);
 }
 
-std::string IdNode::genAsmCode(void) {  // TODO
+std::string IdNode::genAsmCode(bool access_write) {  // TODO
+    
     return "";
 }
 

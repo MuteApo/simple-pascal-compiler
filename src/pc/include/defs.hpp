@@ -30,9 +30,7 @@ enum ExprEvalType {
     EK_Xor,  // xor
     EK_Shl,  // shl
     EK_Shr,  // shr
-    EK_In,   // in
-    /* temporary(will be removed) */
-    EK_Access
+    EK_In    // in
 };
 
 enum TypeKind { basic = 1001, ordinal, structured, pointer, type_identifier };

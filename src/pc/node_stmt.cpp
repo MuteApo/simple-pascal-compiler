@@ -1,4 +1,5 @@
 #include "include/node_stmt.hpp"
+#include "include/asmgen.hpp"
 
 StmtNode::StmtNode(StmtType        t,
                    StmtListNode   *c_s,
@@ -213,7 +214,18 @@ bool StmtNode::testExprType() {
 }
 
 std::string StmtNode::genAsmCode() {
-    return "";
+    switch (type) {
+        case SK_Compound: return compound_stmt->genAsmCode();
+        case SK_Assign: return assign_stmt->genAsmCode();
+        case SK_If: return if_stmt->genAsmCode();
+        case SK_For: return for_stmt->genAsmCode();
+        case SK_While: return while_stmt->genAsmCode();
+        case SK_Repeat: return repeat_stmt->genAsmCode();
+        case SK_Switch: return switch_stmt->genAsmCode();
+        case SK_Func: return func_stmt->genAsmCode();
+        case SK_Read: return read_stmt->genAsmCode();
+        case SK_Write: return write_stmt->genAsmCode();
+    }
 }
 
 StmtListNode::StmtListNode() : uid(++global_uid), line_no(yylineno) {
@@ -269,6 +281,25 @@ std::string AssignStmtNode::genVizCode(int run) {
     return result;
 }
 
+std::string AssignStmtNode::genAsmCode() {
+    std::string asm_code = "";
+    if (dst->getNodeType() != el_var_access && dst->getNodeType() != el_id) {
+        // TODO: throw LeftValueError
+    }  // Expr type is already checked before code generation
+    TypeKind type = src->getResultType()->getType();
+    if (type != basic && type != ordinal && type != pointer) {
+        // TODO: throw NotAssignableError
+    }
+    // asm_code += src->;
+    asm_code += get_reg_xchg(t_table[2], t_table[0]);
+    if (dst->getNodeType() == el_var_access) {
+        asm_code += dst->getVarAccessNode()->genAsmCode(true);
+    } else {
+        asm_code += dst->getIdNode()->genAsmCode(true);
+    }
+    return asm_code;
+}
+
 bool AssignStmtNode::testExprType() {
     TypeAttrNode *dst_type = nullptr, *src_type = nullptr;
     try {
@@ -306,6 +337,10 @@ std::string IfStmtNode::genVizCode(int run) {
         result += else_part->genVizCode(run);
     }
     return result;
+}
+
+std::string IfStmtNode::genAsmCode() {
+    return "";  // TODO
 }
 
 bool IfStmtNode::testExprType() {
@@ -354,6 +389,10 @@ std::string ForStmtNode::genVizCode(int run) {
     return result;
 }
 
+std::string ForStmtNode::genAsmCode() {
+    return "";  // TODO
+}
+
 bool ForStmtNode::testExprType() {
     try {
         body_part->testExprType();
@@ -385,6 +424,10 @@ std::string WhileStmtNode::genVizCode(int run) {
     return result;
 }
 
+std::string WhileStmtNode::genAsmCode() {
+    return "";  // TODO
+}
+
 bool WhileStmtNode::testExprType() {
     try {
         body_part->testExprType();
@@ -412,6 +455,10 @@ std::string RepeatStmtNode::genVizCode(int run) {
     result += vizEdge(uid, condition->getUid(), "condition", "Condition");
     result += condition->genVizCode(run);
     return result;
+}
+
+std::string RepeatStmtNode::genAsmCode() {
+    return "";  // TODO
 }
 
 bool RepeatStmtNode::testExprType() {
@@ -504,6 +551,10 @@ std::string SwitchStmtNode::genVizCode(int run) {
     return result;
 }
 
+std::string SwitchStmtNode::genAsmCode() {
+    return "";  // TODO
+}
+
 bool SwitchStmtNode::testExprType() {
     try {
         case_list->testExprType();
@@ -524,6 +575,10 @@ std::string FuncStmtNode::genVizCode(int run) {
     result += vizEdge(uid, func->getUid(), "fun call", "Function Call");
     result += func->genVizCode(run);
     return result;
+}
+
+std::string FuncStmtNode::genAsmCode() {
+    return "";  // TODO
 }
 
 bool FuncStmtNode::testExprType() {
@@ -550,6 +605,10 @@ std::string ReadStmtNode::genVizCode(int run) {
     return result;
 }
 
+std::string ReadStmtNode::genAsmCode() {
+    return "";  // TODO
+}
+
 bool ReadStmtNode::testExprType() {
     // TODO
     return true;
@@ -567,6 +626,10 @@ std::string WriteStmtNode::genVizCode(int run) {
     result += vizEdge(uid, exprs->getUid(), "args", "Argument List");
     result += exprs->genVizCode(run);
     return result;
+}
+
+std::string WriteStmtNode::genAsmCode() {
+    return "";  // TODO
 }
 
 bool WriteStmtNode::testExprType() {

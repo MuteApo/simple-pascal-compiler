@@ -17,19 +17,16 @@ using namespace std;
 
 #define GLOBAL_INIT_VAL (0)
 
-const uint8_t t_table[7]  = {5, 6, 7, 28, 29, 30, 31};
-const uint8_t s_table[12] = {8, 9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27};
-
 bool     in_code_segment;
 bool     in_data_segment;
 FILE    *asm_file          = NULL;
 uint32_t internal_label_id = (uint32_t)((int32_t)-1);
 
 const map<string, string> internal_msg = {
-    {"msg_div_zero", "illegal: divide by zero\n"},
-    {"msg_signed_overflow", "illegal: signed arithmetic overflow\n"},
-    {"msg_unsigned_overflow", "illegal: unsigned arithmetic overflow\n"},
-    {"msg_out_of_bounds", "illegal: ordinal variable out of bounds\n"}};
+    {"msg_div_zero", "illegal: divide by zero\\n"},
+    {"msg_signed_overflow", "illegal: signed arithmetic overflow\\n"},
+    {"msg_unsigned_overflow", "illegal: unsigned arithmetic overflow\\n"},
+    {"msg_out_of_bounds", "illegal: ordinal variable out of bounds\\n"}};
 
 void init_asm(uint32_t init_stack_top) {
     fprintf(asm_file, ".data\n");
@@ -41,7 +38,7 @@ void init_asm(uint32_t init_stack_top) {
         p++;
     }
     fprintf(asm_file, ".text\n");
-    fprintf(asm_file, "main:\n");
+    fprintf(asm_file, "init:\n");
     string sp_set_inst = "\tli sp, " + to_string(init_stack_top) + "\n";
     fprintf(asm_file, "%s", sp_set_inst.data());
     in_code_segment = true;
@@ -520,6 +517,8 @@ bool write_segment(string snippet, bool data_seg) {
     if (asm_file == NULL) {
         printf("assembly file is not created yet\n");
         return false;
+    } else if (snippet == "") {
+        return true;
     }
     if (data_seg && !in_data_segment) {
         fprintf(asm_file, ".data\n");

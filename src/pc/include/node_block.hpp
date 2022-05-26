@@ -44,10 +44,6 @@ class BlockNode {
 
     void genSymbolTable();
 
-    std::string genAsmDef();
-
-    std::string genAsmCode();
-
     void visit();
 };
 

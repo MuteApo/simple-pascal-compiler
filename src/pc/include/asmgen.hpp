@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 
+const uint8_t t_table[7]  = {5, 6, 7, 28, 29, 30, 31};
+const uint8_t s_table[12] = {8, 9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27};
+
 /** Register Operation **/
 
 std::string get_load_imm(int32_t imm);
@@ -30,7 +33,7 @@ std::string get_params_copy(uint32_t dst_stk_pos, uint32_t src_stk_pos, uint32_t
 
 std::string get_params_copy(uint32_t dst_stk_pos, std::string src_name, uint32_t length);
 
-/** Basic Assembly Code Generatio Function **/
+/** Basic Assembly Code Generation Function **/
 
 bool start_asm(std::string filename, uint32_t init_stack_top = 0x1FFFF);
 

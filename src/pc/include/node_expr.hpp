@@ -67,8 +67,6 @@ class ExprNode {
     TypeAttrNode *getResultType();
 
     bool isValueEqual(ExprNode *expr);
-
-    std::string genAsmCode(void);
 };
 
 class ExprListNode {
@@ -160,7 +158,7 @@ class VarAccessNode {
 
     bool testAccess();
 
-    std::string genAsmCode();
+    std::string genAsmCode(bool access_write);
 };
 
 class IdNode {
@@ -187,7 +185,7 @@ class IdNode {
 
     TypeAttrNode *getResultType();
 
-    std::string genAsmCode(void);
+    std::string genAsmCode(bool access_write);
 };
 
 class IdListNode {

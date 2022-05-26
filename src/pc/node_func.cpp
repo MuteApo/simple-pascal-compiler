@@ -1,4 +1,5 @@
 #include "include/node_func.hpp"
+#include "include/asmgen.hpp"
 
 ParamDefNode::ParamDefNode(bool is_r, std::string id, TypeAttrNode *t)
         : uid(++global_uid), line_no(yylineno), is_ref(is_r), var_def(new VarDefNode(id, t)) {}
@@ -172,16 +173,13 @@ bool FuncDefNode::testArgType(ExprListNode *args) {
     return true;
 }
 
-std::string FuncDefNode::genAsmCode() {
-    return "";  // TODO
-}
-
 void FuncDefNode::visit() {
     symbol_table.enterScope();
     try {
         if (retval_type != nullptr)
             symbol_table.addSymbol(name, new VarDefNode(name, retval_type), -1);
         if (param_defs != nullptr) param_defs->genSymbolTable();
+        write_segment(name + ":\n", false);
         if (block != nullptr) block->visit();
     } catch (RedefineError &e) {
         error_handler.addMsg(e);
@@ -220,10 +218,6 @@ bool FuncDefListNode::genSymbolTable() {
             error_handler.addMsg(e);
         }
     return true;
-}
-
-std::string FuncDefListNode::genAsmCode() {
-    return "";  // TODO
 }
 
 void FuncDefListNode::visit() {

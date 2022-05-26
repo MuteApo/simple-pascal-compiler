@@ -150,6 +150,8 @@ class ForStmtNode {
 
     std::string genVizCode(int run);
 
+    std::string genAsmCode();
+
     bool testExprType();
 };
 
@@ -244,6 +246,8 @@ class SwitchStmtNode {
 
     std::string genVizCode(int run);
 
+    std::string genAsmCode();
+
     bool testExprType();
 };
 
@@ -259,6 +263,8 @@ class FuncStmtNode {
     int getUid();
 
     std::string genVizCode(int run);
+
+    std::string genAsmCode();
 
     bool testExprType();
 };
@@ -276,6 +282,8 @@ class ReadStmtNode {
 
     std::string genVizCode(int run);
 
+    std::string genAsmCode();
+
     bool testExprType();
 };
 
@@ -292,6 +300,8 @@ class WriteStmtNode {
     int getUid();
 
     std::string genVizCode(int run);
+
+    std::string genAsmCode();
 
     bool testExprType();
 };

@@ -1,6 +1,6 @@
 DEG_DIR = bin
 SRC_DIR = test
-DBG_SRC = $(SRC_DIR)/parser_decl_test.pas
+DBG_SRC = $(SRC_DIR)/scanner_test.pas
 
 .PHONY: all as util sim debug run clean
 
