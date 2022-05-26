@@ -77,9 +77,9 @@ std::string ParamDefListNode::genVizCode(int run) {
     return result;
 }
 
-bool ParamDefListNode::genSymbolTable() {
+bool ParamDefListNode::genSymbolTable(int param_bias) {
     for (int i = 0; i < param_defs.size(); i++) try {
-            param_defs.at(i)->genSymbolTable(i);
+            param_defs.at(i)->genSymbolTable(i + param_bias);
         } catch (RedefineError &e) {
             throw e;
         }
@@ -179,10 +179,16 @@ std::string FuncDefNode::genAsmCode() {
 void FuncDefNode::visit() {
     symbol_table.enterScope();
     try {
-        if (retval_type != nullptr)
-            symbol_table.addSymbol(name, new VarDefNode(name, retval_type), -1);
-        if (param_defs != nullptr) param_defs->genSymbolTable();
-        if (block != nullptr) block->visit();
+        int param_bias = 0;
+        if (retval_type != nullptr) {
+            symbol_table.addSymbol(name, new VarDefNode(name, retval_type), 0);
+            param_bias++;
+        }
+        if (param_defs != nullptr) {
+            param_defs->genSymbolTable(param_bias);
+            param_bias += param_defs->getParamList().size();
+        }
+        if (block != nullptr) block->visit(param_bias);
     } catch (RedefineError &e) {
         error_handler.addMsg(e);
     }

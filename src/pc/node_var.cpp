@@ -137,12 +137,12 @@ void VarDefListNode::translateId() {
         }
 }
 
-bool VarDefListNode::genSymbolTable() {
+bool VarDefListNode::genSymbolTable(int bias) {
     int lvars_length = 0;
     int ord          = 0;
-    for (VarDefNode *var : var_defs) try {
-            var->genSymbolTable(ord++);
-            lvars_length += var->getType()->getLength();
+    for (int i = 0; i < var_defs.size(); i++) try {
+            var_defs.at(i)->genSymbolTable(i + bias);
+            lvars_length += var_defs.at(i)->getType()->getLength();
         } catch (RedefineError &e) {
             error_handler.addMsg(e);
         }

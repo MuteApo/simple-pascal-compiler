@@ -207,9 +207,7 @@ LiteralNode::~LiteralNode() {
 
 bool LiteralNode::operator<(const LiteralNode &rhs) const {
     if (is_nil) return !rhs.is_nil;
-    if (type->line_no != rhs.type->line_no) return type->line_no < rhs.type->line_no;
     if (type->getType() != rhs.type->getType()) return type->getType() < rhs.type->getType();
-    std::cout << type->getTypeString() << " " << rhs.type->getTypeString() << std::endl;
     switch (type->getType()) {
         case boolean: return bval < rhs.bval;
         case integer: return ival < rhs.ival;

@@ -42,13 +42,13 @@ class BlockNode {
 
     std::string genVizCode(int run);
 
-    void genSymbolTable();
+    void genSymbolTable(int param_bias);
 
     std::string genAsmDef();
 
     std::string genAsmCode();
 
-    void visit();
+    void visit(int param_bias);
 };
 
 class ProgramNode {

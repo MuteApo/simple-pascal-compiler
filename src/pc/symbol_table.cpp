@@ -19,7 +19,10 @@ ConstTableItem::ConstTableItem(std::string id, int lv, ConstDefNode *c_d)
 
 bool ConstTableItem::operator<(const ConstTableItem &rhs) const {
     if (level != rhs.level) return level < rhs.level;
-    return const_def->getExpr()->getLiteralNode() < rhs.const_def->getExpr()->getLiteralNode();
+    LiteralNode *lhs_value = const_def->getExpr()->getLiteralNode();
+    LiteralNode *rhs_value = rhs.const_def->getExpr()->getLiteralNode();
+    if (!lhs_value->isValueEqual(rhs_value)) return *lhs_value < *rhs_value;
+    return name < rhs.name;
 }
 
 std::string ConstTableItem::toString() {
@@ -226,8 +229,8 @@ template <class T>
 void SymbolTable::printSymbol(const std::map<std::string, std::list<T>> &decl_map) {
     std::set<T> symbols;
     for (auto it1 : decl_map)
-        if (!it1.second.empty())
-            for (auto it2 : it1.second) symbols.insert(it2);
+        if (!it1.second.empty()) symbols.insert(it1.second.front());
+    // for (auto it2 : it1.second) symbols.insert(it2);
     for (auto symbol : symbols) std::cout << symbol.toString() << std::endl;
 }
 

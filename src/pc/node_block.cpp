@@ -60,10 +60,10 @@ std::string BlockNode::genVizCode(int run) {
     return result;
 }
 
-void BlockNode::genSymbolTable() {
+void BlockNode::genSymbolTable(int param_bias) {
     if (const_defs != nullptr) const_defs->genSymbolTable();
     if (type_defs != nullptr) type_defs->genSymbolTable();
-    if (var_defs != nullptr) var_defs->genSymbolTable();
+    if (var_defs != nullptr) var_defs->genSymbolTable(param_bias);
     if (func_defs != nullptr) func_defs->genSymbolTable();
 }
 
@@ -81,9 +81,9 @@ std::string BlockNode::genAsmCode() {
     return asm_code;
 }
 
-void BlockNode::visit() {
+void BlockNode::visit(int param_bias) {
     try {
-        genSymbolTable();
+        genSymbolTable(param_bias);
         if (is_global) {
             std::string text_seg = genAsmCode();
             text_seg += get_exit();
@@ -125,6 +125,6 @@ std::string ProgramNode::genVizCode(int run) {
 void ProgramNode::visit() {
     if (block == nullptr) return;
     symbol_table.enterScope();
-    block->visit();
+    block->visit(0);
     symbol_table.leaveScope();
 }
