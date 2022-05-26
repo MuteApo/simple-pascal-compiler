@@ -135,21 +135,29 @@ void SymbolTable::popFuncSymbol() {
             if (it.second.front().level == currLevel) it.second.pop_front();
 }
 
-ConstDefNode *SymbolTable::findConstSymbol(std::string id) {
+ConstDefNode *SymbolTable::findConstSymbol(std::string id, int *level) {
     auto item = ConstDeclMap.find(id);
-    return item == ConstDeclMap.end() ? nullptr : item->second.front().const_def;
+    if (item == ConstDeclMap.end()) return nullptr;
+    if (level != nullptr) *level = item->second.front().level;
+    return item->second.front().const_def;
 }
-TypeAttrNode *SymbolTable::findTypeSymbol(std::string id) {
+TypeAttrNode *SymbolTable::findTypeSymbol(std::string id, int *level) {
     auto item = TypeDeclMap.find(id);
-    return item == TypeDeclMap.end() ? nullptr : item->second.front().type_attr;
+    if (item == TypeDeclMap.end()) return nullptr;
+    if (level != nullptr) *level = item->second.front().level;
+    return item->second.front().type_attr;
 }
-VarDefNode *SymbolTable::findVarSymbol(std::string id) {
+VarDefNode *SymbolTable::findVarSymbol(std::string id, int *level) {
     auto item = VarDeclMap.find(id);
-    return item == VarDeclMap.end() ? nullptr : item->second.front().var_def;
+    if (item == VarDeclMap.end()) return nullptr;
+    if (level != nullptr) *level = item->second.front().level;
+    return item->second.front().var_def;
 }
-FuncDefNode *SymbolTable::findFuncSymbol(std::string id) {
+FuncDefNode *SymbolTable::findFuncSymbol(std::string id, int *level) {
     auto item = FuncDeclMap.find(id);
-    return item == FuncDeclMap.end() ? nullptr : item->second.front().func_def;
+    if (item == FuncDeclMap.end()) return nullptr;
+    if (level != nullptr) *level = item->second.front().level;
+    return item->second.front().func_def;
 }
 
 bool SymbolTable::existSymbol(std::string id) {

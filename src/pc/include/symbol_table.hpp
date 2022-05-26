@@ -92,10 +92,10 @@ class SymbolTable {
     bool addSymbol(std::string id, VarDefNode *v_d, int ord);
     bool addSymbol(std::string id, FuncDefNode *f_d);
 
-    ConstDefNode *findConstSymbol(std::string id);
-    TypeAttrNode *findTypeSymbol(std::string id);
-    VarDefNode   *findVarSymbol(std::string id);
-    FuncDefNode  *findFuncSymbol(std::string id);
+    ConstDefNode *findConstSymbol(std::string id, int *level = nullptr);
+    TypeAttrNode *findTypeSymbol(std::string id, int *level = nullptr);
+    VarDefNode   *findVarSymbol(std::string id, int *level = nullptr);
+    FuncDefNode  *findFuncSymbol(std::string id, int *level = nullptr);
 
     bool existSymbol(std::string id);
 
