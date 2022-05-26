@@ -477,7 +477,7 @@ std::string SubrangeAttrNode::getTypeString() {
 }
 
 int SubrangeAttrNode::getLength() {
-    return 3 * ALIGN_LEN;
+    return ALIGN_LEN;
 }
 
 int SubrangeAttrNode::getOffset() {

@@ -95,8 +95,7 @@ string get_integer_calc(string operation, bool is_unsigned) {
     string res = "";
     if (operation == "not") {
         operation = "xor";
-        res += get_load_imm(0xFFFFFFFF);
-        res += get_reg_xchg(t_table[2], t_table[0]);
+        res += "\tli t2, 0xFFFFFFFF\n";
     }
     if (operation == "add" || operation == "sub") {
         if (operation == "add")
@@ -297,15 +296,15 @@ string get_mem_access(uint8_t size, bool dir, bool is_signed) {
 
 string get_var_access(int32_t var_pos, int32_t offset, uint8_t size, bool dir, bool is_signed) {
     string res = "";
-    res += get_load_imm(var_pos + offset);
-    res += "\tsub t1, fp, t0\n";  // local variable field in AR is used reversely
+    res += "\tli t1, " + to_string(var_pos + offset) + "\n";
+    res += "\tsub t1, fp, t1\n";  // local variable field in AR is used reversely
     res += get_mem_access(size, dir, is_signed);
     return res;
 }
 
 string get_var_access(string name, int32_t offset, uint8_t size, bool dir, bool is_signed) {
     string res = "";
-    res += get_load_imm(offset);
+    res += "\tli t0, " + to_string(offset) + "\n";
     res += "\tla t1, " + name + "\n";
     res += "\tadd t1, t0, t1\n";
     res += get_mem_access(size, dir, is_signed);
@@ -350,13 +349,13 @@ string get_mem_copy(void) {
 
 string get_params_copy(uint32_t dst_stk_pos, uint32_t src_stk_pos, uint32_t length) {
     string res = "";
-    res += get_load_imm(length);
-    res += "\tadd t3, t0, x0\n";
-    res += get_load_imm(dst_stk_pos);
-    res += "\tadd t2, t0, sp\n";
-    res += get_load_imm(src_stk_pos);
-    res += "\tadd t1, t0, sp\n";
+    res += "\tli t3, " + to_string(length) + "\n";
+    res += "\tli t2, " + to_string(dst_stk_pos) + "\n";
+    res += "\tadd t2, t2, sp\n";
+    res += "\tli t1, " + to_string(src_stk_pos) + "\n";
+    res += "\tadd t1, t1, sp\n";
     res += get_mem_copy();
+    res += "\tli t3, " + to_string(length) + "\n";
     res += "\tsub sp, sp, t3\n";
     return res;
 }
@@ -364,18 +363,20 @@ string get_params_copy(uint32_t dst_stk_pos, uint32_t src_stk_pos, uint32_t leng
 string get_params_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {
     string res = "";
     res += "\tla t1, " + src_name + "\n";
-    res += get_load_imm(length);
-    res += "\tadd t3, t0, x0\n";
-    res += get_load_imm(dst_stk_pos);
-    res += "\tadd t2, t0, sp\n";
+    res += "\tli t3, " + to_string(length) + "\n";
+    res += "\tli t2, " + to_string(dst_stk_pos) + "\n";
+    res += "\tadd t2, t2, sp\n";
     res += get_mem_copy();
+    res += "\tli t3, " + to_string(length) + "\n";
     res += "\tsub sp, sp, t3\n";
     return res;
 }
 
 /********************** Function or Procedure Call **********************/
 
-// func/proc's perem/retval is always in stack
+// func/proc's perem/retval is always in stack, but for
+// a0: calling level of the func/proc
+// a1: defination level of the func/proc
 // func/proc's Activation Record:
 // ------------------------------ (High Address)
 // |          List of           | {Leftest in arg list is at lowest addr}
@@ -383,11 +384,13 @@ string get_params_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {
 // |----------------------------|
 // |        Return Value        | {4 bytes, only for func, BasicRealType}
 // |----------------------------|
+// |    CALL Lv - DEF Lv + 1    | {4 bytes (one word), as indirect access link}
+// |----------------------------|
 // |         OLD ra(x1)         | {4 bytes (one word)}
 // |----------------------------|
 // |         OLD s1-s11         | {4 * 11 bytes (11 words)}
 // |----------------------------|
-// |        OLD fp(x8/s0)       | {4 bytes (one word), as indirect access link}
+// |        OLD fp(x8/s0)       | {4 bytes (one word), as control link}
 // |----------------------------| <- fp(x8/s0) HERE!
 // |       Local Variables      | {LEN varies with func as a const}
 // |----------------------------| <- sp(x2) HERE!
@@ -398,8 +401,7 @@ string get_params_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {
 
 // 1 - DO NOT USE s0(fp) for other purpose during a call!
 // 2 - sp is never modified to another const after initialized
-// 3 - To support access of non-local & non-global vars, use "OLD fp"
-// or access link to get the start addr of caller's local var
+// 3 - "List of Params" and "RetVal" is established and cleaned by caller
 
 // External Visable Function for Assembly Code Generation
 
@@ -407,35 +409,41 @@ string get_func_def(string name, uint32_t args_len, uint32_t local_vars_len, str
     string res = "";
     res += name + ":\n";
     res += "\taddi sp, sp, -4\n";
-    res += "\tsw ra, 0(sp)\n";
+    res += "\tsub a0, a1, a0\n";
+    res += "\taddi a0, a0, 1\n";
+    res += "\taddi sp, sp, -4\n";
+    res += "\tsw a0, 0(sp)\n";  // Save indirect access link onto stack
     res += "\taddi sp, sp, -44\n";
     for (int i = 1; i <= 11; i++) {
         res += "\tsw x" + to_string(s_table[i]) + ", " + to_string((i - 1) * 4) + "(sp)\n";
     }
     res += "\taddi sp, sp, -4\n";
-    res += "\tsw fp, 0(sp)\n";
-    res += "\tadd fp, sp, x0\n";
-    res += get_load_imm(local_vars_len);
+    res += "\tsw fp, 0(sp)\n";    // Save control link
+    res += "\tadd fp, sp, x0\n";  // fp = sp (new fp)
+    res += "\tli t0, " + to_string(local_vars_len) + "\n";
     res += "\tsub sp, sp, t0\n";
     res += func_body;
-    res += get_load_imm(local_vars_len);
-    res += "\tadd sp, sp, t0\n";
+    res += "\tadd sp, fp, x0\n";  // Cleanup local variables
     res += "\tlw fp, 0(sp)\n";
     res += "\taddi sp, sp, 4\n";
     for (int i = 1; i <= 11; i++) {
         res += "\tlw x" + to_string(s_table[i]) + ", " + to_string((i - 1) * 4) + "(sp)\n";
     }
     res += "\taddi sp, sp, 44\n";
+    res += "\taddi sp, sp, 4\n";  // Cleanup access link
     res += "\tlw ra, 0(sp)\n";
-    res += "\taddi sp, sp, 4\n";
+    res += "\taddi sp, sp, 4\n";  // Cleanup return address
     res += "\tjalr x0, 0(ra)\n";
     return res;
 }
 
-string get_func_call(string name, string parem_copy, bool has_retval) {
+string
+get_func_call(string name, string parem_copy, bool has_retval, uint32_t call_lv, uint32_t def_lv) {
     string res = "";
     res += parem_copy;
     if (has_retval) res += "\taddi sp, sp, -4\n";
+    res += "\tli a0, " + to_string(call_lv) + "\n";
+    res += "\tli a1, " + to_string(def_lv) + "\n";
     res += "\tcall " + name + "\n";
     return res;
 }
@@ -444,24 +452,24 @@ string get_func_call(string name, string parem_copy, bool has_retval) {
 string get_func_cleanup(uint32_t args_len, bool has_retval) {
     string res = "";
     if (!has_retval)
-        res += get_load_imm(args_len);
+        res += "\tli t0, " + to_string(args_len) + "\n";
     else
-        res += get_load_imm(args_len + 4);
+        res += "\tli t0, " + to_string(args_len + 4) + "\n";
     res += "\tadd sp, sp, t0\n";
     return res;
 }
 
 std::string get_retval_read(uint8_t size, bool is_unsigned) {  // For caller to get return value
     string res = "";
-    res += "\taddi t1, fp, 52\n";
+    res += "\taddi t1, fp, 56\n";
     res += get_mem_access(size, false, is_unsigned);
     return res;
 }
 
 std::string get_retval_write(uint8_t size, bool is_unsigned) {  // For callee to put return value
     string res = "";
-    // 52 = 4 * (1 (old ra) + 11 (old s1-s11) + 1 (old fp))
-    res += "\taddi t1, fp, 52\n";
+    // 56 = 4 * (1 (indirect access link) + 1 (old ra) + 11 (old s1-s11) + 1 (old fp))
+    res += "\taddi t1, fp, 56\n";
     res += get_mem_access(size, true, is_unsigned);
     return res;
 }
@@ -469,19 +477,18 @@ std::string get_retval_write(uint8_t size, bool is_unsigned) {  // For callee to
 string get_param_access(
     uint32_t param_pos, uint32_t offset, bool has_retval, uint8_t size, bool dir, bool is_signed) {
     string res = "";
-    res += "\taddi t1, fp, 52\n";
+    res += "\taddi t1, fp, 56\n";
     if (has_retval) res += "\taddi t1, t1, 4\n";
-    res += get_load_imm(param_pos + offset);
+    res += "\tli t0, " + to_string(param_pos + offset) + "\n";
     res += "\tadd t1, t1, t0\n";
     res += get_mem_access(size, dir, is_signed);
     return res;
 }
 
 // fp of target level of AR is finally in t0
-string get_access_link(uint32_t jmp_level) {
+string get_access_link(void) {
     string res = "";
-    res += get_load_imm(jmp_level);
-    res += "\tadd t1, t0, x0\n";  // t1 = level that needs to jump
+    res += "\tlw t1, 52(fp)\n";   // t1 = level that needs to jump
     res += "\tadd t0, x0, fp\n";  // t0 = current level's fp
     res += "_lbl_" + to_string(++internal_label_id) + ":\n";
     res += "\tlw t0, 0(t0)\n";  // x0 = old fp
@@ -555,9 +562,8 @@ string get_define_global(string name, vector<uint8_t> field_size, vector<uint32_
 // Ordinal data for checking is in t1 register
 string get_ordinal_bound_check(uint32_t lower_bound, uint32_t upper_bound) {
     string res = "";
-    res += get_load_imm(lower_bound);
-    res += "\tadd t3, t0, x0\n";
-    res += get_load_imm(upper_bound);
+    res += "\tli t3, " + to_string(lower_bound) + "\n";
+    res += "\tli t4, " + to_string(upper_bound) + "\n";
     res += "\tadd t4, t0, x0\n";
     res += "\tslt t5, t1, t3\n";
     res += "\tsltu t6, t4, t1\n";

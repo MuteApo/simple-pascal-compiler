@@ -41,13 +41,14 @@ bool write_segment(std::string snippet, bool data_seg);
 /** High-Level Assembly Snippet Generation **/
 
 std::string get_define_global(std::string           name,
-                              std::vector<uint8_t> field_size,
-                              std::vector<uint32_t>  field_rep);
+                              std::vector<uint8_t>  field_size,
+                              std::vector<uint32_t> field_rep);
 
 std::string
 get_func_def(std::string name, uint32_t args_len, uint32_t local_vars_len, std::string func_body);
 
-std::string get_func_call(std::string name, std::string parem_copy, bool has_retval);
+std::string get_func_call(
+    std::string name, std::string parem_copy, bool has_retval, uint32_t call_lv, uint32_t def_lv);
 
 std::string get_func_cleanup(uint32_t args_len, bool has_retval);
 
@@ -58,7 +59,7 @@ std::string get_retval_write(uint8_t size, bool is_unsigned);
 std::string get_param_access(
     uint32_t param_pos, uint32_t offset, bool has_retval, uint8_t size, bool dir, bool is_signed);
 
-std::string get_access_link(uint32_t jmp_level);
+std::string get_access_link(void);
 
 std::string get_ordinal_bound_check(uint32_t lower_bound, uint32_t upper_bound);
 
