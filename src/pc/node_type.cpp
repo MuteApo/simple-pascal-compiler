@@ -21,7 +21,7 @@ bool TypeDefNode::genSymbolTable() {
     } catch (UndefineError &e) {
         error_handler.addMsg(e);
     } catch (RedefineError &e) {
-        throw e;
+        error_handler.addMsg(e);
     }
     if (symbol_table.existSymbol(name)) throw RedefineError(line_no, name);
     return symbol_table.addSymbol(name, type);
@@ -62,7 +62,7 @@ bool TypeDefListNode::genSymbolTable() {
     for (TypeDefNode *type : type_defs) try {
             type->genSymbolTable();
         } catch (RedefineError &e) {
-            throw e;
+            error_handler.addMsg(e);
         }
     return true;
 }
@@ -149,8 +149,8 @@ int TypeAttrNode::getOffset(std::string member) {
     return -1;
 }
 
-int TypeAttrNode::getSize() {
-    if (root_type != ordinal) return -1;
+int TypeAttrNode::getSize(int ord) {
+    if (root_type != ordinal) throw IndexTypeError(line_no, ord, "ordinal", getTypeString());
     return ord_attr->getSize();
 }
 
@@ -283,7 +283,11 @@ std::vector<TypeAttrNode *> TypeAttrListNode::getAttrList() {
 
 int TypeAttrListNode::getSize() {
     int result = 1;
-    for (TypeAttrNode *type : type_attrs) result *= type->getSize();
+    for (int i = 0; i < type_attrs.size(); i++) try {
+            result *= type_attrs.at(i)->getSize(i + 1);
+        } catch (IndexTypeError &e) {
+            error_handler.addMsg(e);
+        }
     return result;
 }
 
@@ -320,15 +324,16 @@ bool TypeAttrListNode::isTypeEqual(TypeAttrListNode *type) {
     return true;
 }
 
-bool TypeAttrListNode::testIndexType(const std::vector<ExprNode *> &indices) {
-    if (type_attrs.size() != indices.size())
-        throw IndexDimensionError(line_no, type_attrs.size(), indices.size());
+bool TypeAttrListNode::testIndexType(ExprListNode *indices) {
+    std::vector<ExprNode *> &index_list = indices->getExprList();
+    if (type_attrs.size() != index_list.size())
+        throw IndexDimensionError(indices->getLineNumber(), type_attrs.size(), index_list.size());
     for (int i = 0; i < type_attrs.size(); i++)
-        if (!type_attrs.at(i)->isTypeEqual(indices.at(i)->getResultType()))
-            throw IndexTypeError(line_no,
+        if (!type_attrs.at(i)->isTypeEqual(index_list.at(i)->getResultType()))
+            throw IndexTypeError(indices->getLineNumber(),
                                  i + 1,
                                  type_attrs.at(i)->getTypeString(),
-                                 indices.at(i)->getResultType()->getTypeString());
+                                 index_list.at(i)->getResultType()->getTypeString());
     return true;
 }
 
@@ -640,7 +645,13 @@ std::string ArrayAttrNode::getTypeString() {
 }
 
 int ArrayAttrNode::getLength() {
-    return index_type->getSize() * element_type->getLength();
+    int result = element_type->getLength();
+    try {
+        result *= index_type->getSize();
+    } catch (IndexTypeError &e) {
+        throw e;
+    }
+    return result;
 }
 
 int ArrayAttrNode::getIndexSize() {
@@ -681,7 +692,7 @@ bool ArrayAttrNode::isTypeEqual(ArrayAttrNode *type) {
 
 bool ArrayAttrNode::testIndexType(ExprListNode *indices) {
     try {
-        index_type->testIndexType(indices->getExprList());
+        index_type->testIndexType(indices);
     } catch (IndexDimensionError &e) {
         throw e;
     } catch (IndexTypeError &e) {

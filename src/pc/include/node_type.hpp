@@ -118,7 +118,7 @@ class TypeAttrNode {
 
     int getOffset(std::string member = "");
 
-    int getSize();
+    int getSize(int ord);
 
     std::string getNodeInfo();
 
@@ -161,7 +161,7 @@ class TypeAttrListNode {
 
     bool isTypeEqual(TypeAttrListNode *type);
 
-    bool testIndexType(const std::vector<ExprNode *> &indices);
+    bool testIndexType(ExprListNode *indices);
 };
 
 class BasicAttrNode {

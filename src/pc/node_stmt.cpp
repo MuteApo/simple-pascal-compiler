@@ -197,21 +197,17 @@ std::string StmtNode::genVizCode(int run) {
 }
 
 bool StmtNode::testExprType() {
-    try {
-        switch (type) {
-            case SK_Compound: return compound_stmt->testExprType();
-            case SK_Assign: return assign_stmt->testExprType();
-            case SK_If: return if_stmt->testExprType();
-            case SK_For: return for_stmt->testExprType();
-            case SK_While: return while_stmt->testExprType();
-            case SK_Repeat: return repeat_stmt->testExprType();
-            case SK_Switch: return switch_stmt->testExprType();
-            case SK_Func: return func_stmt->testExprType();
-            case SK_Read: return read_stmt->testExprType();
-            case SK_Write: return write_stmt->testExprType();
-        }
-    } catch (Exception &e) {
-        error_handler.addMsg(e);
+    switch (type) {
+        case SK_Compound: return compound_stmt->testExprType();
+        case SK_Assign: return assign_stmt->testExprType();
+        case SK_If: return if_stmt->testExprType();
+        case SK_For: return for_stmt->testExprType();
+        case SK_While: return while_stmt->testExprType();
+        case SK_Repeat: return repeat_stmt->testExprType();
+        case SK_Switch: return switch_stmt->testExprType();
+        case SK_Func: return func_stmt->testExprType();
+        case SK_Read: return read_stmt->testExprType();
+        case SK_Write: return write_stmt->testExprType();
     }
     return true;
 }
@@ -274,11 +270,16 @@ std::string AssignStmtNode::genVizCode(int run) {
 }
 
 bool AssignStmtNode::testExprType() {
-    TypeAttrNode *dst_type = dst->getResultType();
-    TypeAttrNode *src_type = src->getResultType();
-    if (!dst_type->isTypeEqual(src_type))
-        throw ExpressionTypeError(
-            line_no, to_string(dst_type->getTypeString()), to_string(src_type->getTypeString()));
+    try {
+        TypeAttrNode *dst_type = dst->getResultType();
+        TypeAttrNode *src_type = src->getResultType();
+        if (!dst_type->isTypeEqual(src_type))
+            throw ExpressionTypeError(line_no,
+                                      to_string(dst_type->getTypeString()),
+                                      to_string(src_type->getTypeString()));
+    } catch (Exception &e) {
+        error_handler.addMsg(e);
+    }
     return true;
 }
 
@@ -310,7 +311,7 @@ bool IfStmtNode::testExprType() {
         then_part->testExprType();
         if (else_part != nullptr) else_part->testExprType();
     } catch (ExpressionTypeError &e) {
-        throw e;
+        error_handler.addMsg(e);
     }
     return true;
 }
@@ -352,7 +353,7 @@ bool ForStmtNode::testExprType() {
     try {
         body_part->testExprType();
     } catch (ExpressionTypeError &e) {
-        throw e;
+        error_handler.addMsg(e);
     }
     return true;
 }
@@ -380,7 +381,7 @@ bool WhileStmtNode::testExprType() {
     try {
         body_part->testExprType();
     } catch (ExpressionTypeError &e) {
-        throw e;
+        error_handler.addMsg(e);
     }
     return true;
 }
@@ -408,7 +409,7 @@ bool RepeatStmtNode::testExprType() {
     try {
         body_part->testExprType();
     } catch (ExpressionTypeError &e) {
-        throw e;
+        error_handler.addMsg(e);
     }
     return true;
 }
@@ -434,7 +435,7 @@ bool CaseStmtNode::testExprType() {
     try {
         body_part->testExprType();
     } catch (ExpressionTypeError &e) {
-        throw e;
+        error_handler.addMsg(e);
     }
     return true;
 }
@@ -469,7 +470,7 @@ bool CaseListNode::testExprType() {
     for (CaseStmtNode *stmt : case_list) try {
             stmt->testExprType();
         } catch (ExpressionTypeError &e) {
-            throw e;
+            error_handler.addMsg(e);
         }
     return true;
 }
@@ -494,7 +495,7 @@ bool SwitchStmtNode::testExprType() {
     try {
         case_list->testExprType();
     } catch (ExpressionTypeError &e) {
-        throw e;
+        error_handler.addMsg(e);
     }
     return true;
 }

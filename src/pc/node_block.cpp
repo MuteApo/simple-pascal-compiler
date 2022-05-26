@@ -61,15 +61,11 @@ std::string BlockNode::genVizCode(int run) {
 }
 
 void BlockNode::genSymbolTable() {
-    try {
-        if (const_defs != nullptr) const_defs->genSymbolTable();
-        if (type_defs != nullptr) type_defs->genSymbolTable();
-        if (var_defs != nullptr) var_defs->genSymbolTable();
-        if (func_defs != nullptr) func_defs->genSymbolTable();
-    } catch (RedefineError &e) {
-        error_handler.addMsg(e);
-    }
-    if (stmts != nullptr && !stmts->testExprType()) exit(-1);  // TODO
+    if (const_defs != nullptr) const_defs->genSymbolTable();
+    if (type_defs != nullptr) type_defs->genSymbolTable();
+    if (var_defs != nullptr) var_defs->genSymbolTable();
+    if (func_defs != nullptr) func_defs->genSymbolTable();
+    if (stmts != nullptr) stmts->testExprType();
 }
 
 std::string BlockNode::genAsmCode() {
@@ -81,7 +77,11 @@ std::string BlockNode::genAsmCode() {
 
 void BlockNode::visit() {
     symbol_table.enterScope();
-    genSymbolTable();
+    try {
+        genSymbolTable();
+    } catch (Exception &e) {
+        error_handler.addMsg(e);
+    }
     symbol_table.leaveScope();
 }
 
