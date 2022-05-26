@@ -1,7 +1,7 @@
 program test;
 {Comment A}
 const
-    z = 233;
+    z = 3;
     yy = 'y';
 type
     week = (Mon, Tues, Wed, Thur, Fri);
@@ -18,7 +18,7 @@ var
 
     function ff: week;
 
-        function fff: real;
+        function fff(k: real): real;
         type
             week3 = week2;
         var

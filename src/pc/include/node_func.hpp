@@ -59,7 +59,7 @@ class ParamDefListNode {
 
     std::string genVizCode(int run);
 
-    bool genSymbolTable();
+    bool genSymbolTable(int param_bias);
 
     bool testArgType(ExprListNode *args);
 };

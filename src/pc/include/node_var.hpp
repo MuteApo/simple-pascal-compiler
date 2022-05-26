@@ -79,7 +79,7 @@ class VarDefListNode {
 
     void translateId();
 
-    bool genSymbolTable();
+    bool genSymbolTable(int param_bias);
 
     bool isTypeEqual(VarDefListNode *rhs);
 

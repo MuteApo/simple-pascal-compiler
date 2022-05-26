@@ -42,9 +42,9 @@ class BlockNode {
 
     std::string genVizCode(int run);
 
-    void genSymbolTable();
+    void genSymbolTable(int param_bias);
 
-    void visit();
+    void visit(int param_bias);
 };
 
 class ProgramNode {
