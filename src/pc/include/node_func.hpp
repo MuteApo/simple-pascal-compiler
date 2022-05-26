@@ -93,6 +93,8 @@ class FuncDefNode {
     bool testArgType(ExprListNode *args);
 
     std::string genAsmCode();
+
+    void visit();
 };
 
 class FuncDefListNode {
@@ -113,6 +115,8 @@ class FuncDefListNode {
     bool genSymbolTable();
 
     std::string genAsmCode();
+
+    void visit();
 };
 
 #endif

@@ -18,6 +18,8 @@ class TableItem {
 
     TableItem(std::string id, int lv);
 
+    int getLevel();
+
     std::string toString();
 };
 
@@ -97,10 +99,10 @@ class SymbolTable {
 
     bool existSymbol(std::string id);
 
-    std::vector<ConstDefNode *> getValidConsts();
-    std::vector<TypeAttrNode *> getValidTypes();
-    std::vector<VarDefNode *>   getValidVars();
-    std::vector<FuncDefNode *>  getValidFuncs();
+    std::vector<ConstDefNode *> getValidConsts(int level);
+    std::vector<TypeAttrNode *> getValidTypes(int level);
+    std::vector<VarDefNode *>   getValidVars(int level);
+    std::vector<FuncDefNode *>  getValidFuncs(int level);
 
     std::set<VarTableItem> getVarScope(int level);
 
