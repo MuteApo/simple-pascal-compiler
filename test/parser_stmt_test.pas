@@ -12,7 +12,8 @@ begin
 end;
 procedure gg(var x: integer; y: digit);
 begin
-    if y > 0 then x := x + 1;
+    if y > 0
+        then x := x + 1;
 end;
 begin
     a := 3 mod 2 + 6 div 4;

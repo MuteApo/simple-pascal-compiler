@@ -6,6 +6,10 @@ SymbolTable symbol_table;
 
 TableItem::TableItem(std::string id, int lv) : name(id), level(lv) {}
 
+int TableItem::getLevel() {
+    return level;
+}
+
 std::string TableItem::toString() {
     return "<TableItem Root Class>";
 }
@@ -161,32 +165,32 @@ bool SymbolTable::existSymbol(std::string id) {
     return false;
 }
 
-std::vector<ConstDefNode *> SymbolTable::getValidConsts() {
+std::vector<ConstDefNode *> SymbolTable::getValidConsts(int level) {
     std::vector<ConstDefNode *> result;
     result.clear();
     for (auto it : ConstDeclMap)
-        if (it.second.front().level == currLevel) result.push_back(it.second.front().const_def);
+        if (it.second.front().level <= level) result.push_back(it.second.front().const_def);
     return result;
 }
-std::vector<TypeAttrNode *> SymbolTable::getValidTypes() {
+std::vector<TypeAttrNode *> SymbolTable::getValidTypes(int level) {
     std::vector<TypeAttrNode *> result;
     result.clear();
     for (auto it : TypeDeclMap)
-        if (it.second.front().level == currLevel) result.push_back(it.second.front().type_attr);
+        if (it.second.front().level <= level) result.push_back(it.second.front().type_attr);
     return result;
 }
-std::vector<VarDefNode *> SymbolTable::getValidVars() {
+std::vector<VarDefNode *> SymbolTable::getValidVars(int level) {
     std::vector<VarDefNode *> result;
     result.clear();
     for (auto it : VarDeclMap)
-        if (it.second.front().level == currLevel) result.push_back(it.second.front().var_def);
+        if (it.second.front().level <= level) result.push_back(it.second.front().var_def);
     return result;
 }
-std::vector<FuncDefNode *> SymbolTable::getValidFuncs() {
+std::vector<FuncDefNode *> SymbolTable::getValidFuncs(int level) {
     std::vector<FuncDefNode *> result;
     result.clear();
     for (auto it : FuncDeclMap)
-        if (it.second.front().level == currLevel) result.push_back(it.second.front().func_def);
+        if (it.second.front().level <= level) result.push_back(it.second.front().func_def);
     return result;
 }
 
@@ -229,26 +233,25 @@ void SymbolTable::printSymbol(const std::map<std::string, std::list<T>> &decl_ma
 
 void SymbolTable::printTable() {
     std::cout << "current level: " << to_string(currLevel) << std::endl;
-    std::cout << "--------------Const--------------" << std::endl;
+    std::cout << "--------------Const--------------\n";
     printSymbol<ConstTableItem>(ConstDeclMap);
-    std::cout << "--------------Type---------------" << std::endl;
+    std::cout << "--------------Type---------------\n";
     printSymbol<TypeTableItem>(TypeDeclMap);
-    std::cout << "--------------Var----------------" << std::endl;
+    std::cout << "--------------Var----------------\n";
     printSymbol<VarTableItem>(VarDeclMap);
-    std::cout << "--------------Func---------------" << std::endl;
+    std::cout << "--------------Func---------------\n";
     printSymbol<FuncTableItem>(FuncDeclMap);
-    std::cout << std::endl;
 }
 
 void SymbolTable::enterScope() {
-    // std::cout << "Before Enter Scope, ";
-    // printTable();
+    std::cout << "\nBefore Enter Scope, ";
+    printTable();
     currLevel++;
 }
 
 void SymbolTable::leaveScope() {
-    // std::cout << "Before Leave Scope, ";
-    // printTable();
+    std::cout << "\nBefore Leave Scope, ";
+    printTable();
     popConstSymbol();
     popTypeSymbol();
     popVarSymbol();

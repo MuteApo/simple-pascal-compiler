@@ -124,12 +124,15 @@ TypeAttrNode *ExprNode::getResultType() {
         switch (node_type) {
             case el_nonleaf: {
                 TypeAttrNode *t1 = op1->getResultType();
-                if (op2 != nullptr) {
-                    TypeAttrNode *t2 = op2->getResultType();
-                    if (!t1->isTypeEqual(t2))
-                        throw ExpressionTypeError(line_no, t1->getName(), t2->getName());
-                }
-                return res_type = t1;
+                if (op2 == nullptr) return res_type = t1;
+                TypeAttrNode *t2 = op2->getResultType();
+                if (!t1->isTypeEqual(t2))
+                    throw ExpressionTypeError(
+                        op1->getLineNumber(), t1->getTypeString(), t2->getTypeString());
+                if (eval_type == EK_Eq || eval_type == EK_Ne || eval_type == EK_Lt ||
+                    eval_type == EK_Gt || eval_type == EK_Le || eval_type == EK_Ge)
+                    return new TypeAttrNode(new BasicAttrNode(boolean));
+                return res_type = t2;
             }
             case el_literal: return res_type = literal_attr->getResultType();
             case el_var_access: return res_type = var_access_attr->getResultType();
@@ -204,7 +207,9 @@ LiteralNode::~LiteralNode() {
 
 bool LiteralNode::operator<(const LiteralNode &rhs) const {
     if (is_nil) return !rhs.is_nil;
-    if (type->getType() != rhs.type->getType()) return type->line_no < rhs.type->line_no;
+    if (type->line_no != rhs.type->line_no) return type->line_no < rhs.type->line_no;
+    if (type->getType() != rhs.type->getType()) return type->getType() < rhs.type->getType();
+    std::cout << type->getTypeString() << " " << rhs.type->getTypeString() << std::endl;
     switch (type->getType()) {
         case boolean: return bval < rhs.bval;
         case integer: return ival < rhs.ival;
@@ -398,9 +403,11 @@ std::string IdNode::genVizCode(int run) {
 }
 
 TypeAttrNode *IdNode::getResultType() {
-    VarDefNode *result = symbol_table.findVarSymbol(name);
-    if (result == nullptr) throw UndefineError(line_no, name);
-    return res_type = result->getType();
+    VarDefNode *var_def = symbol_table.findVarSymbol(name);
+    if (var_def != nullptr) return res_type = var_def->getType();
+    ConstDefNode *const_def = symbol_table.findConstSymbol(name);
+    if (const_def != nullptr) return res_type = const_def->getExpr()->getResultType();
+    throw UndefineError(line_no, name);
 }
 
 std::string IdNode::genAsmCode(void) {  // TODO

@@ -65,7 +65,13 @@ void BlockNode::genSymbolTable() {
     if (type_defs != nullptr) type_defs->genSymbolTable();
     if (var_defs != nullptr) var_defs->genSymbolTable();
     if (func_defs != nullptr) func_defs->genSymbolTable();
-    if (stmts != nullptr) stmts->testExprType();
+}
+
+std::string BlockNode::genAsmDef() {
+    if (is_global && var_defs != nullptr) {
+        return var_defs->genAsmDef();
+    } else
+        return "";
 }
 
 std::string BlockNode::genAsmCode() {
@@ -76,7 +82,6 @@ std::string BlockNode::genAsmCode() {
 }
 
 void BlockNode::visit() {
-    symbol_table.enterScope();
     try {
         genSymbolTable();
         if (is_global) {
@@ -86,17 +91,11 @@ void BlockNode::visit() {
             std::string data_seg = genAsmDef();
             if (data_seg != "") write_segment(data_seg, true);
         }
+        if (func_defs != nullptr) func_defs->visit();
+        if (stmts != nullptr) stmts->testExprType();
     } catch (Exception &e) {
         error_handler.addMsg(e);
     }
-    symbol_table.leaveScope();
-}
-
-std::string BlockNode::genAsmDef() {
-    if (is_global && var_defs != nullptr) {
-        return var_defs->genAsmDef();
-    } else
-        return "";
 }
 
 ProgramNode::ProgramNode(std::string id, BlockNode *b)
@@ -124,5 +123,8 @@ std::string ProgramNode::genVizCode(int run) {
 }
 
 void ProgramNode::visit() {
-    if (block != nullptr) block->visit();
+    if (block == nullptr) return;
+    symbol_table.enterScope();
+    block->visit();
+    symbol_table.leaveScope();
 }

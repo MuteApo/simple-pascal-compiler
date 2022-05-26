@@ -270,16 +270,21 @@ std::string AssignStmtNode::genVizCode(int run) {
 }
 
 bool AssignStmtNode::testExprType() {
+    TypeAttrNode *dst_type = nullptr, *src_type = nullptr;
     try {
-        TypeAttrNode *dst_type = dst->getResultType();
-        TypeAttrNode *src_type = src->getResultType();
-        if (!dst_type->isTypeEqual(src_type))
-            throw ExpressionTypeError(line_no,
-                                      to_string(dst_type->getTypeString()),
-                                      to_string(src_type->getTypeString()));
+        dst_type = dst->getResultType();
     } catch (Exception &e) {
         error_handler.addMsg(e);
     }
+    try {
+        src_type = src->getResultType();
+    } catch (Exception &e) {
+        error_handler.addMsg(e);
+    }
+    if (dst_type != nullptr && src_type != nullptr && !dst_type->isTypeEqual(src_type))
+        throw ExpressionTypeError(dst->getLineNumber(),
+                                  to_string(dst_type->getTypeString()),
+                                  to_string(src_type->getTypeString()));
     return true;
 }
 
@@ -304,15 +309,19 @@ std::string IfStmtNode::genVizCode(int run) {
 }
 
 bool IfStmtNode::testExprType() {
-    TypeAttrNode *type = condition->getResultType();
-    if (type->getType() != basic || type->getBasicAttrNode()->getType() != boolean)
-        throw ExpressionTypeError(line_no, "boolean", type->getName());
     try {
         then_part->testExprType();
+    } catch (ExpressionTypeError &e) {
+        error_handler.addMsg(e);
+    }
+    try {
         if (else_part != nullptr) else_part->testExprType();
     } catch (ExpressionTypeError &e) {
         error_handler.addMsg(e);
     }
+    TypeAttrNode *type = condition->getResultType();
+    if (type->getType() != basic || type->getBasicAttrNode()->getType() != boolean)
+        throw ExpressionTypeError(line_no, "boolean", type->getName());
     return true;
 }
 
@@ -346,15 +355,17 @@ std::string ForStmtNode::genVizCode(int run) {
 }
 
 bool ForStmtNode::testExprType() {
-    TypeAttrNode *start_type = start_expr->getResultType();
-    TypeAttrNode *end_type   = end_expr->getResultType();
-    if (!start_type->isTypeEqual(end_type))
-        throw ExpressionTypeError(line_no, start_type->getName(), end_type->getName());
     try {
         body_part->testExprType();
     } catch (ExpressionTypeError &e) {
         error_handler.addMsg(e);
     }
+    TypeAttrNode *start_type = start_expr->getResultType();
+    TypeAttrNode *end_type   = end_expr->getResultType();
+    if (!start_type->isTypeEqual(end_type))
+        throw ExpressionTypeError(line_no, start_type->getName(), end_type->getName());
+    VarDefNode *var_def = symbol_table.findVarSymbol(name);
+    if (var_def == nullptr) throw UndefineError(start_expr->getLineNumber(), name);
     return true;
 }
 
@@ -375,14 +386,15 @@ std::string WhileStmtNode::genVizCode(int run) {
 }
 
 bool WhileStmtNode::testExprType() {
-    TypeAttrNode *type = condition->getResultType();
-    if (type->getType() != basic || type->getBasicAttrNode()->getType() != boolean)
-        throw ExpressionTypeError(line_no, "boolean", type->getName());
     try {
         body_part->testExprType();
     } catch (ExpressionTypeError &e) {
         error_handler.addMsg(e);
     }
+    TypeAttrNode *type = condition->getResultType();
+    if (type != nullptr &&
+        (type->getType() != basic || type->getBasicAttrNode()->getType() != boolean))
+        throw ExpressionTypeError(line_no, "boolean", type->getName());
     return true;
 }
 
@@ -403,14 +415,15 @@ std::string RepeatStmtNode::genVizCode(int run) {
 }
 
 bool RepeatStmtNode::testExprType() {
-    TypeAttrNode *type = condition->getResultType();
-    if (type->getType() != basic || type->getBasicAttrNode()->getType() != boolean)
-        throw ExpressionTypeError(line_no, "boolean", type->getName());
     try {
         body_part->testExprType();
     } catch (ExpressionTypeError &e) {
         error_handler.addMsg(e);
     }
+    TypeAttrNode *type = condition->getResultType();
+    if (type != nullptr &&
+        (type->getType() != basic || type->getBasicAttrNode()->getType() != boolean))
+        throw ExpressionTypeError(line_no, "boolean", type->getName());
     return true;
 }
 

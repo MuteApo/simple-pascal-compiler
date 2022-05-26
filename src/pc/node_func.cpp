@@ -155,16 +155,7 @@ std::string FuncDefNode::genVizCode(int run) {
 }
 
 bool FuncDefNode::genSymbolTable() {
-    symbol_table.addSymbol(name, this);
-    if (hasDecl()) symbol_table.enterScope();
-    try {
-        if (param_defs != nullptr) param_defs->genSymbolTable();
-    } catch (UndefineError &e) {
-        throw e;
-    }
-    block->visit();
-    if (hasDecl()) symbol_table.leaveScope();
-    return true;
+    return symbol_table.addSymbol(name, this);
 }
 
 bool FuncDefNode::testArgType(ExprListNode *args) {
@@ -183,6 +174,19 @@ bool FuncDefNode::testArgType(ExprListNode *args) {
 
 std::string FuncDefNode::genAsmCode() {
     return "";  // TODO
+}
+
+void FuncDefNode::visit() {
+    symbol_table.enterScope();
+    try {
+        if (retval_type != nullptr)
+            symbol_table.addSymbol(name, new VarDefNode(name, retval_type), -1);
+        if (param_defs != nullptr) param_defs->genSymbolTable();
+        if (block != nullptr) block->visit();
+    } catch (RedefineError &e) {
+        error_handler.addMsg(e);
+    }
+    symbol_table.leaveScope();
 }
 
 FuncDefListNode::FuncDefListNode() : uid(++global_uid), line_no(yylineno) {
@@ -220,4 +224,8 @@ bool FuncDefListNode::genSymbolTable() {
 
 std::string FuncDefListNode::genAsmCode() {
     return "";  // TODO
+}
+
+void FuncDefListNode::visit() {
+    for (FuncDefNode *def : func_defs) def->visit();
 }
