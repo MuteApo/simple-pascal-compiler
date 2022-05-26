@@ -79,6 +79,13 @@ void BlockNode::visit() {
     symbol_table.enterScope();
     try {
         genSymbolTable();
+        if (is_global) {
+            std::string text_seg = genAsmCode();
+            text_seg += get_exit();
+            write_segment(text_seg, false);
+            std::string data_seg = genAsmDef();
+            if (data_seg != "") write_segment(data_seg, true);
+        }
     } catch (Exception &e) {
         error_handler.addMsg(e);
     }
@@ -117,12 +124,5 @@ std::string ProgramNode::genVizCode(int run) {
 }
 
 void ProgramNode::visit() {
-    if (block != nullptr) {
-        block->visit();
-        std::string text_seg = block->genAsmCode();
-        text_seg += get_exit();
-        write_segment(text_seg, false);
-        std::string data_seg = block->genAsmDef();
-        if (data_seg != "") write_segment(data_seg, true);
-    }
+    if (block != nullptr) block->visit();
 }

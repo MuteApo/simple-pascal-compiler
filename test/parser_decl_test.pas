@@ -6,14 +6,14 @@ const
 type
     week = (Mon, Tues, Wed, Thur, Fri);
     week2 = week;
-    digit = 0..z;
+    digit = 0..2;
     y = record
         i: integer;
         u: digit;
         v: ^week2;
     end;
 var
-    k: array [digit, char] of y;
+    k: array [digit, 1..9] of y;
     a: integer;
 
     function ff: week;

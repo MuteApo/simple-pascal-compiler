@@ -40,9 +40,9 @@ bool write_segment(std::string snippet, bool data_seg);
 
 /** High-Level Assembly Snippet Generation **/
 
-std::string get_define_global(std::string          name,
+std::string get_define_global(std::string           name,
                               std::vector<uint8_t> field_size,
-                              std::vector<uint8_t> field_rep);
+                              std::vector<uint32_t>  field_rep);
 
 std::string
 get_func_def(std::string name, uint32_t args_len, uint32_t local_vars_len, std::string func_body);

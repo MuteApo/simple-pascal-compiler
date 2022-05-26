@@ -226,9 +226,9 @@ bool TypeAttrNode::isTypeEqual(TypeAttrNode *type, bool use_struct) {
 }
 
 std::string TypeAttrNode::genAsmDef(std::string var_name) {
-    std::string          asm_def;
-    std::vector<uint8_t> field_size;
-    std::vector<uint8_t> field_rep;
+    std::string           asm_def;
+    std::vector<uint8_t>  field_size;
+    std::vector<uint32_t> field_rep;
     switch (root_type) {
         case basic: {
             field_size.push_back(basic_attr->getLength());
@@ -243,7 +243,21 @@ std::string TypeAttrNode::genAsmDef(std::string var_name) {
             break;
         }
         case structured: {
-            struct_attr->getFieldInfo(field_size, field_rep);
+            int length = struct_attr->getLength();
+            if (length / (20 * 4) > 0) {
+                for (int i = 0; i < length / (20 * 4); i++) {
+                    field_size.push_back(4);
+                    field_rep.push_back(20);
+                }
+                length = length % (20 * 4);
+            }
+            field_size.push_back(4);
+            field_rep.push_back(length / 4);
+            length = length % 4;
+            if (length) {
+                field_size.push_back(1);
+                field_rep.push_back(length);
+            }
             asm_def = get_define_global(var_name, field_size, field_rep);
             break;
         }
@@ -595,18 +609,6 @@ std::string StructAttrNode::genVizCode(int run) {
     return result;
 }
 
-void StructAttrNode::getFieldInfo(std::vector<uint8_t> &field_size,
-                                  std::vector<uint8_t> &field_rep) {
-    if (is_array) {
-        std::cout << array_attr->getElemLength() << std::endl;  // BUG?
-        std::cout << array_attr->getIndexSize() << std::endl;   // BUG
-        field_size.push_back(array_attr->getElemLength());
-        field_rep.push_back(array_attr->getIndexSize());
-    } else {
-        // TODO
-    }
-}
-
 void StructAttrNode::translateId() {
     try {
         is_array ? array_attr->translateId() : record_attr->translateId();
@@ -652,14 +654,6 @@ int ArrayAttrNode::getLength() {
         throw e;
     }
     return result;
-}
-
-int ArrayAttrNode::getIndexSize() {
-    return index_type->getSize();
-}
-
-int ArrayAttrNode::getElemLength() {
-    return element_type->getLength();
 }
 
 int ArrayAttrNode::getOffset() {

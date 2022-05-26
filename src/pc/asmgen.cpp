@@ -527,7 +527,7 @@ bool write_segment(string snippet, bool data_seg) {
     return true;
 }
 
-string get_define_global(string name, vector<uint8_t> field_size, vector<uint8_t> field_rep) {
+string get_define_global(string name, vector<uint8_t> field_size, vector<uint32_t> field_rep) {
     string res = "";
     if (field_size.size() != field_rep.size()) return "";
     res += name + ":\n";
@@ -536,8 +536,9 @@ string get_define_global(string name, vector<uint8_t> field_size, vector<uint8_t
             res += "\t.byte ";
         } else if (field_size[i] == 4) {
             res += "\t.word ";
-        } else
+        } else {
             return "";
+        }
         for (int j = 0; j < field_rep[i]; j++) {
             if (j == 0)
                 res += to_string(GLOBAL_INIT_VAL);

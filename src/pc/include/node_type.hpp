@@ -311,8 +311,6 @@ class StructAttrNode {
 
     std::string genVizCode(int run);
 
-    void getFieldInfo(std::vector<uint8_t> &field_size, std::vector<uint8_t> &field_rep);
-
     void translateId();
 
     bool isTypeEqual(StructAttrNode *type);
@@ -348,10 +346,6 @@ class ArrayAttrNode {
     std::string getTypeString();
 
     int getLength();
-
-    int getIndexSize();
-    
-    int getElemLength();
 
     int getOffset();
 
