@@ -57,9 +57,8 @@ bool VarDefNode::genSymbolTable(int ord) {
 }
 
 std::string VarDefNode::genAsmDef() {
-    TypeAttrNode *type_def = symbol_table.findTypeSymbol(type->getName());
-    if (type_def == nullptr) return "";
-    return type_def->genAsmDef();
+    if (type == nullptr) return "";
+    return type->genAsmDef(name);
 }
 
 VarDefListNode::VarDefListNode() : uid(++global_uid), line_no(yylineno) {

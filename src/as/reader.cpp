@@ -36,8 +36,12 @@ vector<string> read_label(string &line, uint32_t &size, bool is_data_segment) {
     vector<string> labels;
     string         label;
     while (line.find_first_of(":") != string::npos) {
-        label = line.substr(0, line.find_first_of(":"));  // ":" is not included
-        line  = line.substr(line.find_first_of(":") + 1);
+        if (line.find_first_of("\"") != string::npos &&
+            line.find_first_of("\"") < line.find_first_of(":") && line[line.length() - 1] == '"') {
+            break;  // ':' in the middle of a string
+        }
+        label = trim(line.substr(0, line.find_first_of(":")));  // ":" is not included
+        line  = trim(line.substr(line.find_first_of(":") + 1));
         if (label.find(' ') != string::npos) {
             if (is_data_segment) {
                 cout << "In '.data': ";

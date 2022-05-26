@@ -9,11 +9,15 @@
 #include "parser.tab.h"
 #include <cstring>
 #include <iostream>
+#include <string>
+
+using namespace std;
 
 extern ProgramNode *root;
 
 int main(int argc, char *argv[]) {
-    FILE *viz_file_0 = NULL, *viz_file_1 = NULL;
+    FILE  *viz_file_0 = NULL, *viz_file_1 = NULL;
+    string asm_filename = "assembly.S";
     if (argc == 1) return puts("no input file"), 1;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-i") == 0) {
@@ -27,7 +31,12 @@ int main(int argc, char *argv[]) {
             }
             i += 1;
         } else if (strcmp(argv[i], "-o") == 0) {
-            // TODO
+            if (i + 1 >= argc || argv[i + 1][0] == '-') {
+                printf("missing filename after '-o'\n");
+                return 1;
+            }
+            asm_filename = string(argv[i + 1]);
+            i += 1;
         } else if (strcmp(argv[i], "-V") == 0) {
             if (i + 2 >= argc || argv[i + 1][0] == '-' || argv[i + 2][0] == '-') {
                 printf("missing filename after '-V'\n");
@@ -61,7 +70,11 @@ int main(int argc, char *argv[]) {
         fprintf(viz_file_0, "%s", root->genVizCode(0).c_str());
         fclose(viz_file_0);
     }
-    if (root != nullptr) root->visit();
+    if (root != nullptr) {
+        start_asm(asm_filename, 0xFFFFF);
+        root->visit();
+        finish_asm();
+    }
     if (viz_file_1 != NULL) {
         fprintf(viz_file_1, "%s", root->genVizCode(1).c_str());
         fclose(viz_file_1);

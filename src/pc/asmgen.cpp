@@ -41,9 +41,11 @@ void init_asm(uint32_t init_stack_top) {
         p++;
     }
     fprintf(asm_file, ".text\n");
-    fprintf(asm_file, "init:\n");
+    fprintf(asm_file, "main:\n");
     string sp_set_inst = "\tli sp, " + to_string(init_stack_top) + "\n";
-    fprintf(asm_file, sp_set_inst.data());
+    fprintf(asm_file, "%s", sp_set_inst.data());
+    in_code_segment = true;
+    in_data_segment = false;
 }
 
 // Use Static Register Allocation Policy:
@@ -520,8 +522,7 @@ bool write_segment(string snippet, bool data_seg) {
         fprintf(asm_file, ".text\n");
         in_data_segment = false;
         in_code_segment = true;
-    } else
-        return false;
+    }
     fprintf(asm_file, "%s", snippet.data());
     return true;
 }
@@ -529,7 +530,6 @@ bool write_segment(string snippet, bool data_seg) {
 string get_define_global(string name, vector<uint8_t> field_size, vector<uint8_t> field_rep) {
     string res = "";
     if (field_size.size() != field_rep.size()) return "";
-    res += "\t.align 4\n";
     res += name + ":\n";
     for (int i = 0; i < field_size.size(); i++) {
         if (field_size[i] == 1) {
@@ -546,6 +546,7 @@ string get_define_global(string name, vector<uint8_t> field_size, vector<uint8_t
         }
         res += "\n";
     }
+    res += "\t.align 4\n";
     res += "\n";
     return res;
 }

@@ -315,6 +315,21 @@ std::string VarAccessNode::genVizCode(int run) {
     return result;
 }
 
+std::string VarAccessNode::genAsmCode() {  // TODO
+    switch (type) {
+        case va_pointer: {
+            break;
+        }
+        case va_array: {
+            break;
+        }
+        case va_record: {
+            break;
+        }
+    }
+    return "";
+}
+
 TypeAttrNode *VarAccessNode::getResultType() {
     TypeAttrNode *type_attr = nullptr;
     if (host->getNodeType() == el_literal) {
@@ -384,6 +399,10 @@ TypeAttrNode *IdNode::getResultType() {
     VarDefNode *result = symbol_table.findVarSymbol(name);
     if (result == nullptr) throw UndefineError(line_no, name);
     return res_type = result->getType();
+}
+
+std::string IdNode::genAsmCode(void) {  // TODO
+    return "";
 }
 
 IdListNode::IdListNode() : uid(++global_uid), line_no(yylineno) {

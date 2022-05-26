@@ -1,4 +1,5 @@
 #include "include/node_block.hpp"
+#include "include/asmgen.hpp"
 
 std::vector<int> ar_lvars_length;
 std::vector<int> ar_args_length;
@@ -72,23 +73,23 @@ void BlockNode::genSymbolTable() {
 }
 
 std::string BlockNode::genAsmCode() {
-    std::string asm_code = is_global ? var_defs->genAsmDef() : "";
-    // asm_code += func_defs->genAsmCode();
-    asm_code += stmts->genAsmCode();
+    std::string asm_code = "";
+    if (stmts != nullptr) asm_code += stmts->genAsmCode();
+    if (func_defs != nullptr) asm_code += func_defs->genAsmCode();
     return asm_code;
 }
 
-std::string BlockNode::visit() {
-    std::string asm_code = "";
+void BlockNode::visit() {
     symbol_table.enterScope();
-    try {
-        genSymbolTable();
-    } catch (RedefineError &e) {
-        // TODO what to do?
-    }
-    // asm_code = genAsmCode();
+    genSymbolTable();
     symbol_table.leaveScope();
-    return asm_code;
+}
+
+std::string BlockNode::genAsmDef() {
+    if (is_global && var_defs != nullptr) {
+        return var_defs->genAsmDef();
+    } else
+        return "";
 }
 
 ProgramNode::ProgramNode(std::string id, BlockNode *b)
@@ -115,6 +116,13 @@ std::string ProgramNode::genVizCode(int run) {
     return "digraph \"Parse Tree\" {\n" + result + "}";
 }
 
-std::string ProgramNode::visit() {
-    return block != nullptr ? block->visit() : "";
+void ProgramNode::visit() {
+    if (block != nullptr) {
+        block->visit();
+        std::string text_seg = block->genAsmCode();
+        text_seg += get_exit();
+        write_segment(text_seg, false);
+        std::string data_seg = block->genAsmDef();
+        if (data_seg != "") write_segment(data_seg, true);
+    }
 }

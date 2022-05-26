@@ -46,7 +46,9 @@ class BlockNode {
 
     std::string genAsmCode();
 
-    std::string visit();
+    std::string genAsmDef();
+
+    void visit();
 };
 
 class ProgramNode {
@@ -67,7 +69,7 @@ class ProgramNode {
 
     std::string genVizCode(int run);
 
-    std::string visit();
+    void visit();
 };
 
 #endif

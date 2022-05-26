@@ -1,4 +1,5 @@
 #include "include/node_type.hpp"
+#include "include/asmgen.hpp"
 #include "include/symbol_table.hpp"
 
 TypeDefNode::TypeDefNode(std::string id, TypeAttrNode *t)
@@ -224,8 +225,36 @@ bool TypeAttrNode::isTypeEqual(TypeAttrNode *type, bool use_struct) {
     return false;
 }
 
-std::string TypeAttrNode::genAsmDef() {
-    return "";
+std::string TypeAttrNode::genAsmDef(std::string var_name) {
+    std::string          asm_def;
+    std::vector<uint8_t> field_size;
+    std::vector<uint8_t> field_rep;
+    switch (root_type) {
+        case basic: {
+            field_size.push_back(basic_attr->getLength());
+            field_rep.push_back(1);
+            asm_def = get_define_global(var_name, field_size, field_rep);
+            break;
+        }
+        case ordinal: {
+            field_size.push_back(ord_attr->getLength());
+            field_rep.push_back(1);
+            asm_def = get_define_global(var_name, field_size, field_rep);
+            break;
+        }
+        case structured: {
+            struct_attr->getFieldInfo(field_size, field_rep);
+            asm_def = get_define_global(var_name, field_size, field_rep);
+            break;
+        }
+        case pointer: {
+            field_size.push_back(ptr_attr->getLength());
+            field_rep.push_back(1);
+            asm_def = get_define_global(var_name, field_size, field_rep);
+            break;
+        }
+    }
+    return asm_def;
 }
 
 TypeAttrListNode::TypeAttrListNode() : uid(++global_uid), line_no(yylineno) {
@@ -559,6 +588,15 @@ std::string StructAttrNode::genVizCode(int run) {
         result += record_attr->genVizCode(run);
     }
     return result;
+}
+
+void StructAttrNode::getFieldInfo(std::vector<uint8_t> &field_size,
+                                  std::vector<uint8_t> &field_rep) {
+    if (is_array) {
+        // TODO
+    } else {
+        // TODO
+    }
 }
 
 void StructAttrNode::translateId() {

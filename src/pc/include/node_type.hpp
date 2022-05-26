@@ -130,7 +130,7 @@ class TypeAttrNode {
 
     bool isTypeEqual(TypeAttrNode *type, bool use_struct = true);
 
-    std::string genAsmDef();
+    std::string genAsmDef(std::string var_name);
 };
 
 class TypeAttrListNode {
@@ -310,6 +310,8 @@ class StructAttrNode {
     int getOffset(std::string member);
 
     std::string genVizCode(int run);
+
+    void getFieldInfo(std::vector<uint8_t> &field_size, std::vector<uint8_t> &field_rep);
 
     void translateId();
 

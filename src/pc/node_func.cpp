@@ -180,6 +180,10 @@ bool FuncDefNode::testArgType(ExprListNode *args) {
     return true;
 }
 
+std::string FuncDefNode::genAsmCode() {
+    return "";  // TODO
+}
+
 FuncDefListNode::FuncDefListNode() : uid(++global_uid), line_no(yylineno) {
     func_defs.clear();
 }
@@ -211,4 +215,8 @@ bool FuncDefListNode::genSymbolTable() {
             throw e;
         }
     return true;
+}
+
+std::string FuncDefListNode::genAsmCode() {
+    return "";  // TODO
 }
