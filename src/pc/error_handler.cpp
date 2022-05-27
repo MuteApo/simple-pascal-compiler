@@ -7,6 +7,10 @@ ErrorHandler::ErrorHandler() {
     errors.clear();
 }
 
+int ErrorHandler::getErrorCount() {
+    return errors.size();
+}
+
 void ErrorHandler::addMsg(Exception e) {
     // std::cout << e.what() << std::endl;
     errors.push_back(e);

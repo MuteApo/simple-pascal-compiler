@@ -70,6 +70,8 @@ class ConstListNode {
     void addConst(ExprNode *const_expr);
 
     std::string genVizCode(int run);
+
+    void testExprType(ExprNode *condition);
 };
 
 #endif

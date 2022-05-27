@@ -120,6 +120,7 @@ std::string ExprNode::genVizCode(int run) {
 }
 
 TypeAttrNode *ExprNode::getResultType() {
+    if (res_type != nullptr) return res_type;
     try {
         switch (node_type) {
             case el_nonleaf: {

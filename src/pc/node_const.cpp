@@ -88,3 +88,12 @@ std::string ConstListNode::genVizCode(int run) {
     }
     return result;
 }
+
+void ConstListNode::testExprType(ExprNode *condition) {
+    TypeAttrNode *type = condition->getResultType();
+    for (ExprNode *expr : const_list)
+        if (!type->isTypeEqual(expr->getResultType()))
+            throw ExpressionTypeError(expr->getLineNumber(),
+                                      type->getTypeString(),
+                                      expr->getResultType()->getTypeString());
+}

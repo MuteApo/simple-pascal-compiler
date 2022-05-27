@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
-    yyparse();
+    if (yyparse()) return 1;
     if (viz_file_0 != NULL) {
         fprintf(viz_file_0, "%s", root->genVizCode(0).c_str());
         fclose(viz_file_0);

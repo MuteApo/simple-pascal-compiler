@@ -53,16 +53,6 @@ class ExpressionTypeError : public Exception {
     }
 };
 
-class LeftValueError : public Exception {
-  public:
-    LeftValueError(int line_no, std::string lval)
-            : Exception(line_no,
-                        "(\033[31mLeftValueError\033[0m): \"\033[33m" + to_string(lval) +
-                            "\033[0m\" is not a legal left-value.") {
-        std::cout << what() << std::endl;
-    }
-};
-
 class IndexDimensionError : public Exception {
   public:
     IndexDimensionError(int line_no, int expected, int got)

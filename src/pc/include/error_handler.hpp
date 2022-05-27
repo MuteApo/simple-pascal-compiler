@@ -12,6 +12,8 @@ class ErrorHandler {
   public:
     ErrorHandler();
 
+    int getErrorCount() ;
+
     void addMsg(Exception e);
 
     std::string dump();

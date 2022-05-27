@@ -67,7 +67,7 @@ class StmtNode {
 
     std::string genVizCode(int run);
 
-    bool testExprType();
+    void testExprType();
 
     std::string genAsmCode();
 };
@@ -87,7 +87,7 @@ class StmtListNode {
 
     std::string genVizCode(int run);
 
-    bool testExprType();
+    void testExprType();
 
     std::string genAsmCode();
 };
@@ -106,7 +106,7 @@ class AssignStmtNode {
 
     std::string genVizCode(int run);
 
-    bool testExprType();
+    void testExprType();
 
     std::string genAsmCode();
 };
@@ -126,7 +126,7 @@ class IfStmtNode {
 
     std::string genVizCode(int run);
 
-    bool testExprType();
+    void testExprType();
 
     std::string genAsmCode();
 };
@@ -152,7 +152,7 @@ class ForStmtNode {
 
     std::string genAsmCode();
 
-    bool testExprType();
+    void testExprType();
 };
 
 class WhileStmtNode {
@@ -169,7 +169,7 @@ class WhileStmtNode {
 
     std::string genVizCode(int run);
 
-    bool testExprType();
+    void testExprType();
 
     std::string genAsmCode();
 };
@@ -188,7 +188,7 @@ class RepeatStmtNode {
 
     std::string genVizCode(int run);
 
-    bool testExprType();
+    void testExprType();
 
     std::string genAsmCode();
 };
@@ -207,7 +207,7 @@ class CaseStmtNode {
 
     std::string genVizCode(int run);
 
-    bool testExprType();
+    void testExprType(ExprNode *condition);
 
     std::string genAsmCode();
 };
@@ -229,7 +229,7 @@ class CaseListNode {
 
     std::string genVizCode(int run);
 
-    bool testExprType();
+    void testExprType(ExprNode *condition);
 };
 
 class SwitchStmtNode {
@@ -248,7 +248,7 @@ class SwitchStmtNode {
 
     std::string genAsmCode();
 
-    bool testExprType();
+    void testExprType();
 };
 
 class FuncStmtNode {
@@ -266,7 +266,7 @@ class FuncStmtNode {
 
     std::string genAsmCode();
 
-    bool testExprType();
+    void testExprType();
 };
 
 class ReadStmtNode {
@@ -284,7 +284,7 @@ class ReadStmtNode {
 
     std::string genAsmCode();
 
-    bool testExprType();
+    void testExprType();
 };
 
 class WriteStmtNode {
@@ -303,7 +303,7 @@ class WriteStmtNode {
 
     std::string genAsmCode();
 
-    bool testExprType();
+    void testExprType();
 };
 
 #endif
