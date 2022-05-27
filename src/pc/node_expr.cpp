@@ -1,4 +1,5 @@
 #include "include/node_expr.hpp"
+#include "include/asmgen.hpp"
 #include "include/exception.hpp"
 #include "include/symbol_table.hpp"
 
@@ -150,6 +151,62 @@ bool ExprNode::isValueEqual(ExprNode *expr) {
     return literal_attr->isValueEqual(expr->literal_attr);
 }
 
+// Result is always in t0 register
+std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
+    std::string  asm_code  = "";
+    ExprNodeType node_type = getNodeType();
+    if (node_type == el_nonleaf) {
+        asm_code += op1->genAsmCodeRHS();
+        asm_code += get_reg_xchg(s_table[1], t_table[0]);
+        if (op2 != nullptr) {
+            asm_code += op2->genAsmCodeRHS();
+            asm_code += get_reg_xchg(t_table[2], t_table[0]);
+        }
+        asm_code += get_reg_xchg(t_table[1], s_table[1]);
+        switch (eval_type) {
+            case EK_Add: {
+                if (getResultType()->getType() == basic &&
+                    getResultType()->getBasicAttrNode()->getType() == integer) {
+                    asm_code += get_integer_calc("add", false);
+                }
+                break;
+            }
+            case EK_Sub: {
+                break;
+            }
+            case EK_Mul: {
+                break;
+            }
+            case EK_Div: {
+                break;
+            }
+            case EK_Mod: {
+                break;
+            }
+        }
+        // TODO
+    } else if (node_type == el_literal) {
+        asm_code += literal_attr->genAsmCode();
+    } else if (node_type == el_var_access) {
+        asm_code += var_access_attr->genAsmCode(false);
+    } else if (node_type == el_id) {
+        asm_code += id_attr->genAsmCode(false);
+    } else if (node_type == el_fun_call) {
+        // TODO
+    }
+    return asm_code;
+}
+
+// Data to write is in t2
+std::string ExprNode::genAsmCodeLHS() {
+    if (node_type == el_id) {
+        return id_attr->genAsmCode(true);
+    } else if (node_type == el_var_access) {
+        return var_access_attr->genAsmCode(true);
+    }
+    return "";
+}
+
 ExprListNode::ExprListNode() : uid(++global_uid), line_no(yylineno) {
     exprs.clear();
 }
@@ -245,6 +302,32 @@ TypeAttrNode *LiteralNode::getResultType() {
     return new TypeAttrNode(type);
 }
 
+std::string LiteralNode::genAsmCode() {
+    uint32_t    val;
+    std::string asm_code;
+    switch (type->getType()) {
+        case boolean: {
+            val = bval;
+            break;
+        }
+        case integer: {
+            val = ival;
+            break;
+        }
+        case real: {
+            // TODO: Single Floating-Point to IEEE754 format
+            val = 0;
+            break;
+        }
+        case character: {
+            val = cval;
+            break;
+        }
+    }
+    asm_code += get_load_imm(val);
+    return asm_code;
+}
+
 int LiteralNode::diff(LiteralNode *rhs) {
     if (is_nil || rhs->is_nil) throw ExpressionTypeError(line_no, "real basic type", "pointer");
     if (type->getType() != rhs->type->getType())
@@ -320,6 +403,7 @@ std::string VarAccessNode::genVizCode(int run) {
 }
 
 std::string VarAccessNode::genAsmCode(bool access_write) {  // TODO
+    std::string asm_code = "";
     switch (type) {
         case va_pointer: {
             break;
@@ -331,7 +415,7 @@ std::string VarAccessNode::genAsmCode(bool access_write) {  // TODO
             break;
         }
     }
-    return "";
+    return asm_code;
 }
 
 TypeAttrNode *VarAccessNode::getResultType() {
@@ -407,9 +491,37 @@ TypeAttrNode *IdNode::getResultType() {
     throw UndefineError(line_no, name);
 }
 
-std::string IdNode::genAsmCode(bool access_write) {  // TODO
-    
-    return "";
+std::string IdNode::genAsmCode(bool access_write) {
+    std::string   asm_code = "";
+    int           var_level;
+    VarDefNode   *var_node   = symbol_table.findVarSymbol(name, &var_level);
+    ConstDefNode *const_node = symbol_table.findConstSymbol(name);
+    if (var_node != nullptr) {
+        TypeAttrNode *var_type_node = var_node->getType();
+        TypeKind      var_type      = var_type_node->getType();
+        if (var_type == basic || var_type == ordinal) {
+            if (var_level == 0) {  // Global Variable
+                asm_code += get_var_access(name,
+                                           var_type_node->getOffset(),
+                                           var_type_node->getLength(),
+                                           access_write,
+                                           true);
+            } else if (var_level == symbol_table.getLevel()) {
+                // TODO: Local Variable
+            } else {
+                // TODO: non-local & non-global variable
+            }
+        } else {
+            // TODO: LeftValueError
+        }
+    } else if (const_node != nullptr) {
+        if (!access_write) {
+            asm_code += const_node->getExpr()->genAsmCodeRHS();
+        } else {
+            // TODO: LeftValueError
+        }
+    }
+    return asm_code;
 }
 
 IdListNode::IdListNode() : uid(++global_uid), line_no(yylineno) {

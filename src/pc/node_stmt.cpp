@@ -283,20 +283,9 @@ std::string AssignStmtNode::genVizCode(int run) {
 
 std::string AssignStmtNode::genAsmCode() {
     std::string asm_code = "";
-    if (dst->getNodeType() != el_var_access && dst->getNodeType() != el_id) {
-        // TODO: throw LeftValueError
-    }  // Expr type is already checked before code generation
-    TypeKind type = src->getResultType()->getType();
-    if (type != basic && type != ordinal && type != pointer) {
-        // TODO: throw NotAssignableError
-    }
-    // asm_code += src->;
+    asm_code += src->genAsmCodeRHS();
     asm_code += get_reg_xchg(t_table[2], t_table[0]);
-    if (dst->getNodeType() == el_var_access) {
-        asm_code += dst->getVarAccessNode()->genAsmCode(true);
-    } else {
-        asm_code += dst->getIdNode()->genAsmCode(true);
-    }
+    asm_code += dst->genAsmCodeLHS();
     return asm_code;
 }
 

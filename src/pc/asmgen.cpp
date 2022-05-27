@@ -23,18 +23,20 @@ FILE    *asm_file          = NULL;
 uint32_t internal_label_id = (uint32_t)((int32_t)-1);
 
 const map<string, string> internal_msg = {
-    {"msg_div_zero", "illegal: divide by zero\\n"},
-    {"msg_signed_overflow", "illegal: signed arithmetic overflow\\n"},
-    {"msg_unsigned_overflow", "illegal: unsigned arithmetic overflow\\n"},
-    {"msg_out_of_bounds", "illegal: ordinal variable out of bounds\\n"}};
+    {"msg_div_zero", "illegal: divide by zero"},
+    {"msg_signed_overflow", "illegal: signed arithmetic overflow"},
+    {"msg_unsigned_overflow", "illegal: unsigned arithmetic overflow"},
+    {"msg_out_of_bounds", "illegal: ordinal variable out of bounds"},
+    {"msg_boolean_true", "True"},
+    {"msg_boolean_false", "False"}};
 
 void init_asm(uint32_t init_stack_top) {
     fprintf(asm_file, ".data\n");
     map<string, string>::const_iterator p = internal_msg.begin();
     while (p != internal_msg.end()) {
         fprintf(asm_file, "_%s:\n", p->first.data());
-        fprintf(asm_file, "\t.asciiz \"%s\"\n", p->second.data());
         fprintf(asm_file, "\t.align 4\n");
+        fprintf(asm_file, "\t.asciiz \"%s\"\n", p->second.data());
         p++;
     }
     fprintf(asm_file, ".text\n");
@@ -537,6 +539,7 @@ string get_define_global(string name, vector<uint8_t> field_size, vector<uint32_
     string res = "";
     if (field_size.size() != field_rep.size()) return "";
     res += name + ":\n";
+    res += "\t.align 4\n";
     for (int i = 0; i < field_size.size(); i++) {
         if (field_size[i] == 1) {
             res += "\t.byte ";
@@ -553,7 +556,6 @@ string get_define_global(string name, vector<uint8_t> field_size, vector<uint32_
         }
         res += "\n";
     }
-    res += "\t.align 4\n";
     res += "\n";
     return res;
 }
