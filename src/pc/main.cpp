@@ -71,9 +71,14 @@ int main(int argc, char *argv[]) {
         fclose(viz_file_0);
     }
     if (root != nullptr) {
-        start_asm(asm_filename, 0xFFFFF);
+        // Stack must be aligned to 4 bytes
+        start_asm(asm_filename, 0x1FFF0);
         root->visit();
-        finish_asm();
+        if (error_handler.getErrorCount() != 0) {
+            remove_asm();
+        } else {
+            finish_asm();
+        }
     }
     if (viz_file_1 != NULL) {
         fprintf(viz_file_1, "%s", root->genVizCode(1).c_str());

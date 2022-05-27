@@ -154,38 +154,107 @@ bool ExprNode::isValueEqual(ExprNode *expr) {
 
 // Result is always in t0 register
 std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
-    std::string  asm_code  = "";
+    std::string asm_code = "";
+    if (error_handler.getErrorCount() != 0) return asm_code;
     ExprNodeType node_type = getNodeType();
     if (node_type == el_nonleaf) {
         asm_code += op1->genAsmCodeRHS();
-        asm_code += get_reg_xchg(s_table[1], t_table[0]);
+        asm_code += get_reg_save(t_table[0]);
         if (op2 != nullptr) {
             asm_code += op2->genAsmCodeRHS();
             asm_code += get_reg_xchg(t_table[2], t_table[0]);
         }
-        asm_code += get_reg_xchg(t_table[1], s_table[1]);
+        asm_code += get_reg_restore(t_table[1]);
+        bool          is_ordinal_type = (op1->getResultType()->getType() == ordinal);
+        BasicTypeKind basic_type      = op1->getResultType()->getBasicAttrNode()->getType();
+        // TODO: Basic Type for Ordinal
         switch (eval_type) {
             case EK_Add: {
-                if (getResultType()->getType() == basic &&
-                    getResultType()->getBasicAttrNode()->getType() == integer) {
+                if (basic_type == integer) {
                     asm_code += get_integer_calc("add", false);
                 }
                 break;
             }
             case EK_Sub: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("sub", false);
+                }
                 break;
             }
             case EK_Mul: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("mul", false);
+                }
                 break;
             }
             case EK_Div: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("div", false);
+                }
                 break;
             }
             case EK_Mod: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("mod", false);
+                }
+                break;
+            }
+            case EK_Eq: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("cmp_eq", false);
+                }
+                break;
+            }
+            case EK_Ne: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("cmp_ne", false);
+                }
+                break;
+            }
+            case EK_Lt: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("cmp_lt", false);
+                }
+                break;
+            }
+            case EK_Gt: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("cmp_gt", false);
+                }
+                break;
+            }
+            case EK_Le: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("cmp_le", false);
+                }
+                break;
+            }
+            case EK_Ge: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("cmp_ge", false);
+                }
+                break;
+            }
+            case EK_Not: {
+                break;
+            }
+            case EK_And: {
+                break;
+            }
+            case EK_Or: {
+                break;
+            }
+            case EK_Xor: {
+                break;
+            }
+            case EK_Shl: {
+                break;
+            }
+            case EK_Shr: {
                 break;
             }
         }
-        // TODO
+        // TODO: For ordinal type, check boundary
     } else if (node_type == el_literal) {
         asm_code += literal_attr->genAsmCode();
     } else if (node_type == el_var_access) {
@@ -200,12 +269,12 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
 
 // Data to write is in t2
 std::string ExprNode::genAsmCodeLHS() {
+    if (error_handler.getErrorCount() != 0) return "";
     if (node_type == el_id) {
         return id_attr->genAsmCode(true);
     } else if (node_type == el_var_access) {
         return var_access_attr->genAsmCode(true);
     }
-    return "";
 }
 
 ExprListNode::ExprListNode() : uid(++global_uid), line_no(yylineno) {
@@ -305,10 +374,10 @@ TypeAttrNode *LiteralNode::getResultType() {
 
 std::string LiteralNode::genAsmCode() {
     uint32_t    val;
-    std::string asm_code;
+    std::string asm_code = "";
     switch (type->getType()) {
         case boolean: {
-            val = bval;
+            val = (bval == true) ? 1 : 0;
             break;
         }
         case integer: {
@@ -512,14 +581,10 @@ std::string IdNode::genAsmCode(bool access_write) {
             } else {
                 // TODO: non-local & non-global variable
             }
-        } else {
-            // TODO: LeftValueError
         }
     } else if (const_node != nullptr) {
         if (!access_write) {
             asm_code += const_node->getExpr()->genAsmCodeRHS();
-        } else {
-            // TODO: LeftValueError
         }
     }
     return asm_code;

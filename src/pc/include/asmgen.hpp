@@ -13,21 +13,22 @@ std::string get_load_imm(int32_t imm);
 
 std::string get_reg_xchg(uint8_t dst_reg, uint8_t src_reg);
 
-std::string get_integer_calc(std::string operation, bool is_unsigned = true);
+std::string get_integer_calc(std::string operation, bool is_unsigned = false);
 
 /** Memory Operation **/
 
 // For non-local & non-global var, get control link first
 std::string get_mem_access(uint8_t size, bool dir, bool is_signed);
 
-std::string get_var_access(int32_t var_pos, int32_t offset, uint8_t size, bool dir, bool is_signed);
+std::string
+get_var_access(int32_t var_pos, int32_t offset, uint8_t size, bool dir, bool is_signed = true);
 
 std::string
-get_var_access(std::string name, int32_t offset, uint8_t size, bool dir, bool is_signed);
+get_var_access(std::string name, int32_t offset, uint8_t size, bool dir, bool is_signed = true);
 
-std::string get_reg_save(void);
+std::string get_reg_save(uint8_t reg);
 
-std::string get_reg_restore(void);
+std::string get_reg_restore(uint8_t reg);
 
 std::string get_params_copy(uint32_t dst_stk_pos, uint32_t src_stk_pos, uint32_t length);
 
@@ -35,9 +36,11 @@ std::string get_params_copy(uint32_t dst_stk_pos, std::string src_name, uint32_t
 
 /** Basic Assembly Code Generation Function **/
 
-bool start_asm(std::string filename, uint32_t init_stack_top = 0x1FFFF);
+bool start_asm(std::string filename, uint32_t init_stack_top = 0x1FFF0);
 
 bool finish_asm(void);
+
+bool remove_asm(void);
 
 bool write_segment(std::string snippet, bool data_seg);
 

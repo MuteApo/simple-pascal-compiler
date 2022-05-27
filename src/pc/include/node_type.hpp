@@ -112,6 +112,8 @@ class TypeAttrNode {
 
     BasicAttrNode *getBasicAttrNode();
 
+    OrdAttrNode *getOrdAttrNode();
+
     StructAttrNode *getStructAttr();
 
     int getLength();

@@ -57,6 +57,7 @@ bool VarDefNode::genSymbolTable(int ord) {
 }
 
 std::string VarDefNode::genAsmDef() {
+    if (error_handler.getErrorCount() != 0) return "";
     if (type == nullptr) return "";
     return type->genAsmDef(name);
 }

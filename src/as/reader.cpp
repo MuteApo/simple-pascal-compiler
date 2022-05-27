@@ -122,6 +122,10 @@ bool read_data(string line, vector<string> &hex_strings, uint32_t &size) {
             return false;
         }
         str = str.substr(1, str.length() - 2);
+        while (str.find("\\n") != string::npos) {
+            size_t escape_seq_pos = str.find("\\n");
+            str                   = str.replace(escape_seq_pos, 2, "\n");
+        }
         char hex[5];
         for (int i = 0; i < str.length(); i++) {
             sprintf(hex, "0x%02X", str[i]);

@@ -123,6 +123,10 @@ BasicAttrNode *TypeAttrNode::getBasicAttrNode() {
     return basic_attr;
 }
 
+OrdAttrNode *TypeAttrNode::getOrdAttrNode() {
+    return ord_attr;
+}
+
 StructAttrNode *TypeAttrNode::getStructAttr() {
     return struct_attr;
 }
@@ -226,7 +230,7 @@ bool TypeAttrNode::isTypeEqual(TypeAttrNode *type, bool use_struct) {
 }
 
 std::string TypeAttrNode::genAsmDef(std::string var_name) {
-    std::string           asm_def;
+    std::string           asm_def = "";
     std::vector<uint8_t>  field_size;
     std::vector<uint32_t> field_rep;
     switch (root_type) {

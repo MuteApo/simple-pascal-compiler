@@ -19,14 +19,15 @@ using namespace std;
 
 bool     in_code_segment;
 bool     in_data_segment;
+string   asm_filename      = "";
 FILE    *asm_file          = NULL;
 uint32_t internal_label_id = (uint32_t)((int32_t)-1);
 
 const map<string, string> internal_msg = {
-    {"msg_div_zero", "illegal: divide by zero"},
-    {"msg_signed_overflow", "illegal: signed arithmetic overflow"},
-    {"msg_unsigned_overflow", "illegal: unsigned arithmetic overflow"},
-    {"msg_out_of_bounds", "illegal: ordinal variable out of bounds"},
+    {"msg_div_zero", "[divide by zero]\\n"},
+    {"msg_signed_overflow", "[overflow: on addition or subtraction]\\n"},
+    {"msg_unsigned_overflow", "[overflow: on multiplication]\\n"},
+    {"msg_out_of_bounds", "[ordinal variable out of bounds]\\n"},
     {"msg_boolean_true", "True"},
     {"msg_boolean_false", "False"}};
 
@@ -311,16 +312,16 @@ string get_var_access(string name, int32_t offset, uint8_t size, bool dir, bool 
 }
 
 // Stack pointer is always and pre-decremented and post-incremented
-string get_reg_save(void) {
+string get_reg_save(uint8_t reg) {
     string res = "";
     res += "\taddi sp, sp, -4\n";
-    res += "\tsw t1, 0(sp)\n";
+    res += "\tsw x" + to_string(reg) + ", 0(sp)\n";
     return res;
 }
 
-string get_reg_restore(void) {
+string get_reg_restore(uint8_t reg) {
     string res = "";
-    res += "\tlw t0, 0(sp)\n";
+    res += "\tlw x" + to_string(reg) + ", 0(sp)\n";
     res += "\taddi sp, sp, 4\n";
     return res;
 }
@@ -500,6 +501,7 @@ bool start_asm(std::string filename, uint32_t init_stack_top) {
     if (asm_file != NULL) return false;
     in_code_segment = in_data_segment = false;
     internal_label_id                 = -1;
+    asm_filename                      = filename;
     asm_file                          = fopen(filename.data(), "w+");
     if (asm_file == NULL) printf("unable to create file %s\n", filename.data());
     if (asm_file != NULL) init_asm(init_stack_top);
@@ -509,6 +511,15 @@ bool start_asm(std::string filename, uint32_t init_stack_top) {
 bool finish_asm(void) {
     if (asm_file != NULL) {
         fclose(asm_file);
+        return true;
+    } else
+        return false;
+}
+
+bool remove_asm(void) {
+    if (asm_file != NULL) {
+        fclose(asm_file);
+        remove(asm_filename.data());
         return true;
     } else
         return false;
@@ -640,6 +651,12 @@ string get_write(string type) {
         res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
     } else if (type == "int") {
         res += "\taddi a0, x0, " + to_string(ECALL_PRT_INT) + "\n";
+    } else if (type == "bool") {
+        res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
+        res += "\tla a1, _msg_boolean_true\n";
+        res += "\tbne t1, x0, _lbl_" + to_string(++internal_label_id) + "\n";
+        res += "\tla a1, _msg_boolean_false\n";
+        res += "_lbl_" + to_string(internal_label_id) + ":\n";
     } else
         return "";
     res += "\tecall\n";

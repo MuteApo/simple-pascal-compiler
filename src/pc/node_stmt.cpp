@@ -213,6 +213,7 @@ void StmtNode::testExprType() {
 }
 
 std::string StmtNode::genAsmCode() {
+    if (error_handler.getErrorCount() != 0) return "";
     switch (type) {
         case SK_Compound: return compound_stmt->genAsmCode();
         case SK_Assign: return assign_stmt->genAsmCode();
@@ -326,7 +327,12 @@ std::string IfStmtNode::genVizCode(int run) {
 }
 
 std::string IfStmtNode::genAsmCode() {
-    return "";  // TODO
+    std::string cond_snippet, then_snippet, else_snippet, asm_code = "";
+    cond_snippet = condition->genAsmCodeRHS();
+    cond_snippet += get_reg_xchg(t_table[1], t_table[0]);
+    then_snippet = then_part->genAsmCode();
+    else_snippet = else_part->genAsmCode();
+    return get_stmt_cond(cond_snippet, then_snippet, else_snippet);
 }
 
 void IfStmtNode::testExprType() {
@@ -425,7 +431,11 @@ std::string WhileStmtNode::genVizCode(int run) {
 }
 
 std::string WhileStmtNode::genAsmCode() {
-    return "";  // TODO
+    std::string cond_snippet, body_snippet;
+    cond_snippet = condition->genAsmCodeRHS();
+    cond_snippet += get_reg_xchg(t_table[1], t_table[0]);
+    body_snippet = body_part->genAsmCode();
+    return get_stmt_while(cond_snippet, body_snippet);
 }
 
 void WhileStmtNode::testExprType() {
@@ -462,7 +472,11 @@ std::string RepeatStmtNode::genVizCode(int run) {
 }
 
 std::string RepeatStmtNode::genAsmCode() {
-    return "";  // TODO
+    std::string cond_snippet, body_snippet;
+    cond_snippet = condition->genAsmCodeRHS();
+    cond_snippet += get_reg_xchg(t_table[1], t_table[0]);
+    body_snippet = body_part->genAsmCode();
+    return get_stmt_until(cond_snippet, body_snippet);
 }
 
 void RepeatStmtNode::testExprType() {
@@ -634,7 +648,30 @@ std::string WriteStmtNode::genVizCode(int run) {
 }
 
 std::string WriteStmtNode::genAsmCode() {
-    return "";  // TODO
+    std::string              asm_code  = "";
+    std::vector<ExprNode *> &expr_list = exprs->getExprList();
+    for (int i = 0; i < exprs->getDim(); i++) {
+        asm_code += expr_list[i]->genAsmCodeRHS();
+        TypeKind tk = expr_list[i]->getResultType()->getType();
+        if (tk == basic) {
+            BasicTypeKind type = expr_list[i]->getResultType()->getBasicAttrNode()->getType();
+            if (type == integer) {
+                asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                asm_code += get_write("int");
+            } else if (type == boolean) {
+                asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                asm_code += get_write("bool");
+            } else if (type == character) {
+                asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                asm_code += get_write("char");
+            } else if (type == real) {
+                // TODO
+            }
+        } else if (tk == ordinal) {
+            // TODO
+        }
+    }
+    return asm_code;
 }
 
 void WriteStmtNode::testExprType() {
