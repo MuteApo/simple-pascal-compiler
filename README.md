@@ -106,47 +106,49 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
   - [x] 语法分析器
   - [ ] 语义分析器
 - [x] 实现语法树可视化
-- [ ] 实现汇编器
+- [ ] 实现中间代码生成
+- [x] 实现目标机汇编生成
+- [x] 实现汇编器
 - [x] 实现仿真器
 - [ ] 完成仿真器或实机测试
 
 目前已经实现的语言特性：
 
-|                  |   词法/语法分析    |         语义分析         | 汇编代码生成 |
-| :--------------: | :----------------: | :----------------------: | :----------: |
-|    自定义常量    | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|   自定义实类型   | :heavy_check_mark: |    :heavy_check_mark:    |              |
-| 自定义字符串类型 |                    |                          |              |
-|  自定义枚举类型  | :heavy_check_mark: |                          |              |
-|  自定义子界类型  | :heavy_check_mark: |                          |              |
-|  自定义集合类型  |                    |                          |              |
-|  自定义数组类型  | :heavy_check_mark: |                          |              |
-|  自定义记录类型  | :heavy_check_mark: |                          |              |
-|  自定义指针类型  | :heavy_check_mark: |                          |              |
-|   数组成员访问   | :heavy_check_mark: |                          |              |
-|   记录成员访问   | :heavy_check_mark: |                          |              |
-|   指针变量访问   | :heavy_check_mark: |                          |              |
-|     变量定义     | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     过程定义     | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     函数定义     | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     算术运算     | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     关系运算     | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     逻辑运算     | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     复合语句     | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     赋值语句     | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|  过程/函数调用   | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     goto语句     |        :x:         |                          |              |
-|      if语句      | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     case语句     | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|    while语句     | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|    repeat语句    | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     for语句      | :heavy_check_mark: |    :heavy_check_mark:    |              |
-|     with语句     |        :x:         |                          |              |
-|  read/write语句  | :heavy_check_mark: |                          |              |
-|  错误检测/恢复   |                    |                          |              |
-|     类型检查     | :heavy_minus_sign: | :heavy_exclamation_mark: |              |
-|    作用域控制    | :heavy_minus_sign: |    :heavy_check_mark:    |              |
-|     递归调用     | :heavy_minus_sign: |                          |              |
+|                  |   词法/语法分析    |         语义分析         |    汇编代码生成    |
+| :--------------: | :----------------: | :----------------------: | :----------------: |
+|    自定义常量    | :heavy_check_mark: |    :heavy_check_mark:    | :heavy_check_mark: |
+|   自定义实类型   | :heavy_check_mark: |    :heavy_check_mark:    | :heavy_check_mark: |
+| 自定义字符串类型 |                    |                          |                    |
+|  自定义枚举类型  | :heavy_check_mark: |                          |                    |
+|  自定义子界类型  | :heavy_check_mark: |                          |                    |
+|  自定义集合类型  |                    |                          |                    |
+|  自定义数组类型  | :heavy_check_mark: |                          |                    |
+|  自定义记录类型  | :heavy_check_mark: |                          |                    |
+|  自定义指针类型  | :heavy_check_mark: |                          |                    |
+|   数组成员访问   | :heavy_check_mark: |                          |                    |
+|   记录成员访问   | :heavy_check_mark: |                          |                    |
+|   指针变量访问   | :heavy_check_mark: |                          |                    |
+|     变量定义     | :heavy_check_mark: |    :heavy_check_mark:    |   （仅全局变量）   |
+|     过程定义     | :heavy_check_mark: |    :heavy_check_mark:    |                    |
+|     函数定义     | :heavy_check_mark: |    :heavy_check_mark:    |                    |
+|     算术运算     | :heavy_check_mark: |    :heavy_check_mark:    |     （仅整型）     |
+|     关系运算     | :heavy_check_mark: |    :heavy_check_mark:    |     （仅整型）     |
+|     逻辑运算     | :heavy_check_mark: |    :heavy_check_mark:    |                    |
+|     复合语句     | :heavy_check_mark: |    :heavy_check_mark:    | :heavy_check_mark: |
+|     赋值语句     | :heavy_check_mark: |    :heavy_check_mark:    |   （仅全局整型）   |
+|  过程/函数调用   | :heavy_check_mark: |    :heavy_check_mark:    |                    |
+|     goto语句     |        :x:         |                          |                    |
+|      if语句      | :heavy_check_mark: |    :heavy_check_mark:    | :heavy_check_mark: |
+|     case语句     | :heavy_check_mark: |    :heavy_check_mark:    |                    |
+|    while语句     | :heavy_check_mark: |    :heavy_check_mark:    | :heavy_check_mark: |
+|    repeat语句    | :heavy_check_mark: |    :heavy_check_mark:    | :heavy_check_mark: |
+|     for语句      | :heavy_check_mark: |    :heavy_check_mark:    |                    |
+|     with语句     |        :x:         |                          |                    |
+|  read/write语句  | :heavy_check_mark: |                          |    （仅write）     |
+|  错误检测/恢复   |                    |                          |                    |
+|     类型检查     | :heavy_minus_sign: | :heavy_exclamation_mark: |                    |
+|    作用域控制    | :heavy_minus_sign: |    :heavy_check_mark:    |                    |
+|     递归调用     | :heavy_minus_sign: |                          |                    |
 
 ### 四、开发环境
 
