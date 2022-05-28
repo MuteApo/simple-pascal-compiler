@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -82,18 +83,16 @@ bool get_symbol_label(string name, uint32_t &val) {
 }
 
 void print_symbol(void) {
-    map<string, int32_t>::iterator const_p;
     cout << "Constants: " << endl;
     if (const_table.size() == 0) cout << "<Empty>" << endl;
-    for (const_p = const_table.begin(); const_p != const_table.end(); const_p++) {
-        cout << "Name: " << const_p->first << "\t";
-        cout << "Value: " << const_p->second << endl;
+    for (pair<string, int32_t> const_p : const_table) {
+        cout << "Value: " << setw(12) << right << const_p.second << "\t";
+        cout << "Name: " << const_p.first << "\n";
     }
-    map<string, uint32_t>::iterator label_p;
     cout << endl << "Labels: " << endl;
     if (label_table.size() == 0) cout << "<Empty>" << endl;
-    for (label_p = label_table.begin(); label_p != label_table.end(); label_p++) {
-        cout << "Name: " << label_p->first << "\t";
-        printf("Address: 0x%08X\n", label_p->second);
+    for (pair<string, int32_t> label_p : label_table) {
+        cout << "Address: 0x" << setw(8) << setfill('0') << hex << label_p.second << "\t";
+        cout << "Name: " << label_p.first << "\n";
     }
 }

@@ -357,11 +357,11 @@ void IfStmtNode::testExprType() {
             throw ExpressionTypeError(line_no, "boolean", type->getName());
 }
 
-ForStmtNode::ForStmtNode(std::string id, bool is_t, ExprNode *s_e, ExprNode *e_e, StmtNode *b_p)
+ForStmtNode::ForStmtNode(bool is_t, ExprNode *i, ExprNode *s_e, ExprNode *e_e, StmtNode *b_p)
         : uid(++global_uid),
           line_no(yylineno),
-          name(id),
           is_to(is_t),
+          iter(i),
           start_expr(s_e),
           end_expr(e_e),
           body_part(b_p) {}
@@ -371,7 +371,7 @@ int ForStmtNode::getUid() {
 }
 
 std::string ForStmtNode::getNodeInfo() {
-    std::string result = "ForStmtNode\n" + name;
+    std::string result = "ForStmtNode\n" + iter->getIdNode()->getName();
     return result + (is_to ? "\n→" : "\n←");
 }
 
@@ -418,6 +418,12 @@ std::string ForStmtNode::genAsmCode() {
 }
 
 void ForStmtNode::testExprType() {
+    TypeAttrNode *iter_type = nullptr;
+    try {
+        iter_type = iter->getResultType();
+    } catch (Exception &e) {
+        error_handler.addMsg(e);
+    }
     TypeAttrNode *start_type = nullptr;
     try {
         start_type = start_expr->getResultType();
@@ -435,10 +441,12 @@ void ForStmtNode::testExprType() {
     } catch (Exception &e) {
         error_handler.addMsg(e);
     }
-    if (start_type != nullptr && end_type != nullptr && !start_type->isTypeEqual(end_type))
-        throw ExpressionTypeError(line_no, start_type->getTypeString(), end_type->getTypeString());
-    if (symbol_table.findVarSymbol(name) == nullptr)
-        throw UndefineError(start_expr->getLineNumber(), name);
+    if (symbol_table.findVarSymbol(iter->getIdNode()->getName()) == nullptr)
+        throw UndefineError(start_expr->getLineNumber(), iter->getIdNode()->getName());
+    if (iter_type != nullptr && start_type != nullptr && !iter_type->isTypeEqual(start_type))
+        throw ExpressionTypeError(line_no, iter_type->getTypeString(), start_type->getTypeString());
+    if (iter_type != nullptr && end_type != nullptr && !iter_type->isTypeEqual(end_type))
+        throw ExpressionTypeError(line_no, iter_type->getTypeString(), end_type->getTypeString());
 }
 
 WhileStmtNode::WhileStmtNode(ExprNode *c, StmtNode *b_p)

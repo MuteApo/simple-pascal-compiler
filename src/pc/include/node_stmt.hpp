@@ -133,16 +133,16 @@ class IfStmtNode {
 
 class ForStmtNode {
   private:
-    int         uid;
-    int         line_no;
-    std::string name;
-    bool        is_to;
-    ExprNode   *start_expr;
-    ExprNode   *end_expr;
-    StmtNode   *body_part;
+    int       uid;
+    int       line_no;
+    bool      is_to;
+    ExprNode *iter;
+    ExprNode *start_expr;
+    ExprNode *end_expr;
+    StmtNode *body_part;
 
   public:
-    ForStmtNode(std::string id, bool is_t, ExprNode *s_e, ExprNode *e_e, StmtNode *b_p);
+    ForStmtNode(bool is_t, ExprNode *i, ExprNode *s_e, ExprNode *e_e, StmtNode *b_p);
 
     int getUid();
 
