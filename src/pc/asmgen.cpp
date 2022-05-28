@@ -224,7 +224,7 @@ string get_integer_calc(string operation, bool is_unsigned) {
     } else if (operation == "neg") {  // No overflow check
         res += "\tsub t0, x0, t1\n";
     } else if (operation == "cmp_le") {
-        res += get_reg_xchg(t_table[1], t_table[0]);
+        res += get_reg_xchg(t_table[1], t_table[2]);
         res += get_integer_calc("cmp_ge", is_unsigned);
     } else if (operation == "cmp_gt") {
         res += get_reg_xchg(t_table[1], t_table[2]);

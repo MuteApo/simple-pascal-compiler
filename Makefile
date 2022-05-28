@@ -2,7 +2,7 @@ DEG_DIR = bin
 SRC_DIR = test
 DBG_SRC = $(SRC_DIR)/scanner_test.pas
 
-.PHONY: all as util sim compile run debug clean
+.PHONY: all as util sim build run debug clean
 
 all: pc as util sim
 
@@ -18,17 +18,17 @@ util:
 sim:
 	$(MAKE) -C src/sim all
 
-compile: all
+build: all
 	$(DEG_DIR)/pc -i $(DBG_SRC) -o $(DEG_DIR)/assembly.S -V $(DEG_DIR)/tree_run0.viz $(DEG_DIR)/tree_run1.viz
 	dot -Tsvg -o $(DEG_DIR)/tree_run0.svg $(DEG_DIR)/tree_run0.viz
 	dot -Tsvg -o $(DEG_DIR)/tree_run1.svg $(DEG_DIR)/tree_run1.viz
 	$(DEG_DIR)/as -i $(DEG_DIR)/assembly.S -o $(DEG_DIR)/target.hex -s
 	$(DEG_DIR)/hex2bin -i $(DEG_DIR)/target.hex -o $(DEG_DIR)/target.bin
 
-run: compile
+run: build
 	$(DEG_DIR)/rvsim $(DEG_DIR)/target.bin -s 0xFFFFFF
 
-debug: compile
+debug: build
 	$(DEG_DIR)/rvsim $(DEG_DIR)/target.bin -s 0xFFFFFF -d
 
 clean:

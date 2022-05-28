@@ -72,7 +72,9 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
                     result = (uint32_t)((int32_t)src1 >> src2);
                 }
             }
-            if (exec) { write_register(get_rd(inst), result); }
+            if (exec) {
+                write_register(get_rd(inst), result);
+            }
             if (opcode_inst.at(get_opcode(inst)) == alu_imm) inst_asm += "i";
             inst_asm += " " + reg2alias(get_rd(inst));
             inst_asm += ", " + reg2alias(get_rs1(inst));
@@ -124,7 +126,9 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
                 }
                 mem_data = read_ram_halfword(addr, true);
             }
-            if (exec) { write_register(get_rd(inst), mem_data); }
+            if (exec) {
+                write_register(get_rd(inst), mem_data);
+            }
             break;
         }
         case store: {
@@ -196,9 +200,9 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
             } else if (branch_cond == "ltu") {
                 cond = src1 < src2;
             } else if (branch_cond == "ge") {
-                cond = (int32_t)src1 > (int32_t)src2;
+                cond = (int32_t)src1 >= (int32_t)src2;
             } else if (branch_cond == "geu") {
-                cond = src1 > src2;
+                cond = src1 >= src2;
             }
             if (exec && cond) {
                 if (target_pc & 0b11) {
