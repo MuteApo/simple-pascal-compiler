@@ -465,9 +465,9 @@ WhileStmt: WSYM_WHILE Expr WSYM_DO Stmt {
 }
 
 ForStmt: WSYM_FOR Id SYM_ASSIGN Expr WSYM_TO Expr WSYM_DO Stmt {
-    $$ = new ForStmtNode($2->getIdNode()->getName(), true, $4, $6, $8);
+    $$ = new ForStmtNode(true, $2, $4, $6, $8);
 }| WSYM_FOR Id SYM_ASSIGN Expr WSYM_DOWNTO Expr WSYM_DO Stmt {
-    $$ = new ForStmtNode($2->getIdNode()->getName(), false, $4, $6, $8);
+    $$ = new ForStmtNode(false, $2, $4, $6, $8);
 }
 
 WithStmt: WSYM_WITH IdList WSYM_DO Stmt {

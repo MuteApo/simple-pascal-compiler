@@ -165,113 +165,60 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
             asm_code += get_reg_xchg(t_table[2], t_table[0]);
         }
         asm_code += get_reg_restore(t_table[1]);
-        bool          is_ordinal_type = getResultType()->getType() == ordinal;
-        BasicTypeKind basic_type      = getResultType()->getBasicAttrNode()->getType();
-        BasicTypeKind op1_type        = op1->getResultType()->getBasicAttrNode()->getType();
+        BasicTypeKind op_type = op1->getResultType()->getBasicAttrNode()->getType();
         // TODO: Basic Type for Ordinal
-        switch (eval_type) {
-            case EK_Add: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("add", false);
+        switch (getResultType()->getType()) {
+            case basic:
+                switch (getResultType()->getBasicAttrNode()->getType()) {
+                    case boolean:
+                        switch (eval_type) {
+                            case EK_Eq:
+                                if (op_type == integer)
+                                    asm_code += get_integer_calc("cmp_eq", false);
+                                break;
+                            case EK_Ne:
+                                if (op_type == integer)
+                                    asm_code += get_integer_calc("cmp_ne", false);
+                                break;
+                            case EK_Lt:
+                                if (op_type == integer)
+                                    asm_code += get_integer_calc("cmp_lt", false);
+                                break;
+                            case EK_Gt:
+                                if (op_type == integer)
+                                    asm_code += get_integer_calc("cmp_gt", false);
+                                break;
+                            case EK_Le:
+                                if (op_type == integer)
+                                    asm_code += get_integer_calc("cmp_le", false);
+                                break;
+                            case EK_Ge:
+                                if (op_type == integer)
+                                    asm_code += get_integer_calc("cmp_ge", false);
+                                break;
+                        }
+                        break;
+                    case integer:
+                        switch (eval_type) {
+                            case EK_Add: asm_code += get_integer_calc("add", false); break;
+                            case EK_Sub: asm_code += get_integer_calc("sub", false); break;
+                            case EK_Mul: asm_code += get_integer_calc("mul", false); break;
+                            case EK_Div: asm_code += get_integer_calc("div", false); break;
+                            case EK_Mod: asm_code += get_integer_calc("mod", false); break;
+                            case EK_Not: asm_code += get_integer_calc("not", true); break;
+                            case EK_And: asm_code += get_integer_calc("and", true); break;
+                            case EK_Or: asm_code += get_integer_calc("or", true); break;
+                            case EK_Xor: asm_code += get_integer_calc("xor", true); break;
+                            case EK_Shl: asm_code += get_integer_calc("shl", true); break;
+                            case EK_Shr: asm_code += get_integer_calc("shr", true); break;
+                        }
+                        break;
+                    case real: break;
+                    case character: break;
                 }
                 break;
-            }
-            case EK_Sub: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("sub", false);
-                }
-                break;
-            }
-            case EK_Mul: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("mul", false);
-                }
-                break;
-            }
-            case EK_Div: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("div", false);
-                }
-                break;
-            }
-            case EK_Mod: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("mod", false);
-                }
-                break;
-            }
-            case EK_Eq: {
-                if (basic_type == boolean && op1_type == integer) {
-                    asm_code += get_integer_calc("cmp_eq", false);
-                }
-                break;
-            }
-            case EK_Ne: {
-                if (basic_type == boolean && op1_type == integer) {
-                    asm_code += get_integer_calc("cmp_ne", false);
-                }
-                break;
-            }
-            case EK_Lt: {
-                if (basic_type == boolean && op1_type == integer) {
-                    asm_code += get_integer_calc("cmp_lt", false);
-                }
-                break;
-            }
-            case EK_Gt: {
-                if (basic_type == boolean && op1_type == integer) {
-                    asm_code += get_integer_calc("cmp_gt", false);
-                }
-                break;
-            }
-            case EK_Le: {
-                if (basic_type == boolean && op1_type == integer) {
-                    asm_code += get_integer_calc("cmp_le", false);
-                }
-                break;
-            }
-            case EK_Ge: {
-                if (basic_type == boolean && op1_type == integer) {
-                    asm_code += get_integer_calc("cmp_ge", false);
-                }
-                break;
-            }
-            case EK_Not: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("not", true);
-                }
-                break;
-            }
-            case EK_And: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("and", true);
-                }
-                break;
-            }
-            case EK_Or: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("or", true);
-                }
-                break;
-            }
-            case EK_Xor: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("xor", true);
-                }
-                break;
-            }
-            case EK_Shl: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("shl", true);
-                }
-                break;
-            }
-            case EK_Shr: {
-                if (basic_type == integer) {
-                    asm_code += get_integer_calc("shr", true);
-                }
-                break;
-            }
+            case ordinal: break;     // TODO
+            case structured: break;  // cannot do direct calc
         }
         // TODO: For ordinal type, check boundary
     } else if (node_type == el_literal) {
@@ -289,11 +236,13 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
 // Data to write is in t2
 std::string ExprNode::genAsmCodeLHS() {
     if (error_handler.getErrorCount() != 0) return "";
+    std::string asm_code = "";
     if (node_type == el_id) {
-        return id_attr->genAsmCode(true);
+        asm_code = id_attr->genAsmCode(true);
     } else if (node_type == el_var_access) {
-        return var_access_attr->genAsmCode(true);
+        asm_code = var_access_attr->genAsmCode(true);
     }
+    return asm_code;
 }
 
 ExprListNode::ExprListNode() : uid(++global_uid), line_no(yylineno) {
@@ -395,23 +344,10 @@ std::string LiteralNode::genAsmCode() {
     uint32_t    val;
     std::string asm_code = "";
     switch (type->getType()) {
-        case boolean: {
-            val = (bval == true) ? 1 : 0;
-            break;
-        }
-        case integer: {
-            val = ival;
-            break;
-        }
-        case real: {
-            // TODO: Single Floating-Point to IEEE754 format
-            *(float *)(&val) = dval;
-            break;
-        }
-        case character: {
-            val = cval;
-            break;
-        }
+        case boolean: val = bval; break;
+        case integer: val = ival; break;
+        case real: *(float *)(&val) = dval; break;
+        case character: val = cval; break;
     }
     asm_code += get_load_imm(val);
     return asm_code;
