@@ -481,7 +481,7 @@ ReadStmt: SID_READ SYM_LPAR ArgList SYM_RPAR {
 WriteStmt: SID_WRITE SYM_LPAR ArgList SYM_RPAR {
     $$ = new WriteStmtNode(false, $3);
 }| SID_WRITELN SYM_LPAR ArgList SYM_RPAR {
-    $$ = new WriteStmtNode(false, $3);
+    $$ = new WriteStmtNode(true, $3);
 }
 
 CompoundStmt: WSYM_BEGIN StmtList WSYM_END {

@@ -132,7 +132,7 @@ TypeAttrNode *ExprNode::getResultType() {
                         op1->getLineNumber(), t1->getTypeString(), t2->getTypeString());
                 if (eval_type == EK_Eq || eval_type == EK_Ne || eval_type == EK_Lt ||
                     eval_type == EK_Gt || eval_type == EK_Le || eval_type == EK_Ge)
-                    return new TypeAttrNode(new BasicAttrNode(boolean));
+                    return res_type = new TypeAttrNode(new BasicAttrNode(boolean));
                 return res_type = t2;
             }
             case el_literal: return res_type = literal_attr->getResultType();
@@ -165,8 +165,9 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
             asm_code += get_reg_xchg(t_table[2], t_table[0]);
         }
         asm_code += get_reg_restore(t_table[1]);
-        bool          is_ordinal_type = (op1->getResultType()->getType() == ordinal);
-        BasicTypeKind basic_type      = op1->getResultType()->getBasicAttrNode()->getType();
+        bool          is_ordinal_type = getResultType()->getType() == ordinal;
+        BasicTypeKind basic_type      = getResultType()->getBasicAttrNode()->getType();
+        BasicTypeKind op1_type        = op1->getResultType()->getBasicAttrNode()->getType();
         // TODO: Basic Type for Ordinal
         switch (eval_type) {
             case EK_Add: {
@@ -200,57 +201,75 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                 break;
             }
             case EK_Eq: {
-                if (basic_type == integer) {
+                if (basic_type == boolean && op1_type == integer) {
                     asm_code += get_integer_calc("cmp_eq", false);
                 }
                 break;
             }
             case EK_Ne: {
-                if (basic_type == integer) {
+                if (basic_type == boolean && op1_type == integer) {
                     asm_code += get_integer_calc("cmp_ne", false);
                 }
                 break;
             }
             case EK_Lt: {
-                if (basic_type == integer) {
+                if (basic_type == boolean && op1_type == integer) {
                     asm_code += get_integer_calc("cmp_lt", false);
                 }
                 break;
             }
             case EK_Gt: {
-                if (basic_type == integer) {
+                if (basic_type == boolean && op1_type == integer) {
                     asm_code += get_integer_calc("cmp_gt", false);
                 }
                 break;
             }
             case EK_Le: {
-                if (basic_type == integer) {
+                if (basic_type == boolean && op1_type == integer) {
                     asm_code += get_integer_calc("cmp_le", false);
                 }
                 break;
             }
             case EK_Ge: {
-                if (basic_type == integer) {
+                if (basic_type == boolean && op1_type == integer) {
                     asm_code += get_integer_calc("cmp_ge", false);
                 }
                 break;
             }
             case EK_Not: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("not", true);
+                }
                 break;
             }
             case EK_And: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("and", true);
+                }
                 break;
             }
             case EK_Or: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("or", true);
+                }
                 break;
             }
             case EK_Xor: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("xor", true);
+                }
                 break;
             }
             case EK_Shl: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("shl", true);
+                }
                 break;
             }
             case EK_Shr: {
+                if (basic_type == integer) {
+                    asm_code += get_integer_calc("shr", true);
+                }
                 break;
             }
         }
@@ -386,7 +405,7 @@ std::string LiteralNode::genAsmCode() {
         }
         case real: {
             // TODO: Single Floating-Point to IEEE754 format
-            val = 0;
+            *(float *)(&val) = dval;
             break;
         }
         case character: {

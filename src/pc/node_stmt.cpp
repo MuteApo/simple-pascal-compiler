@@ -331,7 +331,7 @@ std::string IfStmtNode::genAsmCode() {
     cond_snippet = condition->genAsmCodeRHS();
     cond_snippet += get_reg_xchg(t_table[1], t_table[0]);
     then_snippet = then_part->genAsmCode();
-    else_snippet = else_part->genAsmCode();
+    if (else_part != nullptr) else_snippet = else_part->genAsmCode();
     return get_stmt_cond(cond_snippet, then_snippet, else_snippet);
 }
 
@@ -648,13 +648,14 @@ std::string WriteStmtNode::genVizCode(int run) {
 }
 
 std::string WriteStmtNode::genAsmCode() {
-    std::string              asm_code  = "";
-    std::vector<ExprNode *> &expr_list = exprs->getExprList();
-    for (int i = 0; i < exprs->getDim(); i++) {
-        asm_code += expr_list[i]->genAsmCodeRHS();
-        TypeKind tk = expr_list[i]->getResultType()->getType();
+    std::string             asm_code  = "";
+    std::vector<ExprNode *> expr_list = exprs->getExprList();
+    if (is_writeln) expr_list.push_back(new ExprNode(new LiteralNode('\n')));
+    for (int i = 0; i < expr_list.size(); i++) {
+        asm_code += expr_list.at(i)->genAsmCodeRHS();
+        TypeKind tk = expr_list.at(i)->getResultType()->getType();
         if (tk == basic) {
-            BasicTypeKind type = expr_list[i]->getResultType()->getBasicAttrNode()->getType();
+            BasicTypeKind type = expr_list.at(i)->getResultType()->getBasicAttrNode()->getType();
             if (type == integer) {
                 asm_code += get_reg_xchg(t_table[1], t_table[0]);
                 asm_code += get_write("int");

@@ -1,13 +1,15 @@
 program test;
 {Comment A}
 var
-    a, b: Integer;
+    i, j: Integer;
 begin
-    a := 0;
-    b := 1;
-    repeat
-        a := a + 1;
-        b := b * a;
-    until a = 3;
-    write(b);
+    i := 1;
+    while i <= 9 do begin
+        j := 1;
+        repeat
+            writeln(i, '*', j, '=', i * j);
+            j := j + 1;
+        until j = 10;
+        i := i + 1;
+    end;
 end.

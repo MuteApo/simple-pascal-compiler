@@ -12,7 +12,7 @@ class ErrorHandler {
   public:
     ErrorHandler();
 
-    int getErrorCount() ;
+    int getErrorCount();
 
     void addMsg(Exception e);
 
