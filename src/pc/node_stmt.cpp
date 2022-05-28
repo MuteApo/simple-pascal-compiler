@@ -387,7 +387,34 @@ std::string ForStmtNode::genVizCode(int run) {
 }
 
 std::string ForStmtNode::genAsmCode() {
-    return "";  // TODO
+    std::string asm_code = "";
+    std::string init_snippet, inc_dec_snippet, cmp_snippet, body_snippet;
+    init_snippet = start_expr->genAsmCodeRHS();
+    init_snippet += get_reg_xchg(t_table[2], t_table[0]);
+    init_snippet += name->genAsmCodeLHS();
+    inc_dec_snippet = name->genAsmCodeRHS();
+    inc_dec_snippet += get_reg_xchg(t_table[1], t_table[0]);
+    if (is_to) {
+        inc_dec_snippet += get_load_imm(1);
+    } else {
+        inc_dec_snippet += get_load_imm(-1);
+    }
+    inc_dec_snippet += get_reg_xchg(t_table[2], t_table[0]);
+    inc_dec_snippet = get_integer_calc("add", false);
+    inc_dec_snippet += name->genAsmCodeLHS();
+    cmp_snippet = end_expr->genAsmCodeRHS();
+    cmp_snippet += get_reg_save(t_table[0]);
+    cmp_snippet += name->genAsmCodeRHS();
+    cmp_snippet += get_reg_xchg(t_table[1], t_table[0]);
+    cmp_snippet += get_reg_restore(t_table[2]);
+    if (is_to) {
+        cmp_snippet += get_integer_calc("cmp_le", false);
+    } else {
+        cmp_snippet += get_integer_calc("cmp_ge", false);
+    // }
+    body_snippet = body_part->genAsmCode();
+    asm_code     = init_snippet + get_stmt_while(cmp_snippet, body_snippet + inc_dec_snippet);
+    return asm_code;
 }
 
 void ForStmtNode::testExprType() {

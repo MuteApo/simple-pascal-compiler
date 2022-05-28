@@ -3,8 +3,7 @@ program test;
 var
     i, j: Integer;
 begin
-    i := 1;
-    while i <= 9 do begin
+    for i := 1 to 9 do begin
         if i mod 2 = 0 then
             write('[', i, ']', ':', ' ')
         else write('(', i, ')', ':', ' ');
@@ -13,7 +12,6 @@ begin
             write(i * j, ' ');
             j := j + 1;
         until j = 10;
-        i := i + 1;
         writeln(' ');
     end;
 end.
