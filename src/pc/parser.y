@@ -482,6 +482,8 @@ WriteStmt: SID_WRITE SYM_LPAR ArgList SYM_RPAR {
     $$ = new WriteStmtNode(false, $3);
 }| SID_WRITELN SYM_LPAR ArgList SYM_RPAR {
     $$ = new WriteStmtNode(true, $3);
+}| SID_WRITELN SYM_LPAR SYM_RPAR {
+    $$ = new WriteStmtNode(true, new ExprListNode());
 }
 
 CompoundStmt: WSYM_BEGIN StmtList WSYM_END {
@@ -489,10 +491,10 @@ CompoundStmt: WSYM_BEGIN StmtList WSYM_END {
 }
 
 StmtList: StmtList Stmt SYM_SEMI {
-    $$ = $1 == nullptr ? new StmtListNode() : $1;
+    $$ = $1;
     $$->addStmt($2);
 }| {
-    $$ = nullptr;
+    $$ = new StmtListNode();
 }
 
 /************************* Rules of Const *************************/

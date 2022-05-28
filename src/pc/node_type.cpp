@@ -299,7 +299,11 @@ std::vector<TypeAttrNode *> TypeAttrListNode::getAttrList() {
     return type_attrs;
 }
 
-int TypeAttrListNode::getSize() {
+int TypeAttrListNode::getSize(int i) {
+    return type_attrs.at(i - 1)->getSize(i);
+}
+
+int TypeAttrListNode::getTotalSize() {
     int result = 1;
     for (int i = 0; i < type_attrs.size(); i++) try {
             result *= type_attrs.at(i)->getSize(i + 1);
@@ -504,7 +508,11 @@ std::string SubrangeAttrNode::genVizCode(int run) {
 void SubrangeAttrNode::translateId() {
     try {
         low_bound = symbol_table.translateConstId(low_bound);
-        up_bound  = symbol_table.translateConstId(up_bound);
+    } catch (UndefineError &e) {
+        throw e;
+    }
+    try {
+        up_bound = symbol_table.translateConstId(up_bound);
     } catch (UndefineError &e) {
         throw e;
     }
@@ -653,7 +661,7 @@ std::string ArrayAttrNode::getTypeString() {
 int ArrayAttrNode::getLength() {
     int result = element_type->getLength();
     try {
-        result *= index_type->getSize();
+        result *= index_type->getTotalSize();
     } catch (IndexTypeError &e) {
         throw e;
     }
@@ -677,6 +685,10 @@ void ArrayAttrNode::translateId() {
     try {
         element_type = symbol_table.translateTypeId(element_type);
         element_type->translateId();
+    } catch (UndefineError &e) {
+        throw e;
+    }
+    try {
         index_type->translateId();
     } catch (UndefineError &e) {
         throw e;

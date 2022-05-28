@@ -681,8 +681,10 @@ int WriteStmtNode::getUid() {
 
 std::string WriteStmtNode::genVizCode(int run) {
     std::string result = vizNode(uid, is_writeln ? "WritelnStmtNode" : "WriteStmtNode");
-    result += vizEdge(uid, exprs->getUid(), "args", "Argument List");
-    result += exprs->genVizCode(run);
+    if (exprs->getDim()) {
+        result += vizEdge(uid, exprs->getUid(), "args", "Argument List");
+        result += exprs->genVizCode(run);
+    }
     return result;
 }
 

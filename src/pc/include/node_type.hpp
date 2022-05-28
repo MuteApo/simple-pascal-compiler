@@ -153,7 +153,9 @@ class TypeAttrListNode {
 
     std::vector<TypeAttrNode *> getAttrList();
 
-    int getSize();
+    int getSize(int i);
+
+    int getTotalSize();
 
     void addTypeAttr(TypeAttrNode *type_attr);
 

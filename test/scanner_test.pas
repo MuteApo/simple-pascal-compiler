@@ -12,6 +12,6 @@ begin
             write(i * j, ' ');
             j := j + 1;
         until j = 10;
-        writeln(' ');
+        writeln();
     end;
 end.
