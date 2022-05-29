@@ -68,6 +68,10 @@ class ExprNode {
 
     bool isValueEqual(ExprNode *expr);
 
+    bool isMemAccessRoot();
+
+    std::string genAsmCodeMemAccess(bool access_write);
+
     // For continuous expression evaluation
     std::string genAsmCodeRHS();
 
@@ -168,8 +172,7 @@ class VarAccessNode {
 
     bool testAccess();
 
-    // Do memory read or write
-    std::string genAsmCode(bool access_write);
+    std::string genAsmCode(void);
 };
 
 class IdNode {
@@ -196,8 +199,7 @@ class IdNode {
 
     TypeAttrNode *getResultType();
 
-    // Do memory read or write
-    std::string genAsmCode(bool access_write);
+    std::string genAsmCode(void);
 };
 
 class IdListNode {

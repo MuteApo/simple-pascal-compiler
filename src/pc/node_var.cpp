@@ -53,7 +53,7 @@ int VarDefNode::genSymbolTable(int offset) {
     }
     if (symbol_table.existSymbol(name)) throw RedefineError(line_no, name);
     int len = type->getLength();
-    symbol_table.addSymbol(name, this, offset - len);
+    symbol_table.addSymbol(name, this, offset + len);
     return len;
 }
 
@@ -142,7 +142,7 @@ void VarDefListNode::translateId() {
 bool VarDefListNode::genSymbolTable() {
     int offset = 0;
     for (int i = 0; i < var_defs.size(); i++) try {
-            offset -= var_defs.at(i)->genSymbolTable(offset);
+            offset += var_defs.at(i)->genSymbolTable(offset);
         } catch (RedefineError &e) {
             error_handler.addMsg(e);
         } catch (UndefineError &e) {

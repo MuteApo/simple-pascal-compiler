@@ -31,6 +31,8 @@ const map<string, string> internal_msg = {
     {"msg_boolean_true", "True"},
     {"msg_boolean_false", "False"}};
 
+/** Basic Assembly Code Generation Function **/
+
 void init_asm(uint32_t init_stack_top) {
     fprintf(asm_file, ".data\n");
     map<string, string>::const_iterator p = internal_msg.begin();
@@ -48,28 +50,88 @@ void init_asm(uint32_t init_stack_top) {
     in_data_segment = false;
 }
 
-// Use Static Register Allocation Policy:
+bool start_asm(std::string filename, uint32_t init_stack_top) {
+    if (asm_file != NULL) return false;
+    in_code_segment = in_data_segment = false;
+    internal_label_id                 = -1;
+    asm_filename                      = filename;
+    asm_file                          = fopen(filename.data(), "w+");
+    if (asm_file == NULL) printf("unable to create file %s\n", filename.data());
+    if (asm_file != NULL) init_asm(init_stack_top);
+    return asm_file != NULL;
+}
 
-// The Most Complex Expr Calc Step:
-// RAM_VAR0 = RAM_VAR1 Basic_OP RAM_VAR2
-// 1 - RAM_VAR1->t1
-// 2 - RAM_VAR2->t2
-// 3 - t0 = t1 BASIC_OP t2
-// 4 - t0 -> RAM_VAR3
+bool finish_asm(void) {
+    if (asm_file != NULL) {
+        fclose(asm_file);
+        return true;
+    } else
+        return false;
+}
 
-// RAM access is optional, but we always have:
-// for binary operator: t0 = t1 atom_op t2
-// for unary operator: t0 = atom_op t1
+bool remove_asm(void) {
+    if (asm_file != NULL) {
+        fclose(asm_file);
+        remove(asm_filename.data());
+        return true;
+    } else
+        return false;
+}
 
-// For all assembly snippet,they use t3-t6 for intermediate result
-// When call funcs here to get code snippet,
-// use s1-s11 register or stack to backup your t3-t6 register
+bool write_segment(string snippet, bool data_seg) {
+    if (asm_file == NULL) {
+        printf("assembly file is not created yet\n");
+        return false;
+    } else if (snippet == "") {
+        return true;
+    }
+    if (data_seg && !in_data_segment) {
+        fprintf(asm_file, ".data\n");
+        in_data_segment = true;
+        in_code_segment = false;
+    } else if (!data_seg && !in_code_segment) {
+        fprintf(asm_file, ".text\n");
+        in_data_segment = false;
+        in_code_segment = true;
+    }
+    fprintf(asm_file, "%s", snippet.data());
+    return true;
+}
 
-/********************* `Atom` Expression Calculation ********************/
-// `Atom` Calculation is for Integer
-// All calc will be checked strictly for overflow
+string get_define_global(string name, vector<uint8_t> field_size, vector<uint32_t> field_rep) {
+    string res = "";
+    if (field_size.size() != field_rep.size()) return "";
+    res += name + ":\n";
+    res += "\t.align 4\n";
+    for (int i = 0; i < field_size.size(); i++) {
+        if (field_size[i] == 1) {
+            res += "\t.byte ";
+        } else if (field_size[i] == 4) {
+            res += "\t.word ";
+        } else {
+            return "";
+        }
+        for (int j = 0; j < field_rep[i]; j++) {
+            if (j == 0)
+                res += to_string(GLOBAL_INIT_VAL);
+            else
+                res += " " + to_string(GLOBAL_INIT_VAL);
+        }
+        res += "\n";
+    }
+    res += "\n";
+    return res;
+}
 
-// Only break content in t3
+/** Register Operation **/
+
+string get_load_imm(int32_t imm) {
+    string res = "";
+    res += "\tli t0, " + to_string(imm) + "\n";
+    return res;
+}
+
+// Will break content in t3
 string get_reg_xchg(uint8_t dst_reg, uint8_t src_reg) {
     if (dst_reg >= 32 || src_reg >= 32) {
         if (dst_reg >= 32)
@@ -84,12 +146,22 @@ string get_reg_xchg(uint8_t dst_reg, uint8_t src_reg) {
     return res;
 }
 
-// Only break content in t0
-string get_load_imm(int32_t imm) {
+// Stack pointer is always and pre-decremented and post-incremented
+string get_reg_save(uint8_t reg) {
     string res = "";
-    res += "\tli t0, " + to_string(imm) + "\n";
+    res += "\taddi sp, sp, -4\n";
+    res += "\tsw x" + to_string(reg) + ", 0(sp)\n";
     return res;
 }
+
+string get_reg_restore(uint8_t reg) {
+    string res = "";
+    res += "\tlw x" + to_string(reg) + ", 0(sp)\n";
+    res += "\taddi sp, sp, 4\n";
+    return res;
+}
+
+/** ALU Operation with Register **/
 
 string get_integer_calc(string operation, bool is_unsigned) {
     string res = "";
@@ -253,16 +325,32 @@ string get_integer_calc(string operation, bool is_unsigned) {
     return res;
 }
 
-/************************** Memory Load-Store **************************/
-// Always load memory cell to t0, and write t2 to memory cell
-// Memory address is in t1
+/** Memory Operation **/
 
-// size: 1, 2 or 4, and other value is illegal
-// dir = false: load, from mem to reg(t0)
-// dir = true: write, from reg(t1) to mem
-// is_signed: only for read operation
+string get_local_addr(int32_t local_offset) {
+    string res = "";
+    res += "\tli t0, " + to_string(local_offset) + "\n";
+    // local variable field in AR is used reversely
+    res += "\tsub t0, fp, t0\n";
+    return res;
+}
 
-// Will only break t0 register
+string get_global_addr(string name) {
+    string res = "";
+    res += "\tla t0, " + name + "\n";
+    return res;
+}
+
+// Will broke content in t1
+string get_param_addr(uint32_t param_offset, bool has_retval) {
+    string res = "";
+    res += "\taddi t0, fp, 56\n";
+    if (has_retval) res += "\taddi t0, t0, 4\n";
+    res += "\tli t1, " + to_string(param_offset) + "\n";
+    res += "\tadd t0, t1, t0\n";
+    return res;
+}
+
 string get_mem_access(uint8_t size, bool dir, bool is_signed) {
     string res = "";
     if (size == 1) {
@@ -294,50 +382,13 @@ string get_mem_access(uint8_t size, bool dir, bool is_signed) {
     return res;
 }
 
-string get_var_access(int32_t var_pos, int32_t offset, uint8_t size, bool dir, bool is_signed) {
+string get_mem_copy(uint32_t length) {
     string res = "";
-    res += "\tli t1, " + to_string(var_pos + offset) + "\n";
-    res += "\tsub t1, fp, t1\n";  // local variable field in AR is used reversely
-    res += get_mem_access(size, dir, is_signed);
-    return res;
-}
-
-string get_var_access(string name, int32_t offset, uint8_t size, bool dir, bool is_signed) {
-    string res = "";
-    res += "\tli t0, " + to_string(offset) + "\n";
-    res += "\tla t1, " + name + "\n";
-    res += "\tadd t1, t0, t1\n";
-    res += get_mem_access(size, dir, is_signed);
-    return res;
-}
-
-// Stack pointer is always and pre-decremented and post-incremented
-string get_reg_save(uint8_t reg) {
-    string res = "";
-    res += "\taddi sp, sp, -4\n";
-    res += "\tsw x" + to_string(reg) + ", 0(sp)\n";
-    return res;
-}
-
-string get_reg_restore(uint8_t reg) {
-    string res = "";
-    res += "\tlw x" + to_string(reg) + ", 0(sp)\n";
-    res += "\taddi sp, sp, 4\n";
-    return res;
-}
-
-// Copy func/proc perameters before func/proc call
-// t0: temp regs for single load and store
-// t1: src base addr
-// t2: dst base addr
-// t3: byte counter
-
-string get_mem_copy(void) {
-    string res = "";
+    res += "\tli t3, " + to_string(length) + "\n";
     res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
     res += "\tbeq t3, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
-    res += "\tlw t0, 0(t1)\n";
-    res += "\tsw t0, 0(t2)\n";
+    res += "\tlb t0, 0(t2)\n";
+    res += "\tsb t0, 0(t1)\n";
     res += "\taddi t1, t1, 1\n";
     res += "\taddi t2, t2, 1\n";
     res += "\taddi t3, t3, -1\n";
@@ -347,72 +398,17 @@ string get_mem_copy(void) {
     return res;
 }
 
-string get_params_copy(uint32_t dst_stk_pos, uint32_t src_stk_pos, uint32_t length) {
-    string res = "";
-    res += "\tli t3, " + to_string(length) + "\n";
-    res += "\tli t2, " + to_string(dst_stk_pos) + "\n";
-    res += "\tadd t2, t2, sp\n";
-    res += "\tli t1, " + to_string(src_stk_pos) + "\n";
-    res += "\tadd t1, t1, sp\n";
-    res += get_mem_copy();
-    res += "\tli t3, " + to_string(length) + "\n";
-    res += "\tsub sp, sp, t3\n";
-    return res;
-}
+/** Function Defination and Call **/
 
-string get_params_copy(uint32_t dst_stk_pos, string src_name, uint32_t length) {
-    string res = "";
-    res += "\tla t1, " + src_name + "\n";
-    res += "\tli t3, " + to_string(length) + "\n";
-    res += "\tli t2, " + to_string(dst_stk_pos) + "\n";
-    res += "\tadd t2, t2, sp\n";
-    res += get_mem_copy();
-    res += "\tli t3, " + to_string(length) + "\n";
-    res += "\tsub sp, sp, t3\n";
-    return res;
-}
-
-/********************** Function or Procedure Call **********************/
-
-// func/proc's perem/retval is always in stack, but for
-// a0: calling level of the func/proc
-// a1: defination level of the func/proc
-// func/proc's Activation Record:
-// ------------------------------ (High Address)
-// |          List of           | {Leftest in arg list is at lowest addr}
-// |         Parameters         |
-// |----------------------------|
-// |        Return Value        | {4 bytes, only for func, BasicRealType}
-// |----------------------------|
-// |    CALL Lv - DEF Lv + 1    | {4 bytes (one word), as indirect access link}
-// |----------------------------|
-// |         OLD ra(x1)         | {4 bytes (one word)}
-// |----------------------------|
-// |         OLD s1-s11         | {4 * 11 bytes (11 words)}
-// |----------------------------|
-// |        OLD fp(x8/s0)       | {4 bytes (one word), as control link}
-// |----------------------------| <- fp(x8/s0) HERE!
-// |       Local Variables      | {LEN varies with func as a const}
-// |----------------------------| <- sp(x2) HERE!
-// | (Saved REGs before a call) | {Saved temporary registers}
-// |----------------------------|
-// |       Free Stack Space     | {For inner func/proc's AR}
-// ------------------------------ (Low Address)
-
-// 1 - DO NOT USE s0(fp) for other purpose during a call!
-// 2 - sp is never modified to another const after initialized
-// 3 - "List of Params" and "RetVal" is established and cleaned by caller
-
-// External Visable Function for Assembly Code Generation
-
-string get_func_def(string name, uint32_t args_len, uint32_t local_vars_len, string func_body) {
+string get_func_def(string name, uint32_t local_var_len, string func_body) {
     string res = "";
     res += name + ":\n";
-    res += "\taddi sp, sp, -4\n";
     res += "\tsub a0, a1, a0\n";
     res += "\taddi a0, a0, 1\n";
     res += "\taddi sp, sp, -4\n";
     res += "\tsw a0, 0(sp)\n";  // Save indirect access link onto stack
+    res += "\taddi sp, sp, -4\n";
+    res += "\tsw ra, 0(sp)\n";  // Save return address
     res += "\taddi sp, sp, -44\n";
     for (int i = 1; i <= 11; i++) {
         res += "\tsw x" + to_string(s_table[i]) + ", " + to_string((i - 1) * 4) + "(sp)\n";
@@ -420,7 +416,7 @@ string get_func_def(string name, uint32_t args_len, uint32_t local_vars_len, str
     res += "\taddi sp, sp, -4\n";
     res += "\tsw fp, 0(sp)\n";    // Save control link
     res += "\tadd fp, sp, x0\n";  // fp = sp (new fp)
-    res += "\tli t0, " + to_string(local_vars_len) + "\n";
+    res += "\tli t0, " + to_string(local_var_len) + "\n";
     res += "\tsub sp, sp, t0\n";
     res += func_body;
     res += "\tadd sp, fp, x0\n";  // Cleanup local variables
@@ -430,17 +426,25 @@ string get_func_def(string name, uint32_t args_len, uint32_t local_vars_len, str
         res += "\tlw x" + to_string(s_table[i]) + ", " + to_string((i - 1) * 4) + "(sp)\n";
     }
     res += "\taddi sp, sp, 44\n";
-    res += "\taddi sp, sp, 4\n";  // Cleanup access link
     res += "\tlw ra, 0(sp)\n";
     res += "\taddi sp, sp, 4\n";  // Cleanup return address
+    res += "\taddi sp, sp, 4\n";  // Cleanup access link
     res += "\tjalr x0, 0(ra)\n";
     return res;
 }
 
-string
-get_func_call(string name, string parem_copy, bool has_retval, uint32_t call_lv, uint32_t def_lv) {
+string get_param_copy(uint32_t length) {
     string res = "";
-    res += parem_copy;
+    res += "\tli t1, " + to_string(length) + "\n";
+    res += "\tsub sp, sp, t1\n";
+    res += "\tadd t1, sp, x0\n";
+    res += get_mem_copy(length);
+}
+
+string
+get_func_call(string name, string param_copys, bool has_retval, uint32_t call_lv, uint32_t def_lv) {
+    string res = "";
+    res += param_copys;
     if (has_retval) res += "\taddi sp, sp, -4\n";
     res += "\tli a0, " + to_string(call_lv) + "\n";
     res += "\tli a1, " + to_string(def_lv) + "\n";
@@ -448,40 +452,41 @@ get_func_call(string name, string parem_copy, bool has_retval, uint32_t call_lv,
     return res;
 }
 
+// For caller to get return value
+std::string get_retval_read(bool is_unsigned) {
+    string res = "";
+    res += "\taddi t1, fp, 56\n";
+    res += get_mem_access(4, false, is_unsigned);
+    return res;
+}
+
+// For callee to put return value
+std::string get_retval_write(bool is_unsigned) {
+    string res = "";
+    // 56 = 4 * (1 (indirect access link) + 1 (old ra) + 11 (old s1-s11) + 1 (old fp))
+    res += "\taddi t1, fp, 56\n";
+    res += get_mem_access(4, true, is_unsigned);
+    return res;
+}
+
 // Clean params and retval after a call
-string get_func_cleanup(uint32_t args_len, bool has_retval) {
+string get_func_cleanup(uint32_t arg_len, bool has_retval) {
     string res = "";
     if (!has_retval)
-        res += "\tli t0, " + to_string(args_len) + "\n";
+        res += "\tli t0, " + to_string(arg_len) + "\n";
     else
-        res += "\tli t0, " + to_string(args_len + 4) + "\n";
+        res += "\tli t0, " + to_string(arg_len + 4) + "\n";
     res += "\tadd sp, sp, t0\n";
     return res;
 }
 
-std::string get_retval_read(uint8_t size, bool is_unsigned) {  // For caller to get return value
+string get_fp_before(uint32_t level_to_jump) {
     string res = "";
-    res += "\taddi t1, fp, 56\n";
-    res += get_mem_access(size, false, is_unsigned);
-    return res;
-}
-
-std::string get_retval_write(uint8_t size, bool is_unsigned) {  // For callee to put return value
-    string res = "";
-    // 56 = 4 * (1 (indirect access link) + 1 (old ra) + 11 (old s1-s11) + 1 (old fp))
-    res += "\taddi t1, fp, 56\n";
-    res += get_mem_access(size, true, is_unsigned);
-    return res;
-}
-
-string get_param_access(
-    uint32_t param_pos, uint32_t offset, bool has_retval, uint8_t size, bool dir, bool is_signed) {
-    string res = "";
-    res += "\taddi t1, fp, 56\n";
-    if (has_retval) res += "\taddi t1, t1, 4\n";
-    res += "\tli t0, " + to_string(param_pos + offset) + "\n";
-    res += "\tadd t1, t1, t0\n";
-    res += get_mem_access(size, dir, is_signed);
+    res += "\tli t1, " + to_string(level_to_jump) + "\n";
+    res += "_lbl_" + to_string(++internal_label_id) + ":\n";
+    res += "\tlw t0, 0(t0)\n";  // x0 = old fp
+    res += "\taddi t1, t1, -1\n";
+    res += "\tbne t1, x0, " + to_string(internal_label_id) + "\n";
     return res;
 }
 
@@ -497,82 +502,9 @@ string get_access_link(void) {
     return res;
 }
 
-bool start_asm(std::string filename, uint32_t init_stack_top) {
-    if (asm_file != NULL) return false;
-    in_code_segment = in_data_segment = false;
-    internal_label_id                 = -1;
-    asm_filename                      = filename;
-    asm_file                          = fopen(filename.data(), "w+");
-    if (asm_file == NULL) printf("unable to create file %s\n", filename.data());
-    if (asm_file != NULL) init_asm(init_stack_top);
-    return asm_file != NULL;
-}
+/** Basic Statement and Dynamic Check **/
 
-bool finish_asm(void) {
-    if (asm_file != NULL) {
-        fclose(asm_file);
-        return true;
-    } else
-        return false;
-}
-
-bool remove_asm(void) {
-    if (asm_file != NULL) {
-        fclose(asm_file);
-        remove(asm_filename.data());
-        return true;
-    } else
-        return false;
-}
-
-// seg_sel: false-code segment, true-data segment
-bool write_segment(string snippet, bool data_seg) {
-    if (asm_file == NULL) {
-        printf("assembly file is not created yet\n");
-        return false;
-    } else if (snippet == "") {
-        return true;
-    }
-    if (data_seg && !in_data_segment) {
-        fprintf(asm_file, ".data\n");
-        in_data_segment = true;
-        in_code_segment = false;
-    } else if (!data_seg && !in_code_segment) {
-        fprintf(asm_file, ".text\n");
-        in_data_segment = false;
-        in_code_segment = true;
-    }
-    fprintf(asm_file, "%s", snippet.data());
-    return true;
-}
-
-string get_define_global(string name, vector<uint8_t> field_size, vector<uint32_t> field_rep) {
-    string res = "";
-    if (field_size.size() != field_rep.size()) return "";
-    res += name + ":\n";
-    res += "\t.align 4\n";
-    for (int i = 0; i < field_size.size(); i++) {
-        if (field_size[i] == 1) {
-            res += "\t.byte ";
-        } else if (field_size[i] == 4) {
-            res += "\t.word ";
-        } else {
-            return "";
-        }
-        for (int j = 0; j < field_rep[i]; j++) {
-            if (j == 0)
-                res += to_string(GLOBAL_INIT_VAL);
-            else
-                res += " " + to_string(GLOBAL_INIT_VAL);
-        }
-        res += "\n";
-    }
-    res += "\n";
-    return res;
-}
-
-// Ordinal data for checking is in t1 register
-string get_ordinal_bound_check(uint32_t lower_bound, uint32_t upper_bound) {
+string get_bound_check(uint32_t lower_bound, uint32_t upper_bound) {
     string res = "";
     res += "\tli t3, " + to_string(lower_bound) + "\n";
     res += "\tli t4, " + to_string(upper_bound) + "\n";
@@ -592,35 +524,35 @@ string get_ordinal_bound_check(uint32_t lower_bound, uint32_t upper_bound) {
 
 // BUG: stmts can not be too long
 // calc_expr must store its result in t1, and saved temperary registers itself
-string get_stmt_cond(string calc_expr, string then_stmts, string else_stmts) {
+string get_stmt_cond(string calc_expr, string then_stmt, string else_stmt) {
     string res = "";
     res += calc_expr;
     res += "\tbne t1, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
-    res += else_stmts;
+    res += else_stmt;
     res += "\tbeq x0, x0, _lbl_" + to_string(internal_label_id + 2) + "\n";
     res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
-    res += then_stmts;
+    res += then_stmt;
     res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
     internal_label_id += 2;
     return res;
 }
 
-string get_stmt_while(string calc_expr, string stmts) {
+string get_stmt_while(string calc_expr, string stmt) {
     string res = "";
     res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
     res += calc_expr;
     res += "\tbeq t1, x0, _lbl_" + to_string(internal_label_id + 2) + "\n";
-    res += stmts;
+    res += stmt;
     res += "\tbeq x0, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
     res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
     internal_label_id += 2;
     return res;
 }
 
-string get_stmt_until(string calc_expr, string stmts) {
+string get_stmt_until(string calc_expr, string stmt) {
     string res = "";
     res += "_lbl_" + to_string(++internal_label_id) + ":\n";
-    res += stmts;
+    res += stmt;
     res += calc_expr;
     res += "\tbeq t1, x0, _lbl_" + to_string(internal_label_id) + "\n";
     return res;
