@@ -761,7 +761,7 @@ int StringAttrNode::getUid() {
 }
 
 int StringAttrNode::getLength() {
-    return stoi(len->getLiteralNode()->toString());
+    return stoi(len->getLiteralNode()->toString()) * ALIGN_LEN;
 }
 
 std::string StringAttrNode::genVizCode(int run) {

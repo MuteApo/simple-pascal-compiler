@@ -48,11 +48,13 @@ class TypeTableItem : public TableItem {
 class VarTableItem : public TableItem {
   public:
     VarDefNode *var_def;
-    int         order;  // order in the scope of the same level
+    int         offset;  // offset for local vars & params
 
-    VarTableItem(std::string id, int lv, VarDefNode *v_d, int ord);
+    VarTableItem(std::string id, int lv, VarDefNode *v_d, int o);
 
     bool operator<(const VarTableItem &rhs) const;
+
+    int getOffset();
 
     std::string toString();
 };
@@ -98,11 +100,6 @@ class SymbolTable {
     FuncDefNode  *findFuncSymbol(std::string id, int *level = nullptr);
 
     bool existSymbol(std::string id);
-
-    std::vector<ConstDefNode *> getValidConsts(int level);
-    std::vector<TypeAttrNode *> getValidTypes(int level);
-    std::vector<VarDefNode *>   getValidVars(int level);
-    std::vector<FuncDefNode *>  getValidFuncs(int level);
 
     std::set<VarTableItem> getVarScope(int level);
 

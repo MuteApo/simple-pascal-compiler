@@ -34,14 +34,10 @@ compile: build
 	$(BIN_DIR)/as -i $(BIN_DIR)/assembly.S -o $(BIN_DIR)/target.hex -s
 	$(BIN_DIR)/hex2bin -i $(BIN_DIR)/target.hex -o $(BIN_DIR)/target.bin
 
-run: build
-	$(MAKE) compile
+run: compile
 	$(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF
 
-debug: build
-	$(MAKE) compile
+debug: compile
 	$(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF -d
 
-all: build
-	$(MAKE) compile
-	$(MAKE) run
+all: compile run
