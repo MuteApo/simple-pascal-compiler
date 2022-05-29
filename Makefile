@@ -1,8 +1,8 @@
-DEG_DIR = bin
-SRC_DIR = test
-DBG_SRC = $(SRC_DIR)/scanner_test.pas
+BIN_DIR = bin
+PAS_DIR = test
+PAS_SRC = $(PAS_DIR)/multiple_table.pas
 
-.PHONY: all as util sim build run debug clean
+.PHONY: all as util sim build run debug visual clean
 
 all: pc as util sim
 
@@ -19,17 +19,19 @@ sim:
 	$(MAKE) -C src/sim all
 
 build: all
-	$(DEG_DIR)/pc -i $(DBG_SRC) -o $(DEG_DIR)/assembly.S -V $(DEG_DIR)/tree_run0.viz $(DEG_DIR)/tree_run1.viz
-	dot -Tsvg -o $(DEG_DIR)/tree_run0.svg $(DEG_DIR)/tree_run0.viz
-	dot -Tsvg -o $(DEG_DIR)/tree_run1.svg $(DEG_DIR)/tree_run1.viz
-	$(DEG_DIR)/as -i $(DEG_DIR)/assembly.S -o $(DEG_DIR)/target.hex -s
-	$(DEG_DIR)/hex2bin -i $(DEG_DIR)/target.hex -o $(DEG_DIR)/target.bin
+	$(BIN_DIR)/pc -i $(PAS_SRC) -o $(BIN_DIR)/assembly.S -V $(BIN_DIR)/tree_run0.viz $(BIN_DIR)/tree_run1.viz
+	$(BIN_DIR)/as -i $(BIN_DIR)/assembly.S -o $(BIN_DIR)/target.hex -s
+	$(BIN_DIR)/hex2bin -i $(BIN_DIR)/target.hex -o $(BIN_DIR)/target.bin
 
 run: build
-	$(DEG_DIR)/rvsim $(DEG_DIR)/target.bin -s 0xFFFFFF
+	$(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF
 
 debug: build
-	$(DEG_DIR)/rvsim $(DEG_DIR)/target.bin -s 0xFFFFFF -d
+	$(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF -d
+
+visual: build
+	dot -Tsvg -o $(BIN_DIR)/tree_run0.svg $(BIN_DIR)/tree_run0.viz
+	dot -Tsvg -o $(BIN_DIR)/tree_run1.svg $(BIN_DIR)/tree_run1.viz
 
 clean:
 	$(MAKE) -C src/pc clean
