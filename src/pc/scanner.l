@@ -130,7 +130,7 @@ Identifier {Letter}({Letter}|{Digit})*
 }
 
 {Character} {
-    yylval.sval = yytext;
+    yylval.cval = yytext[1];
     return VAL_CHAR;
 }
 

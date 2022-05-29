@@ -12,6 +12,7 @@ class EnumAttrNode;
 class StructAttrNode;
 class SetAttrNode;
 class ArrayAttrNode;
+class StringAttrNode;
 class RecordAttrNode;
 class PtrAttrNode;
 
@@ -290,15 +291,21 @@ class StructAttrNode {
   private:
     int             uid;
     int             line_no;
-    bool            is_array;
+    StructTypeKind  struct_type;
     ArrayAttrNode  *array_attr;
+    StringAttrNode *string_attr;
     RecordAttrNode *record_attr;
     friend class TypeAttrNode;
     friend class ArrayAttrNode;
     friend class RecordAttrNode;
 
   public:
+    StructAttrNode(StructTypeKind  st,
+                   ArrayAttrNode  *a_a = nullptr,
+                   StringAttrNode *s_a = nullptr,
+                   RecordAttrNode *r_a = nullptr);
     StructAttrNode(ArrayAttrNode *a_a);
+    StructAttrNode(StringAttrNode *s_a);
     StructAttrNode(RecordAttrNode *r_a);
 
     int getUid();
@@ -351,8 +358,6 @@ class ArrayAttrNode {
 
     int getLength();
 
-    int getOffset();
-
     std::string genVizCode(int run);
 
     void translateId();
@@ -360,6 +365,25 @@ class ArrayAttrNode {
     bool isTypeEqual(ArrayAttrNode *type);
 
     bool testIndexType(ExprListNode *indices);
+};
+
+class StringAttrNode {
+  private:
+    int       uid;
+    int       line_no;
+    bool      is_len_id;
+    ExprNode *len;
+
+  public:
+    StringAttrNode(ExprNode *l);
+
+    int getUid();
+
+    int getLength();
+
+    std::string genVizCode(int run);
+
+    void translateId();
 };
 
 class RecordAttrNode {
@@ -411,6 +435,8 @@ class PtrAttrNode {
     std::string genVizCode(int run);
 
     void translateId();
+
+    bool isTypeEqual(PtrAttrNode *type);
 };
 
 #endif

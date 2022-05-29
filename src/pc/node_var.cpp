@@ -40,7 +40,6 @@ void VarDefNode::translateId() {
         type = symbol_table.translateTypeId(type);
         type->translateId();
     } catch (UndefineError &e) {
-        error_handler.addMsg(e);
         throw e;
     }
 }
@@ -146,6 +145,8 @@ bool VarDefListNode::genSymbolTable(int bias) {
             lvars_length += var_defs.at(i)->getType()->getLength();
         } catch (RedefineError &e) {
             error_handler.addMsg(e);
+        } catch (UndefineError &e) {
+            throw e;
         }
     ar_lvars_length.push_back(lvars_length);
     return true;

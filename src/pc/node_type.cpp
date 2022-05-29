@@ -218,7 +218,7 @@ bool TypeAttrNode::isTypeEqual(TypeAttrNode *type, bool use_struct) {
         case basic: return basic_attr->isTypeEqual(type->basic_attr);
         case ordinal: return ord_attr->isTypeEqual(type->ord_attr);
         case structured: return struct_attr->isTypeEqual(type->struct_attr);
-        case pointer: return type->root_type == pointer;
+        case pointer: return ptr_attr->isTypeEqual(type->ptr_attr);
         case type_identifier: {
             TypeAttrNode *lut_this = symbol_table.findTypeSymbol(name);
             TypeAttrNode *lut_type = symbol_table.findTypeSymbol(name);
@@ -580,17 +580,34 @@ bool EnumAttrNode::isTypeEqual(EnumAttrNode *type) {
     return true;
 }
 
+StructAttrNode::StructAttrNode(StructTypeKind  st,
+                               ArrayAttrNode  *a_a,
+                               StringAttrNode *s_a,
+                               RecordAttrNode *r_a)
+        : uid(++global_uid),
+          line_no(yylineno),
+          struct_type(st),
+          array_attr(a_a),
+          string_attr(s_a),
+          record_attr(r_a) {}
 StructAttrNode::StructAttrNode(ArrayAttrNode *a_a)
-        : uid(++global_uid), line_no(yylineno), is_array(true), array_attr(a_a) {}
+        : StructAttrNode(struct_array, a_a, nullptr, nullptr) {}
+StructAttrNode::StructAttrNode(StringAttrNode *s_a)
+        : StructAttrNode(struct_string, nullptr, s_a, nullptr) {}
 StructAttrNode::StructAttrNode(RecordAttrNode *r_a)
-        : uid(++global_uid), line_no(yylineno), is_array(false), record_attr(r_a) {}
+        : StructAttrNode(struct_record, nullptr, nullptr, r_a) {}
 
 int StructAttrNode::getUid() {
     return uid;
 }
 
 std::string StructAttrNode::getTypeString() {
-    return is_array ? array_attr->getTypeString() : record_attr->getTypeString();
+    switch (struct_type) {
+        case struct_array: return array_attr->getTypeString();
+        case struct_string: return "string";
+        case struct_record: return record_attr->getTypeString();
+    }
+    return "";
 }
 
 ArrayAttrNode *StructAttrNode::getArrayAttr() {
@@ -602,37 +619,62 @@ RecordAttrNode *StructAttrNode::getRecordAttr() {
 }
 
 int StructAttrNode::getLength() {
-    return is_array ? array_attr->getLength() : record_attr->getLength();
+    switch (struct_type) {
+        case struct_array: return array_attr->getLength();
+        case struct_string: return string_attr->getLength();
+        case struct_record: return record_attr->getLength();
+    }
+    return 0;
 }
 
 int StructAttrNode::getOffset(std::string member) {
-    return is_array ? array_attr->getOffset() : record_attr->getOffset(member);
+    switch (struct_type) {
+        case struct_array: return 0;
+        case struct_string: return 0;
+        case struct_record: return record_attr->getOffset(member);
+    }
+    return 0;
 }
 
 std::string StructAttrNode::genVizCode(int run) {
     std::string result = vizNode(uid, "StructAttrNode");
-    if (is_array) {
-        result += vizEdge(uid, array_attr->getUid(), "array", "Array Type");
-        result += array_attr->genVizCode(run);
-    } else {
-        result += vizEdge(uid, record_attr->getUid(), "record", "Record Type");
-        result += record_attr->genVizCode(run);
+    switch (struct_type) {
+        case struct_array:
+            result += vizEdge(uid, array_attr->getUid(), "array", "Array Type");
+            result += array_attr->genVizCode(run);
+            break;
+        case struct_string:
+            result += vizEdge(uid, string_attr->getUid(), "string", "String Type");
+            result += string_attr->genVizCode(run);
+            break;
+        case struct_record:
+            result += vizEdge(uid, record_attr->getUid(), "record", "Record Type");
+            result += record_attr->genVizCode(run);
+            break;
     }
     return result;
 }
 
 void StructAttrNode::translateId() {
     try {
-        is_array ? array_attr->translateId() : record_attr->translateId();
+        switch (struct_type) {
+            case struct_array: array_attr->translateId(); break;
+            case struct_string: string_attr->translateId(); break;
+            case struct_record: record_attr->translateId(); break;
+        }
     } catch (UndefineError &e) {
         throw e;
     }
 }
 
 bool StructAttrNode::isTypeEqual(StructAttrNode *type) {
-    if (is_array != type->is_array) return false;
-    return is_array ? array_attr->isTypeEqual(type->array_attr) :
-                      record_attr->isTypeEqual(type->record_attr);
+    if (struct_type != type->struct_type) return false;
+    switch (struct_type) {
+        case struct_array: return array_attr->isTypeEqual(type->array_attr);
+        case struct_string: return true; ;
+        case struct_record: return record_attr->isTypeEqual(type->record_attr);
+    }
+    return false;
 }
 
 ArrayAttrNode::ArrayAttrNode(TypeAttrListNode *it, TypeAttrNode *et)
@@ -668,13 +710,9 @@ int ArrayAttrNode::getLength() {
     return result;
 }
 
-int ArrayAttrNode::getOffset() {
-    return 0;
-}
-
 std::string ArrayAttrNode::genVizCode(int run) {
     std::string result = vizNode(uid, "ArrayAttrNode");
-    result += vizEdge(uid, index_type->getUid(), "indices", "Type of Indices ");
+    result += vizEdge(uid, index_type->getUid(), "indices", "Type of Indices");
     result += index_type->genVizCode(run);
     result += vizEdge(uid, element_type->getUid(), "element", "Type of Element");
     if (!run || !is_ele_type_id) result += element_type->genVizCode(run);
@@ -709,6 +747,32 @@ bool ArrayAttrNode::testIndexType(ExprListNode *indices) {
         throw e;
     }
     return true;
+}
+
+StringAttrNode::StringAttrNode(ExprNode *l)
+        : uid(++global_uid), line_no(yylineno), len(l), is_len_id(l->getNodeType() == el_id) {}
+
+int StringAttrNode::getUid() {
+    return uid;
+}
+
+int StringAttrNode::getLength() {
+    return stoi(len->getLiteralNode()->toString());
+}
+
+std::string StringAttrNode::genVizCode(int run) {
+    std::string result = vizNode(uid, "StringAttrNode");
+    result += vizEdge(uid, len->getUid(), "len", "String Length");
+    if (!run || !is_len_id) result += len->genVizCode(run);
+    return result;
+}
+
+void StringAttrNode::translateId() {
+    try {
+        len = symbol_table.translateConstId(len);
+    } catch (UndefineError &e) {
+        throw e;
+    }
 }
 
 RecordAttrNode::RecordAttrNode(VarDefListNode *d) : uid(++global_uid), line_no(yylineno), defs(d) {}
@@ -791,4 +855,8 @@ void PtrAttrNode::translateId() {
     } catch (UndefineError &e) {
         throw e;
     }
+}
+
+bool PtrAttrNode::isTypeEqual(PtrAttrNode *type) {
+    return base_attr->isTypeEqual(type->base_attr);
 }

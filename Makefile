@@ -2,9 +2,7 @@ BIN_DIR = bin
 PAS_DIR = test
 PAS_SRC = $(PAS_DIR)/multiple_table.pas
 
-.PHONY: all as util sim build run debug visual clean
-
-all: pc as util sim
+.PHONY: pc as util sim build clean compile run debug visual all
 
 pc:
 	$(MAKE) -C src/pc all
@@ -18,23 +16,32 @@ util:
 sim:
 	$(MAKE) -C src/sim all
 
-build: all
-	$(BIN_DIR)/pc -i $(PAS_SRC) -o $(BIN_DIR)/assembly.S -V $(BIN_DIR)/tree_run0.viz $(BIN_DIR)/tree_run1.viz
-	$(BIN_DIR)/as -i $(BIN_DIR)/assembly.S -o $(BIN_DIR)/target.hex -s
-	$(BIN_DIR)/hex2bin -i $(BIN_DIR)/target.hex -o $(BIN_DIR)/target.bin
-
-run: build
-	$(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF
-
-debug: build
-	$(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF -d
-
-visual: build
-	dot -Tsvg -o $(BIN_DIR)/tree_run0.svg $(BIN_DIR)/tree_run0.viz
-	dot -Tsvg -o $(BIN_DIR)/tree_run1.svg $(BIN_DIR)/tree_run1.viz
+build: pc as util sim
 
 clean:
 	$(MAKE) -C src/pc clean
 	$(MAKE) -C src/as clean
 	$(MAKE) -C src/util clean
 	$(MAKE) -C src/sim clean
+
+visual: build
+	$(BIN_DIR)/pc -i $(PAS_SRC) -V $(BIN_DIR)/tree_run0.viz $(BIN_DIR)/tree_run1.viz
+	dot -Tsvg -o $(BIN_DIR)/tree_run0.svg $(BIN_DIR)/tree_run0.viz
+	dot -Tsvg -o $(BIN_DIR)/tree_run1.svg $(BIN_DIR)/tree_run1.viz
+
+compile: build
+	$(BIN_DIR)/pc -i $(PAS_SRC) -o $(BIN_DIR)/assembly.S
+	$(BIN_DIR)/as -i $(BIN_DIR)/assembly.S -o $(BIN_DIR)/target.hex -s
+	$(BIN_DIR)/hex2bin -i $(BIN_DIR)/target.hex -o $(BIN_DIR)/target.bin
+
+run: build
+	$(MAKE) compile
+	$(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF
+
+debug: build
+	$(MAKE) compile
+	$(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF -d
+
+all: build
+	$(MAKE) compile
+	$(MAKE) run

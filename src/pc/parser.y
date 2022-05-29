@@ -37,6 +37,7 @@ ProgramNode *root = nullptr;
     OrdAttrNode *ord_attr_node;
     StructAttrNode *struct_attr_node;
     ArrayAttrNode *array_attr_node;
+    StringAttrNode *string_attr_node;
     RecordAttrNode *record_attr_node;
     PtrAttrNode *ptr_attr_node;
     VarDefListNode *var_def_list_node;
@@ -94,7 +95,8 @@ ProgramNode *root = nullptr;
 
 %token <ival> VAL_INT
 %token <dval> VAL_REAL
-%token <sval> VAL_ID VAL_CHAR VAL_STRING
+%token <cval> VAL_CHAR
+%token <sval> VAL_ID VAL_STRING
 
 
 %type <prog_node> Program
@@ -110,6 +112,7 @@ ProgramNode *root = nullptr;
 %type <ord_attr_node> OrdTypeDef
 %type <struct_attr_node> StructTypeDef
 %type <array_attr_node> ArrayTypeDef
+%type <string_attr_node> StringTypeDef
 %type <ptr_attr_node> PtrTypeDef
 %type <record_attr_node> RecordTypeDef
 %type <var_def_list_node> VarDeclPart VarDeclList VarDecl
@@ -135,7 +138,7 @@ ProgramNode *root = nullptr;
 %type <func_node> FuncExpr ProcExpr
 %type <expr_eval_type> Sign
 
-%type <type_def_node> SetTypeDef StringTypeDef
+%type <type_def_node> SetTypeDef
 %type <stmt_node> WithStmt
 
 %start Program
@@ -205,7 +208,7 @@ StructTypeDef:  SetTypeDef{
 }| ArrayTypeDef {
     $$ = new StructAttrNode($1);
 }| StringTypeDef {
-    $$ = nullptr;   // TODO
+    $$ = new StructAttrNode($1);
 }| RecordTypeDef {
     $$ = new StructAttrNode($1);
 }
@@ -229,11 +232,11 @@ IndexTypeList: IndexTypeList SYM_COMMA Type {
 }
 
 StringTypeDef: SID_STRING {
-    $$ = nullptr;    // TODO
-}| SID_STRING SYM_LSBKT Id SYM_RSBKT {
-    $$ = nullptr;    // TODO
+    $$ = new StringAttrNode(new ExprNode(new LiteralNode(255)));
 }| SID_STRING SYM_LSBKT VAL_INT SYM_RSBKT {
-    $$ = nullptr;    // TODO
+    $$ = new StringAttrNode(new ExprNode(new LiteralNode($3))); 
+}| SID_STRING SYM_LSBKT Id SYM_RSBKT {
+    $$ = new StringAttrNode($3);
 }
 
 RecordTypeDef: WSYM_RECORD VarDeclList WSYM_END {
@@ -558,9 +561,9 @@ Literal: VAL_INT {
 }| WSYM_NIL {
     $$ = new ExprNode(new LiteralNode());
 }| VAL_STRING {
-    $$ = nullptr;   // TODO
+    $$ = new ExprNode(new LiteralNode($1));
 }| VAL_CHAR {
-    $$ = new ExprNode(new LiteralNode($1[1]));
+    $$ = new ExprNode(new LiteralNode($1));
 }
 
 /************************* Rules of Proc&Stmt *************************/

@@ -281,32 +281,45 @@ std::string ExprListNode::genVizCode(int run) {
     return result;
 }
 
-LiteralNode::LiteralNode(bool is_n, BasicAttrNode *t, bool bv, int iv, double dv, char cv)
+LiteralNode::LiteralNode(
+    LiteralType l_t, BasicAttrNode *t, bool bv, int iv, double dv, char cv, std::string sv)
         : uid(++global_uid),
           line_no(yylineno),
-          is_nil(is_n),
+          literal_type(l_t),
           type(t),
           bval(bv),
           ival(iv),
           dval(dv),
-          cval(cv) {}
-LiteralNode::LiteralNode(void) : LiteralNode(true, nullptr, 0, 0, 0, 0) {}
-LiteralNode::LiteralNode(bool b) : LiteralNode(false, new BasicAttrNode(boolean), b, 0, 0, 0) {}
-LiteralNode::LiteralNode(int i) : LiteralNode(false, new BasicAttrNode(integer), 0, i, 0, 0) {}
-LiteralNode::LiteralNode(double d) : LiteralNode(false, new BasicAttrNode(real), 0, 0, d, 0) {}
-LiteralNode::LiteralNode(char c) : LiteralNode(false, new BasicAttrNode(character), 0, 0, 0, c) {}
+          cval(cv),
+          sval(sv) {}
+LiteralNode::LiteralNode(void) : LiteralNode(lt_pointer, nullptr, 0, 0, 0, 0, "") {}
+LiteralNode::LiteralNode(bool b)
+        : LiteralNode(lt_basic, new BasicAttrNode(boolean), b, 0, 0, 0, "") {}
+LiteralNode::LiteralNode(int i)
+        : LiteralNode(lt_basic, new BasicAttrNode(integer), 0, i, 0, 0, "") {}
+LiteralNode::LiteralNode(double d)
+        : LiteralNode(lt_basic, new BasicAttrNode(real), 0, 0, d, 0, "") {}
+LiteralNode::LiteralNode(char c)
+        : LiteralNode(lt_basic, new BasicAttrNode(character), 0, 0, 0, c, "") {}
+LiteralNode::LiteralNode(char *s) : LiteralNode(lt_string, nullptr, 0, 0, 0, 0, s) {}
 LiteralNode::~LiteralNode() {
     if (type != nullptr) delete type;
 }
 
 bool LiteralNode::operator<(const LiteralNode &rhs) const {
-    if (is_nil) return !rhs.is_nil;
-    if (type->getType() != rhs.type->getType()) return type->getType() < rhs.type->getType();
-    switch (type->getType()) {
-        case boolean: return bval < rhs.bval;
-        case integer: return ival < rhs.ival;
-        case real: return dval < rhs.dval;
-        case character: return cval < rhs.cval;
+    if (literal_type != rhs.literal_type) return literal_type < rhs.literal_type;
+    switch (literal_type) {
+        case lt_pointer: return false;
+        case lt_basic:
+            if (type->getType() != rhs.type->getType())
+                return type->getType() < rhs.type->getType();
+            switch (type->getType()) {
+                case boolean: return bval < rhs.bval;
+                case integer: return ival < rhs.ival;
+                case real: return dval < rhs.dval;
+                case character: return cval < rhs.cval;
+            }
+        case lt_string: return sval < rhs.sval;
     }
     return false;
 }
@@ -321,13 +334,17 @@ BasicAttrNode *LiteralNode::getType() {
 
 std::string LiteralNode::getNodeInfo() {
     std::string result = "LiteralNode\n";
-    if (is_nil) return result + "NIL";
-    result += type->getNodeInfo() + "\n";
-    switch (type->getType()) {
-        case boolean: return result + to_string(bval);
-        case integer: return result + to_string(ival);
-        case real: return result + to_string(dval);
-        case character: return result + to_string(cval);
+    switch (literal_type) {
+        case lt_pointer: return result + "pointer\nNIL";
+        case lt_basic:
+            result += type->getNodeInfo() + "\n";
+            switch (type->getType()) {
+                case boolean: return result + to_string(bval);
+                case integer: return result + to_string(ival);
+                case real: return result + to_string(dval);
+                case character: return result + to_string(cval);
+            }
+        case lt_string: return result + "string\n" + sval;
     }
     return result;
 }
@@ -337,24 +354,38 @@ std::string LiteralNode::genVizCode(int run) {
 }
 
 TypeAttrNode *LiteralNode::getResultType() {
-    return new TypeAttrNode(type);
+    switch (literal_type) {
+        case lt_pointer: return new TypeAttrNode(new PtrAttrNode(nullptr));
+        case lt_basic: return new TypeAttrNode(type);
+        case lt_string:
+            return new TypeAttrNode(new StructAttrNode(
+                new StringAttrNode(new ExprNode(new LiteralNode((int)sval.length())))));
+    }
+    return nullptr;
 }
 
 std::string LiteralNode::genAsmCode() {
     uint32_t    val;
     std::string asm_code = "";
-    switch (type->getType()) {
-        case boolean: val = bval; break;
-        case integer: val = ival; break;
-        case real: *(float *)(&val) = dval; break;
-        case character: val = cval; break;
+    switch (literal_type) {
+        case lt_pointer: break;  // TODO
+        case lt_basic:
+            switch (type->getType()) {
+                case boolean: val = bval; break;
+                case integer: val = ival; break;
+                case real: *(float *)(&val) = dval; break;
+                case character: val = cval; break;
+            }
+            break;
+        case lt_string: break;  // TODO
     }
     asm_code += get_load_imm(val);
     return asm_code;
 }
 
 int LiteralNode::diff(LiteralNode *rhs) {
-    if (is_nil || rhs->is_nil) throw ExpressionTypeError(line_no, "real basic type", "pointer");
+    if (literal_type != lt_basic || rhs->literal_type != lt_basic)
+        throw ExpressionTypeError(line_no, "real basic type", "pointer/string");
     if (type->getType() != rhs->type->getType())
         throw ExpressionTypeError(line_no, type->getTypeString(), rhs->type->getTypeString());
     switch (type->getType()) {
@@ -367,14 +398,18 @@ int LiteralNode::diff(LiteralNode *rhs) {
 }
 
 bool LiteralNode::isValueEqual(LiteralNode *expr) {
-    if (is_nil && expr->is_nil) return true;
-    if (is_nil != expr->is_nil) return false;
-    if (type->getType() != expr->type->getType()) return false;
-    switch (type->getType()) {
-        case boolean: return bval == expr->bval;
-        case integer: return ival == expr->ival;
-        case real: return dval == expr->dval;
-        case character: return cval == expr->cval;
+    if (literal_type != expr->literal_type) return false;
+    switch (literal_type) {
+        case lt_pointer: return true;
+        case lt_basic:
+            if (type->getType() != expr->type->getType()) return false;
+            switch (type->getType()) {
+                case boolean: return bval == expr->bval;
+                case integer: return ival == expr->ival;
+                case real: return dval == expr->dval;
+                case character: return cval == expr->cval;
+            }
+        case lt_string: return sval == expr->sval;
     }
     return false;
 }

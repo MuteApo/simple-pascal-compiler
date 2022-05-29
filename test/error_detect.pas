@@ -1,33 +1,37 @@
 program test;
 {Comment A}
 const
-    z = 3;
+    z = 233;
     yy = 'y';
 type
     week = (Mon, Tues, Wed, Thur, Fri);
-    week2 = week;
-    digit = 0..2;
+    digit = 0..9;
     y = record
         i: integer;
         u: digit;
-        v: ^week2;
+        v: ^week;
     end;
+    strz = string[z];
 var
-    k: array [digit, 1..9] of y;
+    k: array [digit, 0..255] of y;
     a: integer;
+    s: strz;
 
     function ff: week;
+    type
+        week2 = week;
 
         function fff(k: real): real;
         type
             week3 = week2;
         var
-            p: week;
+            p: week3;
         begin
 
         end;
 
     begin
+        s := '114514';
         v := 1;  { identifier v is undefined }
     end;
 

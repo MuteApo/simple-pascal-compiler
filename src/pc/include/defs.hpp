@@ -6,9 +6,10 @@
 
 enum ExprNodeType { el_nonleaf = 101, el_literal, el_var_access, el_id, el_fun_call };
 enum ResultType { rt_unknown = 201, rt_integer, rt_real, rt_boolean, rt_pointer, rt_record };
-enum VarAccessType { va_pointer = 301, va_array, va_record };
+enum LiteralType { lt_pointer = 301, lt_basic, lt_string };
+enum VarAccessType { va_pointer = 401, va_array, va_record };
 enum ExprEvalType {
-    EK_None = 401,
+    EK_None = 501,
     /* arithmetic */
     EK_Add,   // a+b
     EK_Sub,   // a-b
@@ -35,6 +36,7 @@ enum ExprEvalType {
 
 enum TypeKind { basic = 1001, ordinal, structured, pointer, type_identifier };
 enum BasicTypeKind { boolean = 2001, integer, real, character };
+enum StructTypeKind { struct_array = 3001, struct_string, struct_record };
 
 enum StmtType {
     SK_Compound = 10001,

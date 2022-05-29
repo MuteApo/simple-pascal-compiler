@@ -101,20 +101,23 @@ class LiteralNode {
   private:
     int            uid;
     int            line_no;
-    bool           is_nil;
+    LiteralType    literal_type;
     BasicAttrNode *type;
     bool           bval;
     int            ival;
     double         dval;
     char           cval;
+    std::string    sval;
 
   public:
-    LiteralNode(bool is_n, BasicAttrNode *t, bool bv, int iv, double dv, char cv);
+    LiteralNode(
+        LiteralType l_t, BasicAttrNode *t, bool bv, int iv, double dv, char cv, std::string sv);
     LiteralNode(void);
     LiteralNode(bool b);
     LiteralNode(int i);
     LiteralNode(double d);
     LiteralNode(char c);
+    LiteralNode(char *s);
     ~LiteralNode();
 
     bool operator<(const LiteralNode &rhs) const;
