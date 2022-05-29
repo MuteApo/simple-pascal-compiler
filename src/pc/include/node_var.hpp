@@ -13,9 +13,6 @@ class VarDefListNode;
 extern int global_uid;
 extern int yylineno;
 
-extern std::vector<int> ar_lvars_length;
-extern std::vector<int> ar_args_length;
-
 class VarDefNode {
   private:
     int           uid;
@@ -42,7 +39,7 @@ class VarDefNode {
 
     void translateId();
 
-    bool genSymbolTable(int ord);
+    int genSymbolTable(int offset);
 
     std::string genAsmDef();
 };
@@ -79,7 +76,7 @@ class VarDefListNode {
 
     void translateId();
 
-    bool genSymbolTable(int param_bias);
+    bool genSymbolTable();
 
     bool isTypeEqual(VarDefListNode *rhs);
 

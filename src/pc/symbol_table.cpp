@@ -41,15 +41,19 @@ std::string TypeTableItem::toString() {
     return name + "\t[level: " + to_string(level) + "]";
 }
 
-VarTableItem::VarTableItem(std::string id, int lv, VarDefNode *v_d, int ord)
-        : TableItem(id, lv), var_def(v_d), order(ord) {}
+VarTableItem::VarTableItem(std::string id, int lv, VarDefNode *v_d, int o)
+        : TableItem(id, lv), var_def(v_d), offset(o) {}
 
 bool VarTableItem::operator<(const VarTableItem &rhs) const {
-    return level < rhs.level || level == rhs.level && order < rhs.order;
+    return level < rhs.level || level == rhs.level && offset > rhs.offset;
+}
+
+int VarTableItem::getOffset() {
+    return offset;
 }
 
 std::string VarTableItem::toString() {
-    return name + "\t[level: " + to_string(level) + "\torder: " + to_string(order) + "]";
+    return name + "\t[level: " + to_string(level) + "\toffset: " + to_string(offset) + "]";
 }
 
 FuncTableItem::FuncTableItem(std::string id, int lv, FuncDefNode *f_d)
@@ -176,35 +180,6 @@ bool SymbolTable::existSymbol(std::string id) {
     return false;
 }
 
-std::vector<ConstDefNode *> SymbolTable::getValidConsts(int level) {
-    std::vector<ConstDefNode *> result;
-    result.clear();
-    for (auto it : ConstDeclMap)
-        if (it.second.front().level <= level) result.push_back(it.second.front().const_def);
-    return result;
-}
-std::vector<TypeAttrNode *> SymbolTable::getValidTypes(int level) {
-    std::vector<TypeAttrNode *> result;
-    result.clear();
-    for (auto it : TypeDeclMap)
-        if (it.second.front().level <= level) result.push_back(it.second.front().type_attr);
-    return result;
-}
-std::vector<VarDefNode *> SymbolTable::getValidVars(int level) {
-    std::vector<VarDefNode *> result;
-    result.clear();
-    for (auto it : VarDeclMap)
-        if (it.second.front().level <= level) result.push_back(it.second.front().var_def);
-    return result;
-}
-std::vector<FuncDefNode *> SymbolTable::getValidFuncs(int level) {
-    std::vector<FuncDefNode *> result;
-    result.clear();
-    for (auto it : FuncDeclMap)
-        if (it.second.front().level <= level) result.push_back(it.second.front().func_def);
-    return result;
-}
-
 std::set<VarTableItem> SymbolTable::getVarScope(int level) {
     std::set<VarTableItem> result;
     result.clear();
@@ -236,9 +211,8 @@ TypeAttrNode *SymbolTable::translateTypeId(TypeAttrNode *id) {
 template <class T>
 void SymbolTable::printSymbol(const std::map<std::string, std::list<T>> &decl_map) {
     std::set<T> symbols;
-    for (auto it1 : decl_map)
-        if (!it1.second.empty()) symbols.insert(it1.second.front());
-    // for (auto it2 : it1.second) symbols.insert(it2);
+    for (auto it : decl_map)
+        if (!it.second.empty()) symbols.insert(it.second.front());
     for (auto symbol : symbols) std::cout << symbol.toString() << std::endl;
 }
 

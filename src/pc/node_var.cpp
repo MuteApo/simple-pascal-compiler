@@ -44,7 +44,7 @@ void VarDefNode::translateId() {
     }
 }
 
-bool VarDefNode::genSymbolTable(int ord) {
+int VarDefNode::genSymbolTable(int offset) {
     try {
         type = symbol_table.translateTypeId(type);
         type->translateId();
@@ -52,7 +52,9 @@ bool VarDefNode::genSymbolTable(int ord) {
         throw e;
     }
     if (symbol_table.existSymbol(name)) throw RedefineError(line_no, name);
-    return symbol_table.addSymbol(name, this, ord);
+    int len = type->getLength();
+    symbol_table.addSymbol(name, this, offset - len);
+    return len;
 }
 
 std::string VarDefNode::genAsmDef() {
@@ -137,18 +139,15 @@ void VarDefListNode::translateId() {
         }
 }
 
-bool VarDefListNode::genSymbolTable(int bias) {
-    int lvars_length = 0;
-    int ord          = 0;
+bool VarDefListNode::genSymbolTable() {
+    int offset = 0;
     for (int i = 0; i < var_defs.size(); i++) try {
-            var_defs.at(i)->genSymbolTable(i + bias);
-            lvars_length += var_defs.at(i)->getType()->getLength();
+            offset -= var_defs.at(i)->genSymbolTable(offset);
         } catch (RedefineError &e) {
             error_handler.addMsg(e);
         } catch (UndefineError &e) {
             throw e;
         }
-    ar_lvars_length.push_back(lvars_length);
     return true;
 }
 

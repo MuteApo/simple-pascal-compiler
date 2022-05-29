@@ -28,7 +28,7 @@ std::string ParamDefNode::genVizCode(int run) {
     return result;
 }
 
-bool ParamDefNode::genSymbolTable(int order) {
+int ParamDefNode::genSymbolTable(int offset) {
     try {
         var_def->translateId();
     } catch (UndefineError &e) {
@@ -36,7 +36,8 @@ bool ParamDefNode::genSymbolTable(int order) {
     }
     if (symbol_table.existSymbol(var_def->getName()))
         throw RedefineError(line_no, var_def->getName());
-    return symbol_table.addSymbol(var_def->getName(), var_def, order);
+    symbol_table.addSymbol(var_def->getName(), var_def, offset);
+    return var_def->getType()->getLength();
 }
 
 bool ParamDefNode::testArgType(TypeAttrNode *type) {
@@ -78,9 +79,10 @@ std::string ParamDefListNode::genVizCode(int run) {
     return result;
 }
 
-bool ParamDefListNode::genSymbolTable(int param_bias) {
+bool ParamDefListNode::genSymbolTable() {
+    int offset = 0;
     for (int i = 0; i < param_defs.size(); i++) try {
-            param_defs.at(i)->genSymbolTable(i + param_bias);
+            offset += param_defs.at(i)->genSymbolTable(offset);
         } catch (RedefineError &e) {
             throw e;
         }
@@ -176,17 +178,11 @@ bool FuncDefNode::testArgType(ExprListNode *args) {
 void FuncDefNode::visit() {
     symbol_table.enterScope();
     try {
-        int param_bias = 0;
-        if (retval_type != nullptr) {
-            symbol_table.addSymbol(name, new VarDefNode(name, retval_type), 0);
-            param_bias++;
-        }
         if (param_defs != nullptr) {
-            param_defs->genSymbolTable(param_bias);
-            param_bias += param_defs->getParamList().size();
+            param_defs->genSymbolTable();
         }
         write_segment(name + ":\n", false);
-        if (block != nullptr) block->visit(param_bias);
+        if (block != nullptr) block->visit();
     } catch (RedefineError &e) {
         error_handler.addMsg(e);
     }
