@@ -354,6 +354,8 @@ class ArrayAttrNode {
 
     TypeAttrNode *getElementType();
 
+    TypeAttrListNode *getIndexType();
+
     std::string getTypeString();
 
     int getLength();

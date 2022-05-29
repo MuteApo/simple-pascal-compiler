@@ -300,13 +300,13 @@ std::vector<TypeAttrNode *> TypeAttrListNode::getAttrList() {
 }
 
 int TypeAttrListNode::getSize(int i) {
-    return type_attrs.at(i - 1)->getSize(i);
+    return type_attrs.at(i)->getSize(i + 1);
 }
 
 int TypeAttrListNode::getTotalSize() {
     int result = 1;
     for (int i = 0; i < type_attrs.size(); i++) try {
-            result *= type_attrs.at(i)->getSize(i + 1);
+            result *= type_attrs.at(i)->getSize(i);
         } catch (IndexTypeError &e) {
             error_handler.addMsg(e);
         }
@@ -694,6 +694,10 @@ int ArrayAttrNode::getDim() {
 
 TypeAttrNode *ArrayAttrNode::getElementType() {
     return element_type;
+}
+
+TypeAttrListNode *ArrayAttrNode::getIndexType() {
+    return index_type;
 }
 
 std::string ArrayAttrNode::getTypeString() {
