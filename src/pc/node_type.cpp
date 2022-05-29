@@ -744,7 +744,8 @@ bool ArrayAttrNode::isTypeEqual(ArrayAttrNode *type) {
 
 bool ArrayAttrNode::testIndexType(ExprListNode *indices) {
     try {
-        index_type->testIndexType(indices);
+        // TODO temporary removed
+        // index_type->testIndexType(indices);
     } catch (IndexDimensionError &e) {
         throw e;
     } catch (IndexTypeError &e) {

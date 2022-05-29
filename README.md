@@ -122,10 +122,10 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 | 自定义枚举类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
 | 自定义子界类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
 | 自定义集合类型   |                    |                                                      |                                                   |
-| 自定义数组类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
+| 自定义数组类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
 | 自定义记录类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
 | 自定义指针类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| 数组成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |                                                   |
+| 数组成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
 | 记录成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |                                                   |
 | 指针变量访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |                                                   |
 | 变量定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
@@ -209,27 +209,27 @@ make clean
 
 语法树可视化（PAS_SRC为可选参数）：
 ```bash
-make visual PAS_SRC=test/fib.pas
+make visual PAS_SRC=test/fib_iterative.pas
 ```
 
 编译Pascal源文件并产生目标代码（PAS_SRC为可选参数）：
 ```bash
-make compile PAS_SRC=test/fib.pas
+make compile PAS_SRC=test/fib_iterative.pas
 ```
 
 使用模拟器运行目标代码（PAS_SRC为可选参数）：
 ```bash
-make run PAS_SRC=test/fib.pas
+make run PAS_SRC=test/fib_iterative.pas
 ```
 
 使用模拟器调试目标代码（PAS_SRC为可选参数）：
 ```bash
-make debug PAS_SRC=test/fib.pas
+make debug PAS_SRC=test/fib_iterative.pas
 ```
 
 编译并运行Pascal程序（PAS_SRC为可选参数）：
 ```bash
-make all PAS_SRC=test/fib.pas
+make all PAS_SRC=test/fib_iterative.pas
 ```
 
 test目录下示例代码说明
@@ -237,7 +237,9 @@ test目录下示例代码说明
 | 文件名             | 功能                               |
 | :----------------- | :--------------------------------- |
 | error_detect.pas   | 测试错误检测                       |
-| fib.pas            | 斐波那契数列（递归，暂不支持运行） |
+| fib_iterative.pas  | 斐波那契数列（循环）               |
+| fib_recursive.pas  | 斐波那契数列（递归，暂不支持运行） |
+| mat_mul.pas        | 矩阵乘法                           |
 | multiple_table.pas | 打印乘法表（三种循环）             |
 | nest.pas           | 测试作用域                         |
 | parser_test.pas    | 测试语法分析                       |

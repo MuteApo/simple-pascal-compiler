@@ -1,6 +1,6 @@
 BIN_DIR = bin
 PAS_DIR = test
-PAS_SRC = $(PAS_DIR)/multiple_table.pas
+PAS_SRC = $(PAS_DIR)/mat_mul.pas
 
 .PHONY: pc as util sim build clean compile run debug visual all
 

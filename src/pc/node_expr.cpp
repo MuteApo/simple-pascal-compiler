@@ -256,14 +256,14 @@ std::string ExprNode::genAsmCodeLHS() {
     if (error_handler.getErrorCount() != 0) return "";
     std::string asm_code = "";
     if (node_type == el_id) {
-        asm_code += get_reg_save(t_table[1]);
+        asm_code += get_reg_save(t_table[2]);
         asm_code += id_attr->genAsmCode();
-        asm_code += get_reg_restore(t_table[1]);
+        asm_code += get_reg_restore(t_table[2]);
         if (isMemAccessRoot()) asm_code += genAsmCodeMemAccess(true);
     } else if (node_type == el_var_access) {
-        asm_code += get_reg_save(t_table[1]);
-        asm_code = var_access_attr->genAsmCode();
-        asm_code += get_reg_restore(t_table[1]);
+        asm_code += get_reg_save(t_table[2]);
+        asm_code += var_access_attr->genAsmCode();
+        asm_code += get_reg_restore(t_table[2]);
         if (isMemAccessRoot()) asm_code += genAsmCodeMemAccess(true);
     }
     return asm_code;
@@ -489,52 +489,50 @@ std::string VarAccessNode::genVizCode(int run) {
 std::string VarAccessNode::genAsmCode() {  // TODO
     std::string asm_code = "";
     if (host->getNodeType() == el_id) {
-        switch (type) {
-            case va_array: {
-                // std::vector<ExprNode *> indexes = index_list->getExprList();
-                // uint32_t                dim_size;
-                // asm_code += get_load_imm(0);
-                // asm_code += get_reg_save(t_table[0]);
-                // for (int i = index_list->getDim() - 1; i >= 0; i--) {
-                //     asm_code += indexes.at(i)->genAsmCodeRHS();
-                //     asm_code += get_reg_save(t_table[0]);
-                //     if (i == index_list->getDim() - 1) {
-                //         dim_size = host->getResultType()
-                //                        ->getStructAttr()
-                //                        ->getArrayAttr()
-                //                        ->getElementType()
-                //                        ->getLength();
-                //     } else {
-                //         dim_size *= host->getResultType()
-                //                         ->getStructAttr()
-                //                         ->getArrayAttr()
-                //                         ->getIndexType()
-                //                         ->getSize(i);
-                //     }
-                //     asm_code += get_load_imm(dim_size);
-                //     asm_code += get_reg_xchg(t_table[1], t_table[0]);
-                //     asm_code += get_reg_restore(t_table[2]);
-                //     asm_code += get_integer_calc("mul", false);
-                //     asm_code += get_reg_xchg(t_table[1], t_table[0]);
-                //     asm_code += get_reg_restore(t_table[2]);
-                //     asm_code += get_integer_calc("add", false);
-                //     asm_code += get_reg_save(t_table[0]);
-                // }
-
-                break;
-            }
-            case va_pointer: {
-                // TODO
-                break;
-            }
-            case va_record: {
-                // TODO
-                break;
-            }
-        }
+        asm_code += host->getIdNode()->genAsmCode();
     } else {
-        // asm_code +=
-        // Dynamic array offset is in the top of the stack
+        asm_code += host->getVarAccessNode()->genAsmCode();
+    }
+    switch (type) {
+        case va_array: {
+            std::vector<ExprNode *> indexes = index_list->getExprList();
+            uint32_t                dim_size;
+            for (int i = index_list->getDim() - 1; i >= 0; i--) {
+                if (i == index_list->getDim() - 1) {
+                    dim_size = host->getResultType()
+                                   ->getStructAttr()
+                                   ->getArrayAttr()
+                                   ->getElementType()
+                                   ->getLength();
+                } else {
+                    dim_size *= host->getResultType()
+                                    ->getStructAttr()
+                                    ->getArrayAttr()
+                                    ->getIndexType()
+                                    ->getSize(i + 1);
+                }
+                asm_code += get_reg_save(s_table[1]);
+                asm_code += indexes.at(i)->genAsmCodeRHS();
+                asm_code += get_reg_restore(s_table[1]);
+                asm_code += get_reg_xchg(t_table[2], t_table[0]);
+                asm_code += get_load_imm(dim_size);
+                asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                asm_code += get_integer_calc("mul", false);
+                asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                asm_code += get_reg_xchg(t_table[2], s_table[1]);
+                asm_code += get_integer_calc("add", false);
+                asm_code += get_reg_xchg(s_table[1], t_table[0]);
+            }
+            break;
+        }
+        case va_pointer: {
+            // TODO
+            break;
+        }
+        case va_record: {
+            // TODO
+            break;
+        }
     }
     return asm_code;
 }
@@ -619,15 +617,13 @@ std::string IdNode::genAsmCode() {  // const is replaced using literal node befo
     if (var_node != nullptr) {
         TypeAttrNode *var_type_node = var_node->getType();
         TypeKind      var_type      = var_type_node->getType();
-        if (var_type == basic || var_type == ordinal) {
-            if (var_level == 0) {  // Global Variable
-                asm_code += get_global_addr(name);
-                asm_code += get_reg_xchg(s_table[1], t_table[0]);
-            } else if (var_level == symbol_table.getLevel()) {
-                // TODO: Local Variable
-            } else {
-                // TODO: non-local & non-global variable
-            }
+        if (var_level == 0) {  // Global Variable
+            asm_code += get_global_addr(name);
+            asm_code += get_reg_xchg(s_table[1], t_table[0]);
+        } else if (var_level == symbol_table.getLevel()) {
+            // TODO: Local Variable
+        } else {
+            // TODO: non-local & non-global variable
         }
     }
     return asm_code;
