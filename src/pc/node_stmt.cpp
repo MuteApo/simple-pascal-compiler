@@ -695,23 +695,49 @@ std::string WriteStmtNode::genAsmCode() {
     if (is_writeln) expr_list.push_back(new ExprNode(new LiteralNode('\n')));
     for (int i = 0; i < expr_list.size(); i++) {
         asm_code += expr_list.at(i)->genAsmCodeRHS();
-        TypeKind tk = expr_list.at(i)->getResultType()->getType();
-        if (tk == basic) {
-            BasicTypeKind type = expr_list.at(i)->getResultType()->getBasicAttrNode()->getType();
-            if (type == integer) {
-                asm_code += get_reg_xchg(t_table[1], t_table[0]);
-                asm_code += get_write("int");
-            } else if (type == boolean) {
-                asm_code += get_reg_xchg(t_table[1], t_table[0]);
-                asm_code += get_write("bool");
-            } else if (type == character) {
-                asm_code += get_reg_xchg(t_table[1], t_table[0]);
-                asm_code += get_write("char");
-            } else if (type == real) {
+        switch (expr_list.at(i)->getResultType()->getType()) {
+            case basic:
+                switch (expr_list.at(i)->getResultType()->getBasicAttrNode()->getType()) {
+                    case integer:
+                        asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                        asm_code += get_write("int");
+                        break;
+                    case boolean:
+                        asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                        asm_code += get_write("bool");
+                        break;
+                    case character:
+                        asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                        asm_code += get_write("char");
+                        break;
+                    case real:
+                        // TODO
+                        break;
+                }
+                break;
+            case ordinal:
                 // TODO
-            }
-        } else if (tk == ordinal) {
-            // TODO
+                break;
+            case structured:
+                switch (expr_list.at(i)->getResultType()->getStructAttr()->getType()) {
+                    case struct_array:
+                        // TODO
+                        break;
+                    case struct_record:
+                        // TODO
+                        break;
+                    case struct_string:
+                        asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                        asm_code += get_write("str_ptr");
+                        break;
+                }
+                break;
+            case pointer:
+                // TODO
+                break;
+            case type_identifier:
+                // TODO
+                break;
         }
     }
     return asm_code;

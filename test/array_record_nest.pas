@@ -10,7 +10,7 @@ type
         x: array [0..2] of arr;
     end;
 var
-    a, b, c: array [0..9, 0..9] of int;
+    a, b, c: intarr;
     i, j, k: Integer;
 begin
     for i := 0 to 2 do

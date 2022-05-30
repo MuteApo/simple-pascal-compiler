@@ -310,6 +310,8 @@ class StructAttrNode {
 
     int getUid();
 
+    StructTypeKind getType();
+
     std::string getTypeString();
 
     ArrayAttrNode *getArrayAttr();

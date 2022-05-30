@@ -236,8 +236,14 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                     case character: break;
                 }
                 break;
-            case ordinal: break;     // TODO
-            case structured: break;  // cannot do direct calc
+            case ordinal: break;  // TODO
+            case structured:      // TODO cannot do direct calc
+                switch (getResultType()->getStructAttr()->getType()) {
+                    case struct_array: break;
+                    case struct_record: break;
+                    case struct_string: break;
+                }
+                break;
         }
         // TODO: For ordinal type, check boundary
     } else if (node_type == el_literal) {
@@ -308,8 +314,14 @@ std::string ExprListNode::genVizCode(int run) {
     return result;
 }
 
-LiteralNode::LiteralNode(
-    LiteralType l_t, BasicAttrNode *t, bool bv, int iv, double dv, char cv, std::string sv)
+LiteralNode::LiteralNode(LiteralType    l_t,
+                         BasicAttrNode *t,
+                         bool           bv,
+                         int            iv,
+                         double         dv,
+                         char           cv,
+                         std::string    sv,
+                         std::string    il)
         : uid(++global_uid),
           line_no(yylineno),
           literal_type(l_t),
@@ -318,17 +330,20 @@ LiteralNode::LiteralNode(
           ival(iv),
           dval(dv),
           cval(cv),
-          sval(sv) {}
-LiteralNode::LiteralNode(void) : LiteralNode(lt_pointer, nullptr, 0, 0, 0, 0, "") {}
+          sval(sv),
+          slen(sv.length()),
+          ilabel(il) {}
+LiteralNode::LiteralNode(void) : LiteralNode(lt_pointer, nullptr, 0, 0, 0, 0, "", "") {}
 LiteralNode::LiteralNode(bool b)
-        : LiteralNode(lt_basic, new BasicAttrNode(boolean), b, 0, 0, 0, "") {}
+        : LiteralNode(lt_basic, new BasicAttrNode(boolean), b, 0, 0, 0, "", "") {}
 LiteralNode::LiteralNode(int i)
-        : LiteralNode(lt_basic, new BasicAttrNode(integer), 0, i, 0, 0, "") {}
+        : LiteralNode(lt_basic, new BasicAttrNode(integer), 0, i, 0, 0, "", "") {}
 LiteralNode::LiteralNode(double d)
-        : LiteralNode(lt_basic, new BasicAttrNode(real), 0, 0, d, 0, "") {}
+        : LiteralNode(lt_basic, new BasicAttrNode(real), 0, 0, d, 0, "", "") {}
 LiteralNode::LiteralNode(char c)
-        : LiteralNode(lt_basic, new BasicAttrNode(character), 0, 0, 0, c, "") {}
-LiteralNode::LiteralNode(char *s) : LiteralNode(lt_string, nullptr, 0, 0, 0, 0, s) {}
+        : LiteralNode(lt_basic, new BasicAttrNode(character), 0, 0, 0, c, "", "") {}
+LiteralNode::LiteralNode(std::string s, std::string l)
+        : LiteralNode(lt_string, nullptr, 0, 0, 0, 0, s, l) {}
 LiteralNode::~LiteralNode() {
     if (type != nullptr) delete type;
 }
@@ -385,8 +400,8 @@ TypeAttrNode *LiteralNode::getResultType() {
         case lt_pointer: return new TypeAttrNode(new PtrAttrNode(nullptr));
         case lt_basic: return new TypeAttrNode(type);
         case lt_string:
-            return new TypeAttrNode(new StructAttrNode(
-                new StringAttrNode(new ExprNode(new LiteralNode((int)sval.length())))));
+            return new TypeAttrNode(
+                new StructAttrNode(new StringAttrNode(new ExprNode(new LiteralNode(slen)))));
     }
     return nullptr;
 }
@@ -403,10 +418,10 @@ std::string LiteralNode::genAsmCode() {
                 case real: *(float *)(&val) = dval; break;
                 case character: val = cval; break;
             }
+            asm_code += get_load_imm(val);
             break;
-        case lt_string: break;  // TODO
+        case lt_string: asm_code += get_global_addr(ilabel); break;
     }
-    asm_code += get_load_imm(val);
     return asm_code;
 }
 

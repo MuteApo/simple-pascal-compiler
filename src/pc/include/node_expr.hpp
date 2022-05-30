@@ -112,16 +112,24 @@ class LiteralNode {
     double         dval;
     char           cval;
     std::string    sval;
+    int            slen;
+    std::string    ilabel;  // string literal internal label
 
   public:
-    LiteralNode(
-        LiteralType l_t, BasicAttrNode *t, bool bv, int iv, double dv, char cv, std::string sv);
+    LiteralNode(LiteralType    l_t,
+                BasicAttrNode *t,
+                bool           bv,
+                int            iv,
+                double         dv,
+                char           cv,
+                std::string    sv,
+                std::string    il);
     LiteralNode(void);
     LiteralNode(bool b);
     LiteralNode(int i);
     LiteralNode(double d);
     LiteralNode(char c);
-    LiteralNode(char *s);
+    LiteralNode(std::string s, std::string l);
     ~LiteralNode();
 
     bool operator<(const LiteralNode &rhs) const;

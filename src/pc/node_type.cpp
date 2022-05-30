@@ -601,6 +601,10 @@ int StructAttrNode::getUid() {
     return uid;
 }
 
+StructTypeKind StructAttrNode::getType() {
+    return struct_type;
+}
+
 std::string StructAttrNode::getTypeString() {
     switch (struct_type) {
         case struct_array: return array_attr->getTypeString();

@@ -23,7 +23,7 @@ string   asm_filename      = "";
 FILE    *asm_file          = NULL;
 uint32_t internal_label_id = (uint32_t)((int32_t)-1);
 
-const map<string, string> internal_msg = {
+map<string, string> internal_msg = {
     {"msg_div_zero", "[divide by zero]\\n"},
     {"msg_signed_overflow", "[overflow: on addition or subtraction]\\n"},
     {"msg_unsigned_overflow", "[overflow: on multiplication]\\n"},

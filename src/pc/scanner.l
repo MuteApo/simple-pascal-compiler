@@ -135,7 +135,8 @@ Identifier {Letter}({Letter}|{Digit})*
 }
 
 {CharacterString} {
-    yylval.sval = yytext;
+    yylval.sval = yytext + 1;
+    yylval.sval[strlen(yylval.sval) - 1] = '\0';
     return VAL_STRING;
 }
 
