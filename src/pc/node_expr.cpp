@@ -66,6 +66,9 @@ std::string ExprNode::getExprTypeString(ExprEvalType e) {
         case EK_Shl: return "<<";
         case EK_Shr: return ">>";
         case EK_In: return "In";
+        case EK_Pos: return "+";
+        case EK_Neg: return "-";
+        case EK_None: return "";
     }
     return "";
 }
@@ -213,6 +216,7 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                                 if (op_type == integer)
                                     asm_code += get_integer_calc("cmp_ge", false);
                                 break;
+                            default: break;  // TODO
                         }
                         break;
                     case integer:
@@ -230,6 +234,7 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                             case EK_Xor: asm_code += get_integer_calc("xor", true); break;
                             case EK_Shl: asm_code += get_integer_calc("shl", true); break;
                             case EK_Shr: asm_code += get_integer_calc("shr", true); break;
+                            default: break;  // TODO
                         }
                         break;
                     case real: break;
@@ -244,6 +249,7 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                     case struct_string: break;
                 }
                 break;
+            default: break;  // TODO: pointer node
         }
         // TODO: For ordinal type, check boundary
     } else if (node_type == el_literal) {

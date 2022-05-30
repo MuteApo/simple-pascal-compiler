@@ -10,7 +10,7 @@ type
         x: array [0..2] of arr;
     end;
 var
-    a, b, c: intarr;
+    a, b, c: array [0..9, 0..9] of int;
     i, j, k: Integer;
 begin
     for i := 0 to 2 do
@@ -42,4 +42,5 @@ begin
             write(c[i, j].x[0].a, ' ');
         writeln();
     end;
+    writeln('String Literal Test');
 end.

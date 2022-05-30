@@ -6,7 +6,7 @@
 #include "include/node_stmt.hpp"
 #include "include/node_type.hpp"
 #include "include/node_var.hpp"
-#include "parser.tab.h"
+#include "parser.tab.hpp"
 #include <cstring>
 #include <iostream>
 #include <string>

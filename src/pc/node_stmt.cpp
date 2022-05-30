@@ -193,6 +193,7 @@ std::string StmtNode::genVizCode(int run) {
             result += vizEdge(uid, write_stmt->getUid(), "write", "Write Statement");
             result += write_stmt->genVizCode(run);
             break;
+        default: break;  // TODO
     }
     return result;
 }
@@ -209,6 +210,7 @@ void StmtNode::testExprType() {
         case SK_Func: func_stmt->testExprType(); break;
         case SK_Read: read_stmt->testExprType(); break;
         case SK_Write: write_stmt->testExprType(); break;
+        default: break;  // TODO
     }
 }
 
@@ -225,6 +227,7 @@ std::string StmtNode::genAsmCode() {
         case SK_Func: return func_stmt->genAsmCode();
         case SK_Read: return read_stmt->genAsmCode();
         case SK_Write: return write_stmt->genAsmCode();
+        default: break;  // TODO
     }
     return "";
 }

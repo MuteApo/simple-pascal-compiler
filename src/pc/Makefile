@@ -1,22 +1,22 @@
 YACC := bison
 YACC_FILE := parser
-YACC_SRC := $(YACC_FILE).tab.c
-YACC_INC := $(YACC_FILE).tab.h
+YACC_SRC := $(YACC_FILE).tab.cpp
+YACC_INC := $(YACC_FILE).tab.hpp
 YACC_LOG := $(YACC_FILE).output
 YACC_OUT := $(YACC_SRC) $(YACC_INC) $(YACC_LOG)
 
 LEX := flex
 LEX_FILE := scanner
-LEX_SRC := $(LEX_FILE).yy.c
+LEX_SRC := $(LEX_FILE).yy.cpp
 LEX_OUT := $(LEX_SRC)
 
 CC := g++
-CFLAG := -O2 -std=c++11
+CFLAG := -O1 -std=c++11
 LFLAG :=
 
 INC := $(sort $(wildcard include/*.hpp))
-SRC_CPP := $(sort $(wildcard *.cpp))
-SRC_C := $(sort $(wildcard *.c) $(YACC_SRC) $(LEX_SRC))
+SRC_CPP := $(sort $(wildcard *.cpp) $(YACC_SRC) $(LEX_SRC))
+SRC_C := $(sort $(wildcard *.c))
 
 OBJ := $(patsubst %.cpp,%.o,$(SRC_CPP))
 OBJ += $(patsubst %.c,%.o,$(SRC_C))

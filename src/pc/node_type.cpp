@@ -271,6 +271,9 @@ std::string TypeAttrNode::genAsmDef(std::string var_name) {
             asm_def = get_define_global(var_name, field_size, field_rep);
             break;
         }
+        case type_identifier: {
+            break;
+        }
     }
     return asm_def;
 }

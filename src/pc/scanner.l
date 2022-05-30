@@ -9,7 +9,7 @@
 #include "include/node_stmt.hpp"
 #include "include/node_expr.hpp"
 #include "include/node_block.hpp"
-#include "parser.tab.h"
+#include "parser.tab.hpp"
 #include <cstdio>
 
 extern int yylex(void);
