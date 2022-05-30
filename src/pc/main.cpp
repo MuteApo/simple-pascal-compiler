@@ -65,20 +65,19 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+    // Stack must be aligned to 4 bytes
     if (yyparse()) return 1;
     if (viz_file_0 != NULL) {
         fprintf(viz_file_0, "%s", root->genVizCode(0).c_str());
         fclose(viz_file_0);
     }
     if (root != nullptr) {
-        // Stack must be aligned to 4 bytes
         start_asm(asm_filename, 0x1FFF0);
         root->visit();
-        if (error_handler.getErrorCount() != 0) {
-            remove_asm();
-        } else {
+        if (error_handler.getErrorCount() == 0)
             finish_asm();
-        }
+        else
+            remove_asm();
     }
     if (viz_file_1 != NULL) {
         fprintf(viz_file_1, "%s", root->genVizCode(1).c_str());

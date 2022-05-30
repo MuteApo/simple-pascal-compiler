@@ -14,6 +14,9 @@ extern void yyerror(const char *s);
 extern int yylex();
 extern int yylineno;
 
+extern map<string, string> internal_msg;
+
+int literal_str_cnt = 0;
 int global_uid = 0;
 ProgramNode *root = nullptr;
 
@@ -82,13 +85,9 @@ ProgramNode *root = nullptr;
 
 // Word Symbols (reversed words)
 %token <expr_eval_type> WSYM_AND WSYM_DIV WSYM_IN WSYM_MOD WSYM_NOT WSYM_OR WSYM_SHL WSYM_SHR WSYM_XOR
-%token WSYM_ARRAY WSYM_BEGIN WSYM_CASE WSYM_CONST
-%token WSYM_DO WSYM_DOWNTO WSYM_ELSE WSYM_END
-%token WSYM_FOR WSYM_FUNCTION WSYM_IF
-%token WSYM_NIL WSYM_OF
-%token WSYM_PROCEDURE WSYM_PROGRAM WSYM_RECORD WSYM_REPEAT
-%token WSYM_SET WSYM_THEN WSYM_TO WSYM_TYPE
-%token WSYM_UNTIL WSYM_VAR WSYM_WHILE WSYM_WITH
+%token WSYM_ARRAY WSYM_BEGIN WSYM_CASE WSYM_CONST WSYM_DO WSYM_DOWNTO WSYM_ELSE WSYM_END WSYM_FOR
+%token WSYM_FUNCTION WSYM_IF WSYM_NIL WSYM_OF WSYM_PROCEDURE WSYM_PROGRAM WSYM_RECORD WSYM_REPEAT
+%token WSYM_SET WSYM_THEN WSYM_TO WSYM_TYPE WSYM_UNTIL WSYM_VAR WSYM_WHILE WSYM_WITH
 
 %precedence WSYM_THEN
 %precedence WSYM_ELSE
@@ -561,7 +560,10 @@ Literal: VAL_INT {
 }| WSYM_NIL {
     $$ = new ExprNode(new LiteralNode());
 }| VAL_STRING {
-    $$ = new ExprNode(new LiteralNode($1));
+    std::string sval = $1;
+    std::string ilabel = "literal_string_" + to_string(++literal_str_cnt);
+    internal_msg.insert(make_pair(ilabel, sval));
+    $$ = new ExprNode(new LiteralNode(sval, "_" + ilabel));
 }| VAL_CHAR {
     $$ = new ExprNode(new LiteralNode($1));
 }
