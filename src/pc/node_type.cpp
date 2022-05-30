@@ -1,6 +1,7 @@
 #include "include/node_type.hpp"
 #include "include/asmgen.hpp"
 #include "include/symbol_table.hpp"
+#include <set>
 
 TypeDefNode::TypeDefNode(std::string id, TypeAttrNode *t)
         : uid(++global_uid),
@@ -621,6 +622,10 @@ ArrayAttrNode *StructAttrNode::getArrayAttr() {
     return array_attr;
 }
 
+StringAttrNode *StructAttrNode::getStringAttr() {
+    return string_attr;
+}
+
 RecordAttrNode *StructAttrNode::getRecordAttr() {
     return record_attr;
 }
@@ -769,7 +774,11 @@ int StringAttrNode::getUid() {
 }
 
 int StringAttrNode::getLength() {
-    return stoi(len->getLiteralNode()->toString()) * ALIGN_LEN;
+    return stoi(len->getLiteralNode()->toString());
+}
+
+void StringAttrNode::setLength(int l) {
+    len = new ExprNode(new LiteralNode(l));
 }
 
 std::string StringAttrNode::genVizCode(int run) {

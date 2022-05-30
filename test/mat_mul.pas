@@ -36,6 +36,4 @@ begin
             writeln();
         end;
     end;
-
-
 end.

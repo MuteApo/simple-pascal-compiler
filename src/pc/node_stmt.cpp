@@ -286,9 +286,25 @@ std::string AssignStmtNode::genVizCode(int run) {
 
 std::string AssignStmtNode::genAsmCode() {
     std::string asm_code = "";
-    asm_code += src->genAsmCodeRHS();
-    asm_code += get_reg_xchg(t_table[2], t_table[0]);
-    asm_code += dst->genAsmCodeLHS();
+    if (dst->getResultType()->getType() == structured) {
+        StructAttrNode *dst_struct_attr = dst->getResultType()->getStructAttr();
+        if (dst_struct_attr->getType() == struct_string) {
+            asm_code += src->genAsmCodeRHS();
+            if (src->getNodeType() == el_id)
+                asm_code += get_reg_xchg(t_table[2], s_table[1]);
+            else if (src->getNodeType() == el_literal)
+                asm_code += get_reg_xchg(t_table[2], t_table[0]);
+            asm_code += get_reg_save(t_table[2]);
+            asm_code += dst->genAsmCodeRHS();
+            asm_code += get_reg_restore(t_table[2]);
+            asm_code += get_reg_xchg(t_table[1], s_table[1]);
+            asm_code += get_mem_copy(dst_struct_attr->getStringAttr()->getLength());
+        }
+    } else {
+        asm_code += src->genAsmCodeRHS();
+        asm_code += get_reg_xchg(t_table[2], t_table[0]);
+        asm_code += dst->genAsmCodeLHS();
+    }
     return asm_code;
 }
 
@@ -768,7 +784,10 @@ std::string WriteStmtNode::genAsmCode() {
                         // TODO
                         break;
                     case struct_string:
-                        asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                        if (expr->getNodeType() == el_id)
+                            asm_code += get_reg_xchg(t_table[1], s_table[1]);
+                        else if (expr->getNodeType() == el_literal)
+                            asm_code += get_reg_xchg(t_table[1], t_table[0]);
                         asm_code += get_write("str_ptr");
                         break;
                 }

@@ -133,21 +133,21 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 | 函数定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
 | 算术运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅整型）        |
 | 关系运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅整型）        |
-| 逻辑运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
+| 逻辑运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
 | 复合语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| 赋值语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅全局整型）      |
+| 赋值语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |    :heavy_exclamation_mark:<br>（仅整型、字符串）    |
 | 过程/函数调用    | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
-| goto语句         |        :x:         |                  :heavy_minus_sign:                  |                  :heavy_minus_sign:                  |
+| goto语句         |        :x:         |                         :x:                          |                         :x:                          |
 | if语句           | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
 | case语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
 | while语句        | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
 | repeat语句       | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
 | for语句          | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| with语句         |        :x:         |                  :heavy_minus_sign:                  |                  :heavy_minus_sign:                  |
-| read/write语句   | :heavy_check_mark: |                  :heavy_check_mark:                  | :heavy_exclamation_mark:<br>（仅整型和string字面量） |
+| with语句         |        :x:         |                         :x:                          |                         :x:                          |
+| read/write语句   | :heavy_check_mark: |                  :heavy_check_mark:                  |    :heavy_exclamation_mark:<br>（仅整型、字符串）    |
 | 错误检测/恢复    |                    |               :heavy_exclamation_mark:               |                                                      |
 | 类型检查         | :heavy_minus_sign: | :heavy_exclamation_mark:<br>（仅严格相等、无相容性） |                  :heavy_minus_sign:                  |
-| 全局变量         | :heavy_minus_sign: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅整型）        |
+| 全局变量         | :heavy_minus_sign: |                  :heavy_check_mark:                  | :heavy_check_mark:<br>（仅整型、数组、记录、字符串） |
 | 局部变量         | :heavy_minus_sign: |                  :heavy_check_mark:                  |                                                      |
 | 非全局非局部变量 | :heavy_minus_sign: |                  :heavy_check_mark:                  |                                                      |
 
@@ -169,11 +169,8 @@ sudo apt install build-essential
 # llvm & clang
 sudo apt install llvm clang
 
-# lex
-sudo apt install flex
-
-# yacc
-sudo apt install bison
+# lex & yacc
+sudo apt install flex bison
 
 # visualization tool
 sudo apt install graphviz
@@ -251,3 +248,4 @@ test目录下示例代码说明
 | multiple_table.pas    | 打印乘法表（三种循环）                   |
 | nest.pas              | 测试作用域                               |
 | parser_test.pas       | 测试语法分析                             |
+| string_assign.pas     | 测试字符串赋值                           |

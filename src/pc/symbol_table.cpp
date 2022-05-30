@@ -45,7 +45,9 @@ VarTableItem::VarTableItem(std::string id, int lv, VarDefNode *v_d, int o)
         : TableItem(id, lv), var_def(v_d), offset(o) {}
 
 bool VarTableItem::operator<(const VarTableItem &rhs) const {
-    return level < rhs.level || level == rhs.level && offset > rhs.offset;
+    if (level != rhs.level) return level < rhs.level;
+    if (offset != rhs.offset) return offset < rhs.offset;
+    return name < rhs.name;
 }
 
 int VarTableItem::getOffset() {

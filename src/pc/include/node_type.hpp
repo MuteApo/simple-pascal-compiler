@@ -19,7 +19,6 @@ class PtrAttrNode;
 #include "defs.hpp"
 #include "node_expr.hpp"
 #include "node_var.hpp"
-#include <set>
 #include <string>
 #include <vector>
 
@@ -316,6 +315,8 @@ class StructAttrNode {
 
     ArrayAttrNode *getArrayAttr();
 
+    StringAttrNode *getStringAttr();
+
     RecordAttrNode *getRecordAttr();
 
     int getLength();
@@ -384,6 +385,8 @@ class StringAttrNode {
     int getUid();
 
     int getLength();
+
+    void setLength(int l);
 
     std::string genVizCode(int run);
 

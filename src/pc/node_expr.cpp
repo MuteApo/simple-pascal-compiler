@@ -216,6 +216,13 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                                 if (op_type == integer)
                                     asm_code += get_integer_calc("cmp_ge", false);
                                 break;
+                            case EK_Not:
+                                asm_code += get_load_imm(1);
+                                asm_code += get_reg_xchg(t_table[2], t_table[0]);
+                                asm_code += get_integer_calc("xor", true);
+                                break;
+                            case EK_And: asm_code += get_integer_calc("and", true); break;
+                            case EK_Or: asm_code += get_integer_calc("or", true); break;
                             default: break;  // TODO
                         }
                         break;
