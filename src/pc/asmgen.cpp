@@ -523,18 +523,21 @@ string get_bound_check(uint32_t lower_bound, uint32_t upper_bound) {
     return res;
 }
 
-// BUG: stmts can not be too long
 // calc_expr must store its result in t1, and saved temperary registers itself
 string get_stmt_cond(string calc_expr, string then_stmt, string else_stmt) {
     string res = "";
     res += calc_expr;
-    res += "\tbne t1, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
-    res += else_stmt;
-    res += "\tbeq x0, x0, _lbl_" + to_string(internal_label_id + 2) + "\n";
+    res += "\tbeq t1, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
+    res += "\tla ra, _lbl_" + to_string(internal_label_id + 2) + "\n";
+    res += "\tjalr x0, 0(ra)\n";
     res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
-    res += then_stmt;
+    res += else_stmt;
+    res += "\tla ra, _lbl_" + to_string(internal_label_id + 3) + "\n";
+    res += "\tjalr x0, 0(ra)\n";
     res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
-    internal_label_id += 2;
+    res += then_stmt;
+    res += "_lbl_" + to_string(internal_label_id + 3) + ":\n";
+    internal_label_id += 3;
     return res;
 }
 
@@ -542,20 +545,28 @@ string get_stmt_while(string calc_expr, string stmt) {
     string res = "";
     res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
     res += calc_expr;
-    res += "\tbeq t1, x0, _lbl_" + to_string(internal_label_id + 2) + "\n";
-    res += stmt;
-    res += "\tbeq x0, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
+    res += "\tbne t1, x0, _lbl_" + to_string(internal_label_id + 2) + "\n";
+    res += "\tla ra, _lbl_" + to_string(internal_label_id + 3) + "\n";
+    res += "\tjalr x0, 0(ra)\n";
     res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
-    internal_label_id += 2;
+    res += stmt;
+    res += "\tla ra, _lbl_" + to_string(internal_label_id + 1) + "\n";
+    res += "\tjalr x0, 0(ra)\n";
+    res += "_lbl_" + to_string(internal_label_id + 3) + ":\n";
+    internal_label_id += 3;
     return res;
 }
 
 string get_stmt_until(string calc_expr, string stmt) {
     string res = "";
-    res += "_lbl_" + to_string(++internal_label_id) + ":\n";
+    res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
     res += stmt;
     res += calc_expr;
-    res += "\tbeq t1, x0, _lbl_" + to_string(internal_label_id) + "\n";
+    res += "\tbne t1, x0, _lbl_" + to_string(internal_label_id + 2) + "\n";
+    res += "\tla ra, _lbl_" + to_string(internal_label_id + 1) + "\n";
+    res += "\tjalr x0, 0(ra)\n";
+    res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
+    internal_label_id += 2;
     return res;
 }
 

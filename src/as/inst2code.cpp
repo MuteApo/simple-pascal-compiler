@@ -114,6 +114,16 @@ bool get_reg_id(string reg_str, uint8_t &id) {
     }
 }
 
+bool check_imm_overflow(uint32_t imm_org, int valid_length) {
+    uint32_t mask = 0;
+    for (int i = 0; i < valid_length; i++) mask |= (0x1 << i);
+    uint32_t imm_low          = imm_org & mask;
+    uint32_t highest_bit_mask = 0x1 << (valid_length - 1);
+    bool     sext             = imm_low & highest_bit_mask;
+    if (sext) imm_low |= ~mask;
+    return (imm_low != imm_org);
+}
+
 bool get_r_type_inst(uint32_t &inst,
                      uint8_t   opcode,
                      uint8_t   func3,
@@ -133,9 +143,9 @@ bool get_r_type_inst(uint32_t &inst,
 
 bool get_i_type_inst(
     uint32_t &inst, uint8_t opcode, uint8_t func3, uint8_t rs1, uint8_t rd, uint32_t imm_12bits) {
-    bool is_overflow = !((imm_12bits & ~0xFFF) == 0x0 || (imm_12bits & ~0xFFF) == 0xFFFFF000);
-    if (is_overflow) {
+    if (check_imm_overflow(imm_12bits, 12)) {
         printf("immediate of I-Type instruction is too big\n");
+        printf("0x%08X\n", imm_12bits);
         return false;
     }
     inst = 0;
@@ -149,8 +159,7 @@ bool get_i_type_inst(
 
 bool get_s_type_inst(
     uint32_t &inst, uint8_t opcode, uint8_t func3, uint8_t rs1, uint8_t rs2, uint32_t imm_12bits) {
-    bool is_overflow = !((imm_12bits & ~0xFFF) == 0x0 || (imm_12bits & ~0xFFF) == 0xFFFFF000);
-    if (is_overflow) {
+    if (check_imm_overflow(imm_12bits, 12)) {
         printf("immediate of S-Type instruction is too big\n");
         return false;
     }
@@ -166,8 +175,7 @@ bool get_s_type_inst(
 
 bool get_b_type_inst(
     uint32_t &inst, uint8_t opcode, uint8_t func3, uint8_t rs1, uint8_t rs2, uint32_t imm_13bits) {
-    bool is_overflow = !((imm_13bits & ~0x1FFF) == 0x0 || (imm_13bits & ~0x1FFF) == 0xFFFFE000);
-    if (is_overflow) {
+    if (check_imm_overflow(imm_13bits, 13)) {
         printf("immediate of B-Type instruction is too big\n");
         return false;
     } else if (imm_13bits & 0x1) {
@@ -191,9 +199,7 @@ bool get_b_type_inst(
 }
 
 bool get_u_type_inst(uint32_t &inst, uint8_t opcode, uint8_t rd, uint32_t imm_high_20bits) {
-    bool is_overflow =
-        !((imm_high_20bits & ~0xFFFFF) == 0x0 || (imm_high_20bits & ~0xFFFFF) == 0xFFF00000);
-    if (is_overflow) {
+    if (check_imm_overflow(imm_high_20bits, 20)) {
         printf("immediate of U-Type instruction is too big\n");
         return false;
     }
@@ -205,8 +211,7 @@ bool get_u_type_inst(uint32_t &inst, uint8_t opcode, uint8_t rd, uint32_t imm_hi
 }
 
 bool get_j_type_inst(uint32_t &inst, uint8_t opcode, uint8_t rd, uint32_t imm_21bits) {
-    bool is_overflow = !((imm_21bits & ~0x1FFFFF) == 0x0 || (imm_21bits & ~0x1FFFFF) == 0xFFE00000);
-    if (is_overflow) {
+    if (check_imm_overflow(imm_21bits, 21)) {
         printf("immediate of J-Type instruction is too big\n");
         return false;
     } else if (imm_21bits & 0x1) {
@@ -226,10 +231,9 @@ bool get_j_type_inst(uint32_t &inst, uint8_t opcode, uint8_t rd, uint32_t imm_21
 }
 
 void split_int32(int32_t integer_32bits, uint32_t &low_12bits, uint32_t &high_20bits) {
-    int32_t LoSEXT;
     low_12bits  = integer_32bits & 0xFFF;
-    LoSEXT      = (low_12bits & 0x800) ? (low_12bits | 0xFFFFF000) : low_12bits;
-    high_20bits = ((integer_32bits - LoSEXT) & 0xFFFFF000) >> 12;
+    low_12bits  = (low_12bits & 0x800) ? (low_12bits | 0xFFFFF000) : low_12bits;
+    high_20bits = (int32_t)((integer_32bits - low_12bits) & 0xFFFFF000) >> 12;
 }
 
 bool gen_machine_code(FILE *output, string inst) {
