@@ -1,11 +1,10 @@
 .DS_Store
 .vscode
 bin/*
-src/pc/lex.yy.c
 src/pc/parser.output
-src/pc/parser.tab.c
-src/pc/parser.tab.h
-src/pc/scanner.yy.c
+src/pc/parser.tab.cpp
+src/pc/parser.tab.hpp
+src/pc/scanner.yy.cpp
 src/as/*.o
 src/pc/*.o
 src/sim/*.o

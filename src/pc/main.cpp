@@ -53,11 +53,14 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
             i += 2;
+        } else if (strcmp(argv[i], "-s") == 0) {
+            symbol_table.setIsPrint();
         } else if (strcmp(argv[i], "-h") == 0) {
             printf("Simple Pascal Compiler, with ISO 7185 language standard, version 0.1:\n");
             printf("-i <file> Use <file> as source input (default: stdin)\n");
             printf("-o <file> Place the assembly output into <file> (default: assembly.S)\n");
             printf("-V <file> Generate Graphviz visualization script <file> for parse tree\n");
+            printf("-s Show symbol table\n");
             printf("-h Show this information\n");
             return 0;
         } else {

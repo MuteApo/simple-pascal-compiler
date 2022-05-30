@@ -34,7 +34,7 @@ void proc_ecall(bool &finish) {
         finish = false;
         uint32_t num;
         scanf("%d", &num);
-        memcpy(get_ram_ptr(arg), &num, 4);
+        write_register(11, num);
     }
     return;
 }

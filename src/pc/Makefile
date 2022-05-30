@@ -10,16 +10,9 @@ LEX_FILE := scanner
 LEX_SRC := $(LEX_FILE).yy.cpp
 LEX_OUT := $(LEX_SRC)
 
-CC := g++
-CFLAG := -O1 -std=c++11
-LFLAG :=
-
+SRC := $(sort $(wildcard *.cpp) $(YACC_SRC) $(LEX_SRC))
 INC := $(sort $(wildcard include/*.hpp))
-SRC_CPP := $(sort $(wildcard *.cpp) $(YACC_SRC) $(LEX_SRC))
-SRC_C := $(sort $(wildcard *.c))
-
-OBJ := $(patsubst %.cpp,%.o,$(SRC_CPP))
-OBJ += $(patsubst %.c,%.o,$(SRC_C))
+OBJ := $(patsubst %.cpp,%.o,$(SRC))
 
 TMP := $(OBJ) $(YACC_OUT) $(LEX_OUT)
 
@@ -32,17 +25,14 @@ all: $(EXE)
 $(YACC_SRC): $(YACC_FILE).y $(INC)
 	$(YACC) -o $(YACC_SRC) -d -v $<
 
-$(LEX_SRC): $(LEX_FILE).l $(YACC_INC)
+$(LEX_SRC): $(LEX_FILE).l $(YACC_SRC)
 	$(LEX) -o $(LEX_SRC) $< 
 
-%.o: %.c
-	$(CC) ${CFLAG} -c $<
-
 %.o: %.cpp $(YACC_SRC)
-	$(CC) ${CFLAG} -c $<
+	$(CC) $(CFLAG) -c $<
 
 $(EXE): $(OBJ)
-	$(CC) ${LFLAG} -o $@ $^
+	$(CC) $(LFLAG) -o $@ $^
 
 clean:
 	$(shell rm -f $(TMP) 2>/dev/null)

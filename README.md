@@ -114,42 +114,42 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 
 目前已经实现的语言特性：
 
-|                  |   词法/语法分析    |                       语义分析                       |                   汇编代码生成                    |
-| :--------------- | :----------------: | :--------------------------------------------------: | :-----------------------------------------------: |
-| 自定义常量       | :heavy_check_mark: |                  :heavy_check_mark:                  |                :heavy_check_mark:                 |
-| 自定义实类型     | :heavy_check_mark: |                  :heavy_check_mark:                  |                :heavy_check_mark:                 |
-| 自定义字符串类型 | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| 自定义枚举类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| 自定义子界类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| 自定义集合类型   |                    |                                                      |                                                   |
-| 自定义数组类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
-| 自定义记录类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| 自定义指针类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
-| 数组成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
-| 记录成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
-| 指针变量访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |                                                   |
-| 变量定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
-| 过程定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| 函数定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| 算术运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅整型）       |
-| 关系运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅整型）       |
-| 逻辑运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| 复合语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |                :heavy_check_mark:                 |
-| 赋值语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |    :heavy_exclamation_mark:<br>（仅全局整型）     |
-| 过程/函数调用    | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| goto语句         |        :x:         |                  :heavy_minus_sign:                  |                :heavy_minus_sign:                 |
-| if语句           | :heavy_check_mark: |                  :heavy_check_mark:                  |                :heavy_check_mark:                 |
-| case语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| while语句        | :heavy_check_mark: |                  :heavy_check_mark:                  |                :heavy_check_mark:                 |
-| repeat语句       | :heavy_check_mark: |                  :heavy_check_mark:                  |                :heavy_check_mark:                 |
-| for语句          | :heavy_check_mark: |                  :heavy_check_mark:                  |                :heavy_check_mark:                 |
-| with语句         |        :x:         |                  :heavy_minus_sign:                  |                :heavy_minus_sign:                 |
-| read/write语句   | :heavy_check_mark: |                  :heavy_check_mark:                  | :heavy_exclamation_mark:<br>（仅write、无string） |
-| 错误检测/恢复    |                    |               :heavy_exclamation_mark:               |                                                   |
-| 类型检查         | :heavy_minus_sign: | :heavy_exclamation_mark:<br>（仅严格相等、无相容性） |                :heavy_minus_sign:                 |
-| 全局变量         | :heavy_minus_sign: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅整型）       |
-| 局部变量         | :heavy_minus_sign: |                  :heavy_check_mark:                  |                                                   |
-| 非全局非局部变量 | :heavy_minus_sign: |                  :heavy_check_mark:                  |                                                   |
+|                  |   词法/语法分析    |                       语义分析                       |                     汇编代码生成                     |
+| :--------------- | :----------------: | :--------------------------------------------------: | :--------------------------------------------------: |
+| 自定义常量       | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
+| 自定义实类型     | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
+| 自定义字符串类型 | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
+| 自定义枚举类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
+| 自定义子界类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
+| 自定义集合类型   |                    |                                                      |                                                      |
+| 自定义数组类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
+| 自定义记录类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
+| 自定义指针类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
+| 数组成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
+| 记录成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
+| 指针变量访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |                                                      |
+| 变量定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
+| 过程定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
+| 函数定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
+| 算术运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅整型）        |
+| 关系运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅整型）        |
+| 逻辑运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
+| 复合语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
+| 赋值语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅全局整型）      |
+| 过程/函数调用    | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
+| goto语句         |        :x:         |                  :heavy_minus_sign:                  |                  :heavy_minus_sign:                  |
+| if语句           | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
+| case语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
+| while语句        | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
+| repeat语句       | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
+| for语句          | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
+| with语句         |        :x:         |                  :heavy_minus_sign:                  |                  :heavy_minus_sign:                  |
+| read/write语句   | :heavy_check_mark: |                  :heavy_check_mark:                  | :heavy_exclamation_mark:<br>（仅整型和string字面量） |
+| 错误检测/恢复    |                    |               :heavy_exclamation_mark:               |                                                      |
+| 类型检查         | :heavy_minus_sign: | :heavy_exclamation_mark:<br>（仅严格相等、无相容性） |                  :heavy_minus_sign:                  |
+| 全局变量         | :heavy_minus_sign: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅整型）        |
+| 局部变量         | :heavy_minus_sign: |                  :heavy_check_mark:                  |                                                      |
+| 非全局非局部变量 | :heavy_minus_sign: |                  :heavy_check_mark:                  |                                                      |
 
 ### 四、开发环境
 
@@ -165,6 +165,9 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 ```bash
 # gnu tool-chain
 sudo apt install build-essential
+
+# llvm & clang
+sudo apt install llvm clang
 
 # lex
 sudo apt install flex
@@ -201,6 +204,10 @@ make sim
 ```bash
 make build
 ```
+或
+```bash
+make all
+```
 
 清理构建产物：
 ```bash
@@ -209,38 +216,38 @@ make clean
 
 语法树可视化（PAS_SRC为可选参数）：
 ```bash
-make visual PAS_SRC=test/fib_iterative.pas
+make visual PAS_SRC=fib_iterative.pas
 ```
 
-编译Pascal源文件并产生目标代码（PAS_SRC为可选参数）：
+编译Pascal代码并产生目标代码（PAS_SRC为可选参数）：
 ```bash
-make compile PAS_SRC=test/fib_iterative.pas
+make compile PAS_SRC=fib_iterative.pas
+```
+
+编译Pascal代码输出诊断信息并产生目标代码（PAS_SRC为可选参数）：
+```bash
+make diagnose PAS_SRC=fib_iterative.pas
 ```
 
 使用模拟器运行目标代码（PAS_SRC为可选参数）：
 ```bash
-make run PAS_SRC=test/fib_iterative.pas
+make run PAS_SRC=fib_iterative.pas
 ```
 
 使用模拟器调试目标代码（PAS_SRC为可选参数）：
 ```bash
-make debug PAS_SRC=test/fib_iterative.pas
-```
-
-编译并运行Pascal程序（PAS_SRC为可选参数）：
-```bash
-make all PAS_SRC=test/fib_iterative.pas
+make debug PAS_SRC=fib_iterative.pas
 ```
 
 test目录下示例代码说明
 
-| 文件名                | 功能                                 |
-| :-------------------- | :----------------------------------- |
-| array_record_nest.pas | 测试数组记录嵌套寻址（暂不支持运行） |
-| error_detect.pas      | 测试错误检测                         |
-| fib_iterative.pas     | 斐波那契数列（循环）                 |
-| fib_recursive.pas     | 斐波那契数列（递归，暂不支持运行）   |
-| mat_mul.pas           | 矩阵乘法（包裹integer类型）          |
-| multiple_table.pas    | 打印乘法表（三种循环）               |
-| nest.pas              | 测试作用域                           |
-| parser_test.pas       | 测试语法分析                         |
+| 文件名                | 功能                                     |
+| :-------------------- | :--------------------------------------- |
+| array_record_nest.pas | 测试数组记录嵌套寻址                     |
+| error_detect.pas      | 测试错误检测                             |
+| fib_iterative.pas     | 斐波那契数列（循环）                     |
+| fib_recursive.pas     | 斐波那契数列（递归，暂不支持运行）       |
+| mat_mul.pas           | 矩阵乘法（TestCase2 :heavy_check_mark:） |
+| multiple_table.pas    | 打印乘法表（三种循环）                   |
+| nest.pas              | 测试作用域                               |
+| parser_test.pas       | 测试语法分析                             |

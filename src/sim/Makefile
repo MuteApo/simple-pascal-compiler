@@ -1,16 +1,16 @@
-.PHONY: all clean
+CFLAG += -Wall
 
-CC = g++
-CFLAG = -std=c++11 -Wall
-EXE = ../../bin/rvsim
-OBJ = ram.o ecall.o register.o code2inst.o cpu.o main.o 
+EXE := ../../bin/rvsim
+OBJ := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+
+.PHONY: all clean
 
 all: $(EXE)
 
 $(EXE): $(OBJ)
-	$(CC) -o $@ $^
+	$(CC) $(LFLAG) -o $@ $^
 
-%o: %cpp
+%.o: %.cpp
 	$(CC) $(CFLAG) -c $<
 
 clean:

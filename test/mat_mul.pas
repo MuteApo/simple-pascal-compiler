@@ -1,39 +1,41 @@
 program test;
 {Comment A}
-type
-    int = record
-        dumb: array [0..9] of integer;
-        x: integer;
-    end;
 var
-    a, b, c: array [0..9, 0..9] of int;
-    i, j, k: Integer;
+    a, b, c: array [0..30, 0..30] of integer;
+    am, an, bm, bn: integer;
+    i, j, k, x, l: Integer;
 begin
-    for i := 0 to 2 do
-        for j := 0 to 2 do begin
-            a[i, j].x := i + j;
-            b[i, j].x := -i - j;
-        end;
-    
-    for i := 0 to 2 do begin
-        for j := 0 to 2 do 
-            write(a[i, j].x, ' ');
-        writeln();
-    end;
-    writeln('*');
-    for i := 0 to 2 do begin
-        for j := 0 to 2 do 
-            write(b[i, j].x, ' ');
-        writeln();
-    end;
-    writeln('=');
+    read(am, an);
+    for i := 0 to am - 1 do
+        for j := 0 to an - 1 do 
+            read(a[i, j]);
+    read(bm, bn);
+    for i := 0 to bm - 1 do
+        for j := 0 to bn - 1 do 
+            read(b[i, j]);
 
-    for i := 0 to 2 do begin
-        for j := 0 to 2 do begin
-            for k := 0 to 2 do
-                c[i, j].x := c[i, j].x + a[i, k].x * b[k, j].x;
-            write(c[i, j].x, ' ');
+    if an <> bm
+    then writeln('Incompatible Dimensions')
+    else begin
+        for i := 0 to am - 1 do begin
+            for j := 0 to bn - 1 do begin
+                for k := 0 to an - 1 do
+                    c[i, j] := c[i, j] + a[i, k] * b[k, j];
+
+                x := c[i, j];
+                l := 10;
+                if x < 0 then l := l - 1;
+                while x <> 0 do begin
+                    l := l - 1;
+                    x := x div 10;
+                end;
+                for x := 1 to l do write(' ');
+                
+                write(c[i, j]);
+            end;
+            writeln();
         end;
-        writeln();
     end;
+
+
 end.

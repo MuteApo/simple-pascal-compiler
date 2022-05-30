@@ -669,7 +669,47 @@ std::string ReadStmtNode::genVizCode(int run) {
 }
 
 std::string ReadStmtNode::genAsmCode() {
-    return "";  // TODO
+    std::string asm_code = "";
+    for (ExprNode *expr : exprs->getExprList()) {
+        switch (expr->getResultType()->getType()) {
+            case basic:
+                switch (expr->getResultType()->getBasicAttrNode()->getType()) {
+                    case integer: asm_code += get_read("int"); break;
+                    case boolean: asm_code += get_read("bool"); break;
+                    case character: asm_code += get_read("char"); break;
+                    case real:
+                        // TODO
+                        break;
+                }
+                break;
+            case ordinal:
+                // TODO
+                break;
+            case structured:
+                switch (expr->getResultType()->getStructAttr()->getType()) {
+                    case struct_array:
+                        // TODO
+                        break;
+                    case struct_record:
+                        // TODO
+                        break;
+                    case struct_string:
+                        // asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                        // asm_code += get_write("str_ptr");
+                        break;
+                }
+                break;
+            case pointer:
+                // TODO
+                break;
+            case type_identifier:
+                // TODO
+                break;
+        }
+        asm_code += get_reg_xchg(t_table[2], t_table[0]);
+        asm_code += expr->genAsmCodeLHS();
+    }
+    return asm_code;
 }
 
 void ReadStmtNode::testExprType() {
@@ -693,14 +733,12 @@ std::string WriteStmtNode::genVizCode(int run) {
 }
 
 std::string WriteStmtNode::genAsmCode() {
-    std::string             asm_code  = "";
-    std::vector<ExprNode *> expr_list = exprs->getExprList();
-    if (is_writeln) expr_list.push_back(new ExprNode(new LiteralNode('\n')));
-    for (int i = 0; i < expr_list.size(); i++) {
-        asm_code += expr_list.at(i)->genAsmCodeRHS();
-        switch (expr_list.at(i)->getResultType()->getType()) {
+    std::string asm_code = "";
+    for (ExprNode *expr : exprs->getExprList()) {
+        asm_code += expr->genAsmCodeRHS();
+        switch (expr->getResultType()->getType()) {
             case basic:
-                switch (expr_list.at(i)->getResultType()->getBasicAttrNode()->getType()) {
+                switch (expr->getResultType()->getBasicAttrNode()->getType()) {
                     case integer:
                         asm_code += get_reg_xchg(t_table[1], t_table[0]);
                         asm_code += get_write("int");
@@ -722,7 +760,7 @@ std::string WriteStmtNode::genAsmCode() {
                 // TODO
                 break;
             case structured:
-                switch (expr_list.at(i)->getResultType()->getStructAttr()->getType()) {
+                switch (expr->getResultType()->getStructAttr()->getType()) {
                     case struct_array:
                         // TODO
                         break;
@@ -742,6 +780,11 @@ std::string WriteStmtNode::genAsmCode() {
                 // TODO
                 break;
         }
+    }
+    if (is_writeln) {
+        asm_code += get_load_imm('\n');
+        asm_code += get_reg_xchg(t_table[1], t_table[0]);
+        asm_code += get_write("char");
     }
     return asm_code;
 }

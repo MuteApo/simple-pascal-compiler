@@ -67,10 +67,14 @@ std::string FuncTableItem::toString() {
     return name + "\t[level: " + to_string(level) + "]";
 }
 
-SymbolTable::SymbolTable() : currLevel(-1) {}
+SymbolTable::SymbolTable() : isPrint(false), currLevel(-1) {}
 
 int SymbolTable::getLevel() {
     return currLevel;
+}
+
+void SymbolTable::setIsPrint() {
+    isPrint = true;
 }
 
 bool SymbolTable::addSymbol(std::string id, ConstDefNode *c_d) {
@@ -229,14 +233,18 @@ void SymbolTable::printTable() {
 }
 
 void SymbolTable::enterScope() {
-    std::cout << "\nBefore Enter Scope, ";
-    printTable();
+    if (isPrint) {
+        std::cout << "\nBefore Enter Scope, ";
+        printTable();
+    }
     currLevel++;
 }
 
 void SymbolTable::leaveScope() {
-    std::cout << "\nBefore Leave Scope, ";
-    printTable();
+    if (isPrint) {
+        std::cout << "\nBefore Leave Scope, ";
+        printTable();
+    }
     popConstSymbol();
     popTypeSymbol();
     popVarSymbol();

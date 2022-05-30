@@ -72,7 +72,8 @@ class FuncTableItem : public TableItem {
 
 class SymbolTable {
   private:
-    int currLevel;
+    bool isPrint;
+    int  currLevel;
 
     std::map<std::string, std::list<ConstTableItem>> ConstDeclMap;
     std::map<std::string, std::list<TypeTableItem>>  TypeDeclMap;
@@ -88,6 +89,8 @@ class SymbolTable {
     SymbolTable();
 
     int getLevel();
+
+    void setIsPrint();
 
     bool addSymbol(std::string id, ConstDefNode *c_d);
     bool addSymbol(std::string id, TypeAttrNode *t_a);
