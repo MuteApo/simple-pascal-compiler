@@ -178,8 +178,9 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
         asm_code += get_reg_save(t_table[0]);
         if (op2 != nullptr) {
             asm_code += op2->genAsmCodeRHS();
-            asm_code += get_reg_xchg(t_table[2], t_table[0]);
-        }
+        } else
+            asm_code += get_load_imm(0);
+        asm_code += get_reg_xchg(t_table[2], t_table[0]);
         asm_code += get_reg_restore(t_table[1]);
         BasicTypeKind op_type = op1->getResultType()->getBasicAttrNode()->getType();
         // TODO: Basic Type for Ordinal
@@ -216,6 +217,8 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                         break;
                     case integer:
                         switch (eval_type) {
+                            case EK_Pos: asm_code += get_integer_calc("add", false); break;
+                            case EK_Neg: asm_code += get_integer_calc("neg", false); break;
                             case EK_Add: asm_code += get_integer_calc("add", false); break;
                             case EK_Sub: asm_code += get_integer_calc("sub", false); break;
                             case EK_Mul: asm_code += get_integer_calc("mul", false); break;
@@ -495,21 +498,14 @@ std::string VarAccessNode::genAsmCode() {  // TODO
     }
     switch (type) {
         case va_array: {
+            ArrayAttrNode *array_attr = host->getResultType()->getStructAttr()->getArrayAttr();
             std::vector<ExprNode *> indexes = index_list->getExprList();
             uint32_t                dim_size;
             for (int i = index_list->getDim() - 1; i >= 0; i--) {
                 if (i == index_list->getDim() - 1) {
-                    dim_size = host->getResultType()
-                                   ->getStructAttr()
-                                   ->getArrayAttr()
-                                   ->getElementType()
-                                   ->getLength();
+                    dim_size = array_attr->getElementType()->getLength();
                 } else {
-                    dim_size *= host->getResultType()
-                                    ->getStructAttr()
-                                    ->getArrayAttr()
-                                    ->getIndexType()
-                                    ->getSize(i + 1);
+                    dim_size *= array_attr->getIndexType()->getSize(i + 1);
                 }
                 asm_code += get_reg_save(s_table[1]);
                 asm_code += indexes.at(i)->genAsmCodeRHS();
@@ -517,10 +513,10 @@ std::string VarAccessNode::genAsmCode() {  // TODO
                 asm_code += get_reg_xchg(t_table[2], t_table[0]);
                 asm_code += get_load_imm(dim_size);
                 asm_code += get_reg_xchg(t_table[1], t_table[0]);
-                asm_code += get_integer_calc("mul", false);
+                asm_code += get_integer_calc("mul", true);
                 asm_code += get_reg_xchg(t_table[1], t_table[0]);
                 asm_code += get_reg_xchg(t_table[2], s_table[1]);
-                asm_code += get_integer_calc("add", false);
+                asm_code += get_integer_calc("add", true);
                 asm_code += get_reg_xchg(s_table[1], t_table[0]);
             }
             break;
@@ -530,7 +526,13 @@ std::string VarAccessNode::genAsmCode() {  // TODO
             break;
         }
         case va_record: {
-            // TODO
+            RecordAttrNode *record_attr = host->getResultType()->getStructAttr()->getRecordAttr();
+            int             offset      = record_attr->getOffset(member->getIdNode()->getName());
+            asm_code += get_load_imm(offset);
+            asm_code += get_reg_xchg(t_table[1], t_table[0]);
+            asm_code += get_reg_xchg(t_table[2], s_table[1]);
+            asm_code += get_integer_calc("add", true);
+            asm_code += get_reg_xchg(s_table[1], t_table[0]);
             break;
         }
     }

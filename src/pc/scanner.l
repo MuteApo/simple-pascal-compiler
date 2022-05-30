@@ -139,7 +139,7 @@ Identifier {Letter}({Letter}|{Digit})*
     return VAL_STRING;
 }
 
-[\t\n\f]|" "|{Comment} {}
+[\t\r\n\f]|" "|{Comment} {}
 
 . {
     fprintf(stderr, "Illegal charcter '%c' (0x%x) at line %d\n",

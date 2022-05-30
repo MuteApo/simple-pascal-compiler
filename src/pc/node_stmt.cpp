@@ -226,6 +226,7 @@ std::string StmtNode::genAsmCode() {
         case SK_Read: return read_stmt->genAsmCode();
         case SK_Write: return write_stmt->genAsmCode();
     }
+    return "";
 }
 
 StmtListNode::StmtListNode() : uid(++global_uid), line_no(yylineno) {

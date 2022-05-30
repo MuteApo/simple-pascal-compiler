@@ -124,9 +124,9 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 | 自定义集合类型   |                    |                                                      |                                                   |
 | 自定义数组类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
 | 自定义记录类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
-| 自定义指针类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
+| 自定义指针类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
 | 数组成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
-| 记录成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |                                                   |
+| 记录成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
 | 指针变量访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |                                                   |
 | 变量定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |      :heavy_exclamation_mark:<br>（仅全局）       |
 | 过程定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                   |
@@ -234,12 +234,13 @@ make all PAS_SRC=test/fib_iterative.pas
 
 test目录下示例代码说明
 
-| 文件名             | 功能                               |
-| :----------------- | :--------------------------------- |
-| error_detect.pas   | 测试错误检测                       |
-| fib_iterative.pas  | 斐波那契数列（循环）               |
-| fib_recursive.pas  | 斐波那契数列（递归，暂不支持运行） |
-| mat_mul.pas        | 矩阵乘法                           |
-| multiple_table.pas | 打印乘法表（三种循环）             |
-| nest.pas           | 测试作用域                         |
-| parser_test.pas    | 测试语法分析                       |
+| 文件名                | 功能                                 |
+| :-------------------- | :----------------------------------- |
+| array_record_nest.pas | 测试数组记录嵌套寻址（暂不支持运行） |
+| error_detect.pas      | 测试错误检测                         |
+| fib_iterative.pas     | 斐波那契数列（循环）                 |
+| fib_recursive.pas     | 斐波那契数列（递归，暂不支持运行）   |
+| mat_mul.pas           | 矩阵乘法（包裹integer类型）          |
+| multiple_table.pas    | 打印乘法表（三种循环）               |
+| nest.pas              | 测试作用域                           |
+| parser_test.pas       | 测试语法分析                         |

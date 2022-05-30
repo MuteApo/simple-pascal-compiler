@@ -11,6 +11,8 @@ enum VarAccessType { va_pointer = 401, va_array, va_record };
 enum ExprEvalType {
     EK_None = 501,
     /* arithmetic */
+    EK_Pos,   // +a
+    EK_Neg,   //-a
     EK_Add,   // a+b
     EK_Sub,   // a-b
     EK_Mul,   // a*b

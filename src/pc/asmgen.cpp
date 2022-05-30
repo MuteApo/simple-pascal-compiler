@@ -285,7 +285,7 @@ string get_integer_calc(string operation, bool is_unsigned) {
             res += "\taddi sp, sp, 4\n";
             res += "\tbeq t5, x0, _lbl_" + to_string(++internal_label_id) + "\n";
             res += "\tsub t0, x0, t0\n";
-            res += "\tblt t0, x0, _lbl_" + to_string(internal_label_id) + "\n";
+            res += "\tbge x0, t0, _lbl_" + to_string(internal_label_id) + "\n";
             res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
             res += "\tla a1, _msg_signed_overflow\n";
             res += "\tecall\n";
@@ -439,6 +439,7 @@ string get_param_copy(uint32_t length) {
     res += "\tsub sp, sp, t1\n";
     res += "\tadd t1, sp, x0\n";
     res += get_mem_copy(length);
+    return res;
 }
 
 string

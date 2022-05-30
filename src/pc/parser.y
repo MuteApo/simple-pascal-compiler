@@ -543,9 +543,9 @@ SignedLiteral: Literal {
 }
 
 Sign: SYM_ADD {
-    $$ = EK_Add;
+    $$ = EK_Pos;
 }| SYM_SUB {
-    $$ = EK_Sub;
+    $$ = EK_Neg;
 }
 
 Literal: VAL_INT {
