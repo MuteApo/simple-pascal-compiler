@@ -99,7 +99,7 @@ class SymbolTable {
 
     ConstDefNode *findConstSymbol(std::string id, int *level = nullptr);
     TypeAttrNode *findTypeSymbol(std::string id, int *level = nullptr);
-    VarDefNode   *findVarSymbol(std::string id, int *level = nullptr);
+    VarDefNode   *findVarSymbol(std::string id, int *level = nullptr, int *offset = nullptr);
     FuncDefNode  *findFuncSymbol(std::string id, int *level = nullptr);
 
     bool existSymbol(std::string id);

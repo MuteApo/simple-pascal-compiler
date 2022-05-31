@@ -210,7 +210,7 @@ void StmtNode::testExprType() {
         case SK_Func: func_stmt->testExprType(); break;
         case SK_Read: read_stmt->testExprType(); break;
         case SK_Write: write_stmt->testExprType(); break;
-        default: break;  // TODO
+        default: break;  // TODO: more built-in func
     }
 }
 
@@ -227,7 +227,7 @@ std::string StmtNode::genAsmCode() {
         case SK_Func: return func_stmt->genAsmCode();
         case SK_Read: return read_stmt->genAsmCode();
         case SK_Write: return write_stmt->genAsmCode();
-        default: break;  // TODO
+        default: break;  // TODO: more built-in func
     }
     return "";
 }
@@ -660,7 +660,10 @@ std::string FuncStmtNode::genVizCode(int run) {
 }
 
 std::string FuncStmtNode::genAsmCode() {
-    return "";  // TODO
+    std::string asm_code = "";
+    asm_code += get_func_call(func->getName(), "", false, 0, 0);  // TODO
+    asm_code += get_func_cleanup(0, false);
+    return asm_code;
 }
 
 void FuncStmtNode::testExprType() {

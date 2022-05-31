@@ -643,7 +643,8 @@ TypeAttrNode *IdNode::getResultType() {
 std::string IdNode::genAsmCode() {  // const is replaced using literal node before
     std::string asm_code = "";
     int         var_level;
-    VarDefNode *var_node = symbol_table.findVarSymbol(name, &var_level);
+    int         local_var_offset;
+    VarDefNode *var_node = symbol_table.findVarSymbol(name, &var_level, &local_var_offset);
     if (var_node != nullptr) {
         TypeAttrNode *var_type_node = var_node->getType();
         TypeKind      var_type      = var_type_node->getType();
@@ -651,7 +652,8 @@ std::string IdNode::genAsmCode() {  // const is replaced using literal node befo
             asm_code += get_global_addr(name);
             asm_code += get_reg_xchg(s_table[1], t_table[0]);
         } else if (var_level == symbol_table.getLevel()) {
-            // TODO: Local Variable
+            asm_code += get_local_addr(local_var_offset);
+            asm_code += get_reg_xchg(s_table[1], t_table[0]);
         } else {
             // TODO: non-local & non-global variable
         }
@@ -689,6 +691,10 @@ int FuncNode::getUid() {
     return uid;
 }
 
+std::string FuncNode::getName() {
+    return func_name;
+}
+
 std::string FuncNode::getNodeInfo() {
     return "FuncNode\n" + func_name;
 }
@@ -706,7 +712,7 @@ bool FuncNode::testArgType() {
     FuncDefNode *func = symbol_table.findFuncSymbol(func_name);
     if (func == nullptr) throw UndefineError(line_no, func_name);
     try {
-        func->testArgType(arg_list);
+        if (arg_list != nullptr) func->testArgType(arg_list);
     } catch (ArgumentNumberError &e) {
         throw e;
     } catch (ArgumentTypeError &e) {

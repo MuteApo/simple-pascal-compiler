@@ -181,8 +181,7 @@ void FuncDefNode::visit() {
         if (param_defs != nullptr) {
             param_defs->genSymbolTable();
         }
-        write_segment(name + ":\n", false);
-        if (block != nullptr) block->visit();
+        block->visit(name);
     } catch (RedefineError &e) {
         error_handler.addMsg(e);
     }

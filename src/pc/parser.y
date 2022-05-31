@@ -147,16 +147,14 @@ ProgramNode *root = nullptr;
 
 Program:  WSYM_PROGRAM Id SYM_SEMI Block SYM_DOT {
     $$ = new ProgramNode($2->getIdNode()->getName(), $4);
-    $4->setGlobal();
     root = $$;
 }| WSYM_PROGRAM Id SYM_LPAR IdList SYM_RPAR SYM_SEMI Block SYM_DOT {
     $$ = new ProgramNode($2->getIdNode()->getName(), $4, $7);
-    $7->setGlobal();
     root = $$;
 }
 
 Block: ConstDefPart TypeDefPart VarDeclPart ProcAndFuncDeclPart CompoundStmt {
-    $$ = new BlockNode(false, $1, $2, $3, $4, $5);
+    $$ = new BlockNode($1, $2, $3, $4, $5);
 }
 
 Id: VAL_ID {

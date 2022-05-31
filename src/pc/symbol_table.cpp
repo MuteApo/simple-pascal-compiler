@@ -34,7 +34,7 @@ TypeTableItem::TypeTableItem(std::string id, int lv, TypeAttrNode *t_a)
         : TableItem(id, lv), type_attr(t_a) {}
 
 bool TypeTableItem::operator<(const TypeTableItem &rhs) const {
-    return level < rhs.level || level == rhs.level && name < rhs.name;
+    return (level < rhs.level) || (level == rhs.level && name < rhs.name);
 }
 
 std::string TypeTableItem::toString() {
@@ -62,7 +62,7 @@ FuncTableItem::FuncTableItem(std::string id, int lv, FuncDefNode *f_d)
         : TableItem(id, lv), func_def(f_d) {}
 
 bool FuncTableItem::operator<(const FuncTableItem &rhs) const {
-    return level < rhs.level || level == rhs.level && name < rhs.name;
+    return (level < rhs.level) || (level == rhs.level && name < rhs.name);
 }
 
 std::string FuncTableItem::toString() {
@@ -157,10 +157,11 @@ TypeAttrNode *SymbolTable::findTypeSymbol(std::string id, int *level) {
     if (level != nullptr) *level = item->second.front().level;
     return item->second.front().type_attr;
 }
-VarDefNode *SymbolTable::findVarSymbol(std::string id, int *level) {
+VarDefNode *SymbolTable::findVarSymbol(std::string id, int *level, int *offset) {
     auto item = VarDeclMap.find(id);
     if (item == VarDeclMap.end()) return nullptr;
     if (level != nullptr) *level = item->second.front().level;
+    if (offset != nullptr) *offset = item->second.front().getOffset();
     return item->second.front().var_def;
 }
 FuncDefNode *SymbolTable::findFuncSymbol(std::string id, int *level) {

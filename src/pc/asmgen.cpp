@@ -400,36 +400,38 @@ string get_mem_copy(uint32_t length) {
 
 /** Function Defination and Call **/
 
-string get_func_def(string name, uint32_t local_var_len, string func_body) {
+string get_func_framework(bool is_head, string name, uint32_t local_var_len) {
     string res = "";
-    res += name + ":\n";
-    res += "\tsub a0, a1, a0\n";
-    res += "\taddi a0, a0, 1\n";
-    res += "\taddi sp, sp, -4\n";
-    res += "\tsw a0, 0(sp)\n";  // Save indirect access link onto stack
-    res += "\taddi sp, sp, -4\n";
-    res += "\tsw ra, 0(sp)\n";  // Save return address
-    res += "\taddi sp, sp, -44\n";
-    for (int i = 1; i <= 11; i++) {
-        res += "\tsw x" + to_string(s_table[i]) + ", " + to_string((i - 1) * 4) + "(sp)\n";
+    if (is_head) {
+        res += name + ":\n";
+        res += "\tsub a0, a1, a0\n";
+        res += "\taddi a0, a0, 1\n";
+        res += "\taddi sp, sp, -4\n";
+        res += "\tsw a0, 0(sp)\n";  // Save indirect access link onto stack
+        res += "\taddi sp, sp, -4\n";
+        res += "\tsw ra, 0(sp)\n";  // Save return address
+        res += "\taddi sp, sp, -44\n";
+        for (int i = 1; i <= 11; i++) {
+            res += "\tsw x" + to_string(s_table[i]) + ", " + to_string((i - 1) * 4) + "(sp)\n";
+        }
+        res += "\taddi sp, sp, -4\n";
+        res += "\tsw fp, 0(sp)\n";    // Save control link
+        res += "\tadd fp, sp, x0\n";  // fp = sp (new fp)
+        res += "\tli t0, " + to_string(local_var_len) + "\n";
+        res += "\tsub sp, sp, t0\n";
+    } else {
+        res += "\tadd sp, fp, x0\n";  // Cleanup local variables
+        res += "\tlw fp, 0(sp)\n";
+        res += "\taddi sp, sp, 4\n";
+        for (int i = 1; i <= 11; i++) {
+            res += "\tlw x" + to_string(s_table[i]) + ", " + to_string((i - 1) * 4) + "(sp)\n";
+        }
+        res += "\taddi sp, sp, 44\n";
+        res += "\tlw ra, 0(sp)\n";
+        res += "\taddi sp, sp, 4\n";  // Cleanup return address
+        res += "\taddi sp, sp, 4\n";  // Cleanup access link
+        res += "\tjalr x0, 0(ra)\n";
     }
-    res += "\taddi sp, sp, -4\n";
-    res += "\tsw fp, 0(sp)\n";    // Save control link
-    res += "\tadd fp, sp, x0\n";  // fp = sp (new fp)
-    res += "\tli t0, " + to_string(local_var_len) + "\n";
-    res += "\tsub sp, sp, t0\n";
-    res += func_body;
-    res += "\tadd sp, fp, x0\n";  // Cleanup local variables
-    res += "\tlw fp, 0(sp)\n";
-    res += "\taddi sp, sp, 4\n";
-    for (int i = 1; i <= 11; i++) {
-        res += "\tlw x" + to_string(s_table[i]) + ", " + to_string((i - 1) * 4) + "(sp)\n";
-    }
-    res += "\taddi sp, sp, 44\n";
-    res += "\tlw ra, 0(sp)\n";
-    res += "\taddi sp, sp, 4\n";  // Cleanup return address
-    res += "\taddi sp, sp, 4\n";  // Cleanup access link
-    res += "\tjalr x0, 0(ra)\n";
     return res;
 }
 

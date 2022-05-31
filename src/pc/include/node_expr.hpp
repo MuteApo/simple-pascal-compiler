@@ -241,6 +241,8 @@ class FuncNode {
 
     int getUid();
 
+    std::string getName();
+
     std::string getNodeInfo();
 
     std::string genVizCode(int run);

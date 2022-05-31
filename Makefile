@@ -1,6 +1,6 @@
 BIN_DIR := bin
 PAS_DIR := pas
-PAS_SRC := mat_mul.pas
+PAS_SRC := nest.pas
 
 NPROC := $(shell nproc)
 

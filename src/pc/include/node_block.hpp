@@ -12,6 +12,8 @@ class ProgramNode;
 #include "node_var.hpp"
 #include "symbol_table.hpp"
 
+extern std::vector<std::string> func_body;
+
 extern int global_uid;
 extern int yylineno;
 
@@ -19,7 +21,6 @@ class BlockNode {
   private:
     int               uid;
     int               line_no;
-    bool              is_global;
     ConstDefListNode *const_defs;
     TypeDefListNode  *type_defs;
     VarDefListNode   *var_defs;
@@ -27,8 +28,7 @@ class BlockNode {
     StmtListNode     *stmts;
 
   public:
-    BlockNode(bool              is_g,
-              ConstDefListNode *c_defs = nullptr,
+    BlockNode(ConstDefListNode *c_defs = nullptr,
               TypeDefListNode  *t_defs = nullptr,
               VarDefListNode   *v_defs = nullptr,
               FuncDefListNode  *f_defs = nullptr,
@@ -36,15 +36,13 @@ class BlockNode {
 
     int getUid();
 
-    void setGlobal();
-
     bool hasDecl();
 
     std::string genVizCode(int run);
 
     void genSymbolTable();
 
-    void visit();
+    void visit(std::string block_name);
 };
 
 class ProgramNode {

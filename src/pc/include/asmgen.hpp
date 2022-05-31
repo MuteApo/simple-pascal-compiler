@@ -105,7 +105,7 @@ std::string get_mem_copy(uint32_t length);
 
 // a0: calling level of the func/proc
 // a1: defination level of the func/proc
-std::string get_func_def(std::string name, uint32_t local_var_len, std::string func_body);
+std::string get_func_framework(bool is_head, std::string name = "", uint32_t local_var_len = 0);
 
 // t2: source of parameter
 std::string get_param_copy(uint32_t length);

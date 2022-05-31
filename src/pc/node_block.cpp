@@ -1,18 +1,15 @@
 #include "include/node_block.hpp"
 #include "include/asmgen.hpp"
 
-std::vector<int> ar_lvars_length;
-std::vector<int> ar_args_length;
+std::vector<std::string> func_body;
 
-BlockNode::BlockNode(bool              is_g,
-                     ConstDefListNode *c_defs,
+BlockNode::BlockNode(ConstDefListNode *c_defs,
                      TypeDefListNode  *t_defs,
                      VarDefListNode   *v_defs,
                      FuncDefListNode  *f_defs,
                      StmtListNode     *s)
         : uid(++global_uid),
           line_no(yylineno),
-          is_global(is_g),
           const_defs(c_defs),
           type_defs(t_defs),
           var_defs(v_defs),
@@ -21,10 +18,6 @@ BlockNode::BlockNode(bool              is_g,
 
 int BlockNode::getUid() {
     return uid;
-}
-
-void BlockNode::setGlobal() {
-    is_global = true;
 }
 
 bool BlockNode::hasDecl() {
@@ -67,20 +60,44 @@ void BlockNode::genSymbolTable() {
     if (func_defs != nullptr) func_defs->genSymbolTable();
 }
 
-void BlockNode::visit() {
+void BlockNode::visit(std::string block_name) {
+    std::string asm_code  = "";
+    bool        is_global = symbol_table.getLevel() == 0;
     try {
         genSymbolTable();
-        std::string asm_code = "";
-        if (is_global) asm_code += "main:\n";
+        if (is_global) {
+            asm_code += block_name + ":\n";
+        } else {
+            int                              level      = symbol_table.getLevel();
+            std::set<VarTableItem>           local_vars = symbol_table.getVarScope(level);
+            std::set<VarTableItem>::iterator iter       = local_vars.begin();
+            uint32_t                         param_len  = 0;
+            while (iter != local_vars.end()) {
+                param_len += iter->var_def->getType()->getLength();
+                iter++;
+            }
+            asm_code += get_func_framework(true, block_name, param_len);
+        }
         if (stmts != nullptr) {
             stmts->testExprType();
             asm_code += stmts->genAsmCode();
         }
-        if (is_global) asm_code += get_exit();
-        write_segment(asm_code, false);
+        if (is_global) {
+            asm_code += get_exit();
+            write_segment(asm_code, false);
+        } else {
+            asm_code += get_func_framework(false);
+        }
         if (func_defs != nullptr) func_defs->visit();
-        if (is_global && var_defs != nullptr) {
-            write_segment(var_defs->genAsmDef(), true);
+        if (is_global) {
+            for (int i = 0; i < func_body.size(); i++) {
+                write_segment(func_body[i], false);
+            }
+            if (var_defs != nullptr) {
+                write_segment(var_defs->genAsmDef(), true);
+            }
+        } else {
+            func_body.push_back(asm_code);
         }
     } catch (Exception &e) {
         error_handler.addMsg(e);
@@ -114,6 +131,6 @@ std::string ProgramNode::genVizCode(int run) {
 void ProgramNode::visit() {
     if (block == nullptr) return;
     symbol_table.enterScope();
-    block->visit();
+    block->visit("main");
     symbol_table.leaveScope();
 }
