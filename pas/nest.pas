@@ -16,10 +16,10 @@ begin
     b;
     {writeln(x);}
     {write(m, n);}
+    a := 12;
 end;
 
 begin
-    x := 1;
-    a(1, 2);
+    x := a(1, 2);
     writeln(x);
 end.

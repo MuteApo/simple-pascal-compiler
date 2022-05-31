@@ -113,9 +113,9 @@ std::string get_param_copy(uint32_t length);
 std::string get_func_call(
     std::string name, std::string param_copy, bool has_retval, uint32_t call_lv, uint32_t def_lv);
 
-std::string get_retval_read(bool is_unsigned);
+std::string get_retval_read(void);
 
-std::string get_retval_write(bool is_unsigned);
+std::string get_retval_addr(void);
 
 std::string get_func_cleanup(uint32_t arg_len, bool has_retval);
 

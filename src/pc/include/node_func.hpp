@@ -30,6 +30,8 @@ class ParamDefNode {
 
     VarDefNode *getVarDef();
 
+    bool isRef();
+
     std::string getNodeInfo();
 
     std::string genVizCode(int run);
@@ -83,6 +85,8 @@ class FuncDefNode {
     int getLineNumber();
 
     TypeAttrNode *getRetValType();
+
+    ParamDefListNode *getParamDefListNode();
 
     bool hasDecl();
 

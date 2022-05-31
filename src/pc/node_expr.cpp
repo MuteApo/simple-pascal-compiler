@@ -268,7 +268,7 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
         asm_code += id_attr->genAsmCode();
         if (isMemAccessRoot()) asm_code += genAsmCodeMemAccess(false);
     } else if (node_type == el_fun_call) {
-        // TODO
+        asm_code += func_attr->genAsmCode();
     }
     return asm_code;
 }
@@ -682,7 +682,8 @@ std::string IdNode::genAsmCode() {  // const is replaced using literal node befo
                 // TODO: non-local & non-global variable
             }
         } else if (var_type == VTI_RetVal) {
-            // TODO
+            asm_code += get_retval_addr();
+            asm_code += get_reg_xchg(s_table[1], t_table[0]);
         } else if (var_type == VTI_ArgVar) {
             // TODO
         } else if (var_type == VTI_ArgVal) {
@@ -756,4 +757,10 @@ TypeAttrNode *FuncNode::getResultType() {
     FuncDefNode *func = symbol_table.findFuncSymbol(func_name);
     if (func == nullptr) throw UndefineError(line_no, func_name);
     return res_type = func->getRetValType();
+}
+
+// Generate a function call with retval with FuncStmtNode()
+std::string FuncNode::genAsmCode() {
+    FuncStmtNode *func_stmt = new FuncStmtNode(this);
+    return func_stmt->genAsmCode();
 }

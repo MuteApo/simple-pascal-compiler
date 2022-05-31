@@ -456,20 +456,17 @@ get_func_call(string name, string param_copys, bool has_retval, uint32_t call_lv
 }
 
 // For caller to get return value
-std::string get_retval_read(bool is_unsigned) {
+std::string get_retval_read() {
     string res = "";
-    res += "\taddi t1, fp, 56\n";
-    res += get_mem_access(4, false, is_unsigned);
+    res += "\taddi t1, sp, 0\n";
+    res += get_mem_access(4, false, false);
     return res;
 }
 
 // For callee to put return value
-std::string get_retval_write(bool is_unsigned) {
-    string res = "";
+std::string get_retval_addr() {
     // 56 = 4 * (1 (indirect access link) + 1 (old ra) + 11 (old s1-s11) + 1 (old fp))
-    res += "\taddi t1, fp, 56\n";
-    res += get_mem_access(4, true, is_unsigned);
-    return res;
+    return "\taddi t0, fp, 56\n";
 }
 
 // Clean params and retval after a call

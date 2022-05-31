@@ -660,10 +660,41 @@ std::string FuncStmtNode::genVizCode(int run) {
 }
 
 std::string FuncStmtNode::genAsmCode() {
-    std::string  asm_code = "";
-    FuncDefNode *func_def = symbol_table.findFuncSymbol(func->getName());
-    asm_code += get_func_call(func->getName(), "", func_def->isFunc(), 0, 0);  // TODO
-    asm_code += get_func_cleanup(0, func_def->isFunc());
+    std::string       asm_code = "", param_copy_code = "";
+    int               func_def_lv = 0, arg_len = 0;
+    FuncDefNode      *func_def       = symbol_table.findFuncSymbol(func->getName(), &func_def_lv);
+    ParamDefListNode *param_def_node = func_def->getParamDefListNode();
+    if (param_def_node != nullptr) {
+        std::vector<ParamDefNode *> param_list = param_def_node->getParamList();
+        for (int i = 0; i < param_list.size(); i++) {
+            if (param_list[i]->isRef()) {
+                // TODO
+            } else {
+                TypeAttrNode *param_type = param_list[i]->getVarDef()->getType();
+                int           var_len    = param_type->getLength();
+                arg_len += var_len;
+                if (param_type->getType() != structured) {
+                    // TODO
+                } else {
+                    // TODO
+                }
+                param_copy_code += get_mem_copy(var_len);
+            }
+        }
+    }
+    asm_code += get_func_call(func->getName(),
+                              param_copy_code,
+                              func_def->isFunc(),
+                              symbol_table.getLevel(),
+                              func_def_lv);  // call level and define level: for access link
+    if (func_def->isFunc()) {
+        asm_code += get_retval_read();
+        asm_code += get_reg_xchg(s_table[2], t_table[0]);
+    }
+    // Will break both stack and t0!
+    asm_code += get_func_cleanup(arg_len, func_def->isFunc());
+    // Use s register to protect return value
+    asm_code += get_reg_xchg(t_table[0], s_table[2]);
     return asm_code;
 }
 

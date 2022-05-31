@@ -250,6 +250,8 @@ class FuncNode {
     bool testArgType();
 
     TypeAttrNode *getResultType();
+
+    std::string genAsmCode();
 };
 
 #endif

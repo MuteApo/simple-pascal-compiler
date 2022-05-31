@@ -15,6 +15,10 @@ VarDefNode *ParamDefNode::getVarDef() {
     return var_def;
 }
 
+bool ParamDefNode::isRef() {
+    return is_ref;
+}
+
 std::string ParamDefNode::getNodeInfo() {
     std::string result = "ParamDefNode";
     if (is_ref) result += "(ref)";
@@ -140,6 +144,10 @@ bool FuncDefNode::hasDecl() {
 
 bool FuncDefNode::isFunc() {
     return is_func;
+}
+
+ParamDefListNode *FuncDefNode::getParamDefListNode() {
+    return param_defs;
 }
 
 std::string FuncDefNode::genVizCode(int run) {
