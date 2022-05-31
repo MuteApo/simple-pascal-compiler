@@ -34,18 +34,19 @@ TypeTableItem::TypeTableItem(std::string id, int lv, TypeAttrNode *t_a)
         : TableItem(id, lv), type_attr(t_a) {}
 
 bool TypeTableItem::operator<(const TypeTableItem &rhs) const {
-    return (level < rhs.level) || (level == rhs.level && name < rhs.name);
+    return level < rhs.level || (level == rhs.level && name < rhs.name);
 }
 
 std::string TypeTableItem::toString() {
     return name + "\t[level: " + to_string(level) + "]";
 }
 
-VarTableItem::VarTableItem(std::string id, int lv, VarDefNode *v_d, int o)
-        : TableItem(id, lv), var_def(v_d), offset(o) {}
+VarTableItem::VarTableItem(std::string id, int lv, VarDefNode *v_d, VarTableItemType t, int o)
+        : TableItem(id, lv), var_def(v_d), var_type(t), offset(o) {}
 
 bool VarTableItem::operator<(const VarTableItem &rhs) const {
     if (level != rhs.level) return level < rhs.level;
+    if (var_type != rhs.var_type) return var_type < rhs.var_type;
     if (offset != rhs.offset) return offset < rhs.offset;
     return name < rhs.name;
 }
@@ -54,15 +55,29 @@ int VarTableItem::getOffset() {
     return offset;
 }
 
+VarTableItemType VarTableItem::getVarType() {
+    return var_type;
+}
+
 std::string VarTableItem::toString() {
-    return name + "\t[level: " + to_string(level) + "\toffset: " + to_string(offset) + "]";
+    std::string type;
+    switch (var_type) {
+        case VTI_Global: type = "global_var"; break;
+        case VTI_Local: type = "local_var "; break;
+        case VTI_ArgVar: type = "arg_val   "; break;
+        case VTI_ArgVal: type = "arg_ref   "; break;
+        case VTI_RetVal: type = "ret_val   "; break;
+        default: break;
+    }
+    return name + "\t[level: " + to_string(level) + "  type: " + type +
+           "  offset: " + to_string(offset) + "]";
 }
 
 FuncTableItem::FuncTableItem(std::string id, int lv, FuncDefNode *f_d)
         : TableItem(id, lv), func_def(f_d) {}
 
 bool FuncTableItem::operator<(const FuncTableItem &rhs) const {
-    return (level < rhs.level) || (level == rhs.level && name < rhs.name);
+    return level < rhs.level || (level == rhs.level && name < rhs.name);
 }
 
 std::string FuncTableItem::toString() {
@@ -101,7 +116,7 @@ bool SymbolTable::addSymbol(std::string id, TypeAttrNode *t_a) {
     item->second.push_front(TypeTableItem(id, currLevel, t_a));
     return true;
 }
-bool SymbolTable::addSymbol(std::string id, VarDefNode *v_d, int ord) {
+bool SymbolTable::addSymbol(std::string id, VarDefNode *v_d, VarTableItemType t, int o) {
     auto item = VarDeclMap.find(id);
     if (item == VarDeclMap.end()) {
         VarDeclMap.insert(make_pair(id, std::list<VarTableItem>()));
@@ -109,7 +124,7 @@ bool SymbolTable::addSymbol(std::string id, VarDefNode *v_d, int ord) {
     }
     if (!item->second.empty() && item->second.front().level >= currLevel)
         throw RedefineError(v_d->getLineNumber(), id);
-    item->second.push_front(VarTableItem(id, currLevel, v_d, ord));
+    item->second.push_front(VarTableItem(id, currLevel, v_d, t, o));
     return true;
 }
 bool SymbolTable::addSymbol(std::string id, FuncDefNode *f_d) {
@@ -157,11 +172,13 @@ TypeAttrNode *SymbolTable::findTypeSymbol(std::string id, int *level) {
     if (level != nullptr) *level = item->second.front().level;
     return item->second.front().type_attr;
 }
-VarDefNode *SymbolTable::findVarSymbol(std::string id, int *level, int *offset) {
+VarDefNode *
+SymbolTable::findVarSymbol(std::string id, int *level, VarTableItemType *type, int *offset) {
     auto item = VarDeclMap.find(id);
     if (item == VarDeclMap.end()) return nullptr;
     if (level != nullptr) *level = item->second.front().level;
     if (offset != nullptr) *offset = item->second.front().getOffset();
+    if (type != nullptr) *type = item->second.front().getVarType();
     return item->second.front().var_def;
 }
 FuncDefNode *SymbolTable::findFuncSymbol(std::string id, int *level) {
@@ -225,13 +242,13 @@ void SymbolTable::printSymbol(const std::map<std::string, std::list<T>> &decl_ma
 
 void SymbolTable::printTable() {
     std::cout << "current level: " << to_string(currLevel) << std::endl;
-    std::cout << "--------------Const--------------\n";
+    std::cout << "-----------------------Const-----------------------\n";
     printSymbol<ConstTableItem>(ConstDeclMap);
-    std::cout << "--------------Type---------------\n";
+    std::cout << "-----------------------Type------------------------\n";
     printSymbol<TypeTableItem>(TypeDeclMap);
-    std::cout << "--------------Var----------------\n";
+    std::cout << "-----------------------Var-------------------------\n";
     printSymbol<VarTableItem>(VarDeclMap);
-    std::cout << "--------------Func---------------\n";
+    std::cout << "-----------------------Func------------------------\n";
     printSymbol<FuncTableItem>(FuncDeclMap);
 }
 

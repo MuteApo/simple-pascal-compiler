@@ -73,7 +73,9 @@ void BlockNode::visit(std::string block_name) {
             std::set<VarTableItem>::iterator iter       = local_vars.begin();
             uint32_t                         param_len  = 0;
             while (iter != local_vars.end()) {
-                param_len += iter->var_def->getType()->getLength();
+                if (iter->var_type == VTI_Local) {
+                    param_len += iter->var_def->getType()->getLength();
+                }
                 iter++;
             }
             asm_code += get_func_framework(true, block_name, param_len);

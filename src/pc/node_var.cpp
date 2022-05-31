@@ -52,8 +52,9 @@ int VarDefNode::genSymbolTable(int offset) {
         throw e;
     }
     if (symbol_table.existSymbol(name)) throw RedefineError(line_no, name);
-    int len = type->getLength();
-    symbol_table.addSymbol(name, this, offset + len);
+    int              len  = type->getLength();
+    VarTableItemType type = (symbol_table.getLevel() == 0) ? VTI_Global : VTI_Local;
+    symbol_table.addSymbol(name, this, type, offset + len);
     return len;
 }
 

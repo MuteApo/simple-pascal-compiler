@@ -36,7 +36,8 @@ int ParamDefNode::genSymbolTable(int offset) {
     }
     if (symbol_table.existSymbol(var_def->getName()))
         throw RedefineError(line_no, var_def->getName());
-    symbol_table.addSymbol(var_def->getName(), var_def, offset);
+    VarTableItemType type = is_ref ? VTI_ArgVar : VTI_ArgVal;
+    symbol_table.addSymbol(var_def->getName(), var_def, type, offset);
     return var_def->getType()->getLength();
 }
 
@@ -137,6 +138,10 @@ bool FuncDefNode::hasDecl() {
     return false;
 }
 
+bool FuncDefNode::isFunc() {
+    return is_func;
+}
+
 std::string FuncDefNode::genVizCode(int run) {
     std::string result = vizNode(uid, "FuncDefNode\n" + name);
     if (is_func) {
@@ -180,6 +185,9 @@ void FuncDefNode::visit() {
     try {
         if (param_defs != nullptr) {
             param_defs->genSymbolTable();
+        }
+        if (is_func) {
+            symbol_table.addSymbol(name, new VarDefNode(name, retval_type), VTI_RetVal, 0);
         }
         block->visit(name);
     } catch (RedefineError &e) {

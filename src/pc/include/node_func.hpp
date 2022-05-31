@@ -86,6 +86,8 @@ class FuncDefNode {
 
     bool hasDecl();
 
+    bool isFunc();
+
     std::string genVizCode(int run);
 
     bool genSymbolTable();

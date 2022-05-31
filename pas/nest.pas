@@ -1,24 +1,25 @@
 program env;
-var x: integer;
-procedure a;
+var 
+    x: integer;
+function a(m: integer; var n: integer):integer;
     var
-        x: array [0..1] of integer;
-        y: integer;
+        x: integer;
     procedure b;
     begin 
-        {x := 2;
+        {x := 3;
         writeln(x);}
+        writeln(3);
     end;
 begin
-    x[0] := 3;
-    x[1] := x[0] * 2;
-    y := x[1] + 1;
+    x:=2;
+    writeln(x);
     b;
-    writeln(y);
+    {writeln(x);}
+    {write(m, n);}
 end;
 
 begin
-    x := 1 + 6 div 3;
-    a;
+    x := 1;
+    a(1, 2);
     writeln(x);
 end.

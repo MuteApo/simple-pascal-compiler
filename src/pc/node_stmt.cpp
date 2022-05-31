@@ -660,9 +660,10 @@ std::string FuncStmtNode::genVizCode(int run) {
 }
 
 std::string FuncStmtNode::genAsmCode() {
-    std::string asm_code = "";
-    asm_code += get_func_call(func->getName(), "", false, 0, 0);  // TODO
-    asm_code += get_func_cleanup(0, false);
+    std::string  asm_code = "";
+    FuncDefNode *func_def = symbol_table.findFuncSymbol(func->getName());
+    asm_code += get_func_call(func->getName(), "", func_def->isFunc(), 0, 0);  // TODO
+    asm_code += get_func_cleanup(0, func_def->isFunc());
     return asm_code;
 }
 

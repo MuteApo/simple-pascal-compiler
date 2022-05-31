@@ -66,6 +66,8 @@ enum StmtType {
     SK_Writeln,  // writeln(x,y), write to output with an extra line feed
 };
 
+typedef enum { VTI_Global = 20001, VTI_ArgVal, VTI_ArgVar, VTI_RetVal, VTI_Local } VarTableItemType;
+
 std::string vizNode(int uid, std::string info);
 
 std::string vizEdge(int fa_uid, int son_uid, std::string info = "", std::string tip = "");

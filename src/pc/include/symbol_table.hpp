@@ -47,14 +47,17 @@ class TypeTableItem : public TableItem {
 
 class VarTableItem : public TableItem {
   public:
-    VarDefNode *var_def;
-    int         offset;  // offset for local vars & params
+    VarDefNode      *var_def;
+    VarTableItemType var_type;
+    int              offset;  // offset for local vars & params
 
-    VarTableItem(std::string id, int lv, VarDefNode *v_d, int o);
+    VarTableItem(std::string id, int lv, VarDefNode *v_d, VarTableItemType t, int o);
 
     bool operator<(const VarTableItem &rhs) const;
 
     int getOffset();
+
+    VarTableItemType getVarType();
 
     std::string toString();
 };
@@ -94,12 +97,15 @@ class SymbolTable {
 
     bool addSymbol(std::string id, ConstDefNode *c_d);
     bool addSymbol(std::string id, TypeAttrNode *t_a);
-    bool addSymbol(std::string id, VarDefNode *v_d, int ord);
+    bool addSymbol(std::string id, VarDefNode *v_d, VarTableItemType t, int o);
     bool addSymbol(std::string id, FuncDefNode *f_d);
 
     ConstDefNode *findConstSymbol(std::string id, int *level = nullptr);
     TypeAttrNode *findTypeSymbol(std::string id, int *level = nullptr);
-    VarDefNode   *findVarSymbol(std::string id, int *level = nullptr, int *offset = nullptr);
+    VarDefNode   *findVarSymbol(std::string       id,
+                                int              *level  = nullptr,
+                                VarTableItemType *type   = nullptr,
+                                int              *offset = nullptr);
     FuncDefNode  *findFuncSymbol(std::string id, int *level = nullptr);
 
     bool existSymbol(std::string id);
