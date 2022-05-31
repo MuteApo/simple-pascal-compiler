@@ -6,27 +6,28 @@
 
 本项目旨在学习编译器原理与实现，仅供参考，基于MIT协议开源。
 
-该***单文件***Pascal编译器有以下组件：
+该Pascal编译器（工具链）完全使用C++实现，有以下组件：
 
-- Pascal编译器前端，生成AST（C++）
-- 抽象语法树可视化工具（C++/Python）
-- 目标机汇编代码生成（可选，C++）
-- 目标机汇编器和机器码仿真（可选，C++）
+- Pascal编译器前端（生成AST）
+- 抽象语法树可视化工具
+- 目标机汇编代码生成
+- 目标机汇编器
+- 目标机机器码仿真
 
-编译过程为：`*.pas`->`*.hex`或`*.bin`，同时产生目标机汇编代码（或三地址码）文件`*.S`
+编译工具链完整的构建过程为：
 
-树可视化工具的输出为`*.png`格式的图片。如果有条件，可以实现一个基于Python的交互式可视化工具，建立源代码与AST节点的对应关系
+单个Pascal源代码文件 `*.pas` -> 目标机汇编文件 `*.S` -> 十六进制字符串文本文件 `*.hex` -> 二进制程序文件 `*.bin`
 
-目标机ISA尽可能简单，汇编指令不超过50条（如70年代的8位MPU，或者现代RISC CPU），有基本的算术（add）、逻辑（and or xor not）、访存（load和store）和控制指令（branch和call）以及基本I/O（read和print）。
+树可视化工具的输出为 `*.png` 或 `*.svg` 格式的图像。如果有条件，实现一个交互式语法树浏览器。
 
-暂时选择RISC-V RV32-I（with OpenSBI）作为目标ISA。
+目标机ISA尽可能简单，有基本的算术、逻辑、访存和控制指令以及基本I/O。暂时选择RISC-V RV32I作为目标ISA。
 
-Pascal语言具有以下基本语言要素，我们将选择一部分实现：
+Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 
-- 常量的实现
-  - 无符号或有符号数常量
-  - 标识符常量（Maxint/True/False）
-  - 字符串常量
+- 字面量与常量的实现
+  - 无符号或有符号数
+  - Maxint/True/False
+  - 字符串
 - 类型系统的实现（类型定义和变量定义）
   - 简单数据类型
     - 实数类型：
@@ -42,7 +43,8 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
     - 集合类型
     - 记录类型
   - 指针类型
-- 运算符的实现
+  - 字符串类型
+- 表达式的实现
   - 算术运算
   - 关系运算
   - 布尔运算
@@ -60,7 +62,7 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
       - repeat ... until ...
       - for ... := ... to ... do ...
       - with ... do ...
-- 块和作用域的精细控制
+- 块和作用域控制
 - Procedure和Function
 - 部分内置函数（输入、输出）
 
@@ -110,50 +112,73 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
   - [x] 语法分析器
   - [ ] 语义分析器
 - [x] 实现语法树可视化
-- [ ] 实现中间代码生成
-- [x] 实现目标机汇编生成
+- [ ] 实现目标机汇编生成
 - [x] 实现汇编器
 - [x] 实现仿真器
 - [ ] 完成仿真器或实机测试
 
 目前已经实现的语言特性：
 
-|                  |   词法/语法分析    |                       语义分析                       |                     汇编代码生成                     |
-| :--------------- | :----------------: | :--------------------------------------------------: | :--------------------------------------------------: |
-| 自定义常量       | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| 自定义实类型     | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| 自定义字符串类型 | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| 自定义枚举类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
-| 自定义子界类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
-| 自定义集合类型   |                    |                                                      |                                                      |
-| 自定义数组类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
-| 自定义记录类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
-| 自定义指针类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
-| 数组成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
-| 记录成员访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
-| 指针变量访问     | :heavy_check_mark: |                  :heavy_minus_sign:                  |                                                      |
-| 变量定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅全局）        |
-| 过程定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
-| 函数定义         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
-| 算术运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅整型）        |
-| 关系运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |        :heavy_exclamation_mark:<br>（仅整型）        |
-| 逻辑运算         | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| 复合语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| 赋值语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |    :heavy_exclamation_mark:<br>（仅整型、字符串）    |
-| 过程/函数调用    | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
-| goto语句         |        :x:         |                         :x:                          |                         :x:                          |
-| if语句           | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| case语句         | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
-| while语句        | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| repeat语句       | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| for语句          | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| with语句         |        :x:         |                         :x:                          |                         :x:                          |
-| read/write语句   | :heavy_check_mark: |                  :heavy_check_mark:                  |    :heavy_exclamation_mark:<br>（仅整型、字符串）    |
-| 错误检测/恢复    |                    |               :heavy_exclamation_mark:               |                                                      |
-| 类型检查         | :heavy_minus_sign: | :heavy_exclamation_mark:<br>（仅严格相等、无相容性） |                  :heavy_minus_sign:                  |
-| 全局变量         | :heavy_minus_sign: |                  :heavy_check_mark:                  | :heavy_check_mark:<br>（仅整型、数组、记录、字符串） |
-| 局部变量         | :heavy_minus_sign: |                  :heavy_check_mark:                  |                                                      |
-| 非全局非局部变量 | :heavy_minus_sign: |                  :heavy_check_mark:                  |                                                      |
+字面量与常量：
+|        |   词法/语法分析    |      语义分析      |    汇编代码生成    |
+| :----- | :----------------: | :----------------: | :----------------: |
+| 字面量 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 常量   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+
+类型与变量定义：
+|            |   词法/语法分析    |      语义分析      |                汇编代码生成                |
+| :--------- | :----------------: | :----------------: | :----------------------------------------: |
+| 实类型     | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（未实现Real） |
+| 字符串类型 | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+| 枚举类型   | :heavy_check_mark: | :heavy_check_mark: |                                            |
+| 子界类型   | :heavy_check_mark: | :heavy_check_mark: |                                            |
+| 集合类型   |                    |                    |                                            |
+| 数组类型   | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+| 记录类型   | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+| 指针类型   | :heavy_check_mark: | :heavy_check_mark: |                                            |
+| 过程和函数 | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+
+结构化变量访问：
+|              |   词法/语法分析    |      语义分析      |    汇编代码生成    |
+| :----------- | :----------------: | :----------------: | :----------------: |
+| 数组成员访问 | :heavy_check_mark: | :heavy_minus_sign: | :heavy_check_mark: |
+| 记录成员访问 | :heavy_check_mark: | :heavy_minus_sign: | :heavy_check_mark: |
+| 指针变量访问 | :heavy_check_mark: | :heavy_minus_sign: |                    |
+
+表达式：
+|          |   词法/语法分析    |      语义分析      |              汇编代码生成              |
+| :------- | :----------------: | :----------------: | :------------------------------------: |
+| 算术运算 | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅整型） |
+| 关系运算 | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅整型） |
+| 逻辑运算 | :heavy_check_mark: | :heavy_check_mark: |           :heavy_check_mark:           |
+
+语句：
+|                |   词法/语法分析    |      语义分析      |                  汇编代码生成                  |
+| :------------- | :----------------: | :----------------: | :--------------------------------------------: |
+| 赋值语句       | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅整型、字符串） |
+| goto语句       |        :x:         |        :x:         |                      :x:                       |
+| if语句         | :heavy_check_mark: | :heavy_check_mark: |               :heavy_check_mark:               |
+| case语句       | :heavy_check_mark: | :heavy_check_mark: |                                                |
+| while语句      | :heavy_check_mark: | :heavy_check_mark: |               :heavy_check_mark:               |
+| repeat语句     | :heavy_check_mark: | :heavy_check_mark: |               :heavy_check_mark:               |
+| for语句        | :heavy_check_mark: | :heavy_check_mark: |               :heavy_check_mark:               |
+| with语句       |        :x:         |        :x:         |                      :x:                       |
+| 调用语句       | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅无参过程调用） |
+| read/write语句 | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅整型、字符串） |
+| 复合语句       | :heavy_check_mark: | :heavy_check_mark: |               :heavy_check_mark:               |
+
+作用域相关：
+|                      |   词法/语法分析    |      语义分析      |    汇编代码生成    |
+| :------------------- | :----------------: | :----------------: | :----------------: |
+| 全局变量定义和访问   | :heavy_minus_sign: | :heavy_check_mark: | :heavy_check_mark: |
+| 局部变量定义和访问   | :heavy_minus_sign: | :heavy_check_mark: | :heavy_check_mark: |
+| 非全局非局部变量访问 | :heavy_minus_sign: | :heavy_check_mark: |                    |
+
+编译器特性：
+|          |   词法/语法分析    |                       语义分析                       |    汇编代码生成    |
+| :------- | :----------------: | :--------------------------------------------------: | :----------------: |
+| 类型检查 | :heavy_minus_sign: | :heavy_exclamation_mark:<br>（仅严格相等、无相容性） | :heavy_minus_sign: |
+| 错误恢复 |                    |               :heavy_exclamation_mark:               | :heavy_minus_sign: |
 
 ### 四、开发环境
 
@@ -161,7 +186,7 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 
 - 词法分析器自动生成工具Lex（Flex）
 - 语法分析器自动生成工具Yacc（Bison）
-- 构建工具GNU make和GCC/G++
+- 源码构建工具GNU make和Clang/LLVM
 - 可视化工具Graphviz
 
 建议在Linux环境下（Docker/VM/wsl）进行开发。Ubuntu下环境搭建：
