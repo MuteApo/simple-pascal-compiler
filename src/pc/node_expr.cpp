@@ -524,28 +524,47 @@ std::string VarAccessNode::genAsmCode() {  // TODO
     } else {
         asm_code += host->getVarAccessNode()->genAsmCode();
     }
+    StructAttrNode *host_struct_attr = host->getResultType()->getStructAttr();
     switch (type) {
         case va_array: {
-            ArrayAttrNode *array_attr = host->getResultType()->getStructAttr()->getArrayAttr();
-            std::vector<ExprNode *> indexes = index_list->getExprList();
-            uint32_t                dim_size;
-            for (int i = index_list->getDim() - 1; i >= 0; i--) {
-                if (i == index_list->getDim() - 1) {
-                    dim_size = array_attr->getElementType()->getLength();
-                } else {
-                    dim_size *= array_attr->getIndexType()->getSize(i + 1);
-                }
+            if (host_struct_attr->getType() == struct_string) {
                 asm_code += get_reg_save(s_table[1]);
-                asm_code += indexes.at(i)->genAsmCodeRHS();
-                asm_code += get_reg_restore(s_table[1]);
+                asm_code += index_list->getExprList().at(0)->genAsmCodeRHS();
+                asm_code += get_reg_restore(t_table[1]);
                 asm_code += get_reg_xchg(t_table[2], t_table[0]);
-                asm_code += get_load_imm(dim_size);
-                asm_code += get_reg_xchg(t_table[1], t_table[0]);
-                asm_code += get_integer_calc("mul", true);
-                asm_code += get_reg_xchg(t_table[1], t_table[0]);
-                asm_code += get_reg_xchg(t_table[2], s_table[1]);
                 asm_code += get_integer_calc("add", true);
                 asm_code += get_reg_xchg(s_table[1], t_table[0]);
+            } else {
+                ArrayAttrNode               *array_attr = host_struct_attr->getArrayAttr();
+                std::vector<TypeAttrNode *> &index_types =
+                    array_attr->getIndexType()->getAttrList();
+                std::vector<ExprNode *> &indexes = index_list->getExprList();
+                uint32_t                 dim_size;
+                for (int i = index_list->getDim() - 1; i >= 0; i--) {
+                    if (i == index_list->getDim() - 1) {
+                        dim_size = array_attr->getElementType()->getLength();
+                    } else {
+                        dim_size *= array_attr->getIndexType()->getSize(i + 1);
+                    }
+                    asm_code += get_reg_save(s_table[1]);
+                    asm_code += indexes.at(i)->genAsmCodeRHS();
+                    asm_code += get_reg_restore(s_table[1]);
+                    asm_code += get_reg_save(t_table[0]);
+                    ExprNode *low_bound =
+                        index_types.at(i)->getOrdAttrNode()->getSubrange()->getLowerBound();
+                    asm_code += get_load_imm(low_bound->getLiteralNode()->diff(new LiteralNode(0)));
+                    asm_code += get_reg_xchg(t_table[2], t_table[0]);
+                    asm_code += get_reg_restore(t_table[1]);
+                    asm_code += get_integer_calc("sub");
+                    asm_code += get_reg_xchg(t_table[2], t_table[0]);
+                    asm_code += get_load_imm(dim_size);
+                    asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                    asm_code += get_integer_calc("mul", true);
+                    asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                    asm_code += get_reg_xchg(t_table[2], s_table[1]);
+                    asm_code += get_integer_calc("add", true);
+                    asm_code += get_reg_xchg(s_table[1], t_table[0]);
+                }
             }
             break;
         }
@@ -554,8 +573,8 @@ std::string VarAccessNode::genAsmCode() {  // TODO
             break;
         }
         case va_record: {
-            RecordAttrNode *record_attr = host->getResultType()->getStructAttr()->getRecordAttr();
-            int             offset      = record_attr->getOffset(member->getIdNode()->getName());
+            int offset =
+                host_struct_attr->getRecordAttr()->getOffset(member->getIdNode()->getName());
             asm_code += get_load_imm(offset);
             asm_code += get_reg_xchg(t_table[1], t_table[0]);
             asm_code += get_reg_xchg(t_table[2], s_table[1]);
@@ -575,22 +594,27 @@ TypeAttrNode *VarAccessNode::getResultType() {
         type_attr = def->getType();
     } else
         type_attr = host->getResultType();
+    StructAttrNode *struct_attr = type_attr->getStructAttr();
     switch (type) {
         case va_pointer: return res_type = type_attr;
         case va_array: {
-            ArrayAttrNode *array_attr = type_attr->getStructAttr()->getArrayAttr();
-            try {
-                array_attr->testIndexType(index_list);
-            } catch (IndexDimensionError &e) {
-                throw e;
-            } catch (IndexTypeError &e) {
-                throw e;
+            if (struct_attr->getType() == struct_string)
+                return res_type = new TypeAttrNode(new BasicAttrNode(character));
+            else {
+                ArrayAttrNode *array_attr = struct_attr->getArrayAttr();
+                try {
+                    array_attr->testIndexType(index_list);
+                } catch (IndexDimensionError &e) {
+                    throw e;
+                } catch (IndexTypeError &e) {
+                    throw e;
+                }
+                return res_type = array_attr->getElementType();
             }
-            return res_type = array_attr->getElementType();
         }
         case va_record: {
-            VarDefNode *var_def = type_attr->getStructAttr()->getRecordAttr()->getVarDef(
-                member->getIdNode()->getName());
+            VarDefNode *var_def =
+                struct_attr->getRecordAttr()->getVarDef(member->getIdNode()->getName());
             if (var_def == nullptr)
                 throw MemberNotFoundError(line_no,
                                           host->getResultType()->getTypeString(),

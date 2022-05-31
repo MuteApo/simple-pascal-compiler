@@ -299,7 +299,7 @@ std::string TypeAttrListNode::getTypeString() {
     return result;
 }
 
-std::vector<TypeAttrNode *> TypeAttrListNode::getAttrList() {
+std::vector<TypeAttrNode *> &TypeAttrListNode::getAttrList() {
     return type_attrs;
 }
 
@@ -384,6 +384,12 @@ std::string BasicAttrNode::getTypeString() {
 }
 
 int BasicAttrNode::getLength() {
+    switch (type) {
+        case boolean: return BASIC_BOOL_LEN;
+        case integer: return BASIC_INT_LEN;
+        case real: return BASIC_REAL_LEN;
+        case character: return BASIC_CHAR_LEN;
+    }
     return ALIGN_LEN;
 }
 
@@ -434,6 +440,10 @@ int OrdAttrNode::getOffset() {
 
 int OrdAttrNode::getSize() {
     return is_subrange ? subrange_attr->getSize() : enum_attr->getSize();
+}
+
+SubrangeAttrNode *OrdAttrNode::getSubrange() {
+    return subrange_attr;
 }
 
 std::string OrdAttrNode::genVizCode(int run) {
@@ -498,6 +508,10 @@ int SubrangeAttrNode::getOffset() {
 
 int SubrangeAttrNode::getSize() {
     return up_bound->getLiteralNode()->diff(low_bound->getLiteralNode()) + 1;
+}
+
+ExprNode *SubrangeAttrNode::getLowerBound() {
+    return low_bound;
 }
 
 std::string SubrangeAttrNode::genVizCode(int run) {

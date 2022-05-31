@@ -26,7 +26,7 @@ extern int global_uid;
 extern int yylineno;
 
 #define BASIC_BOOL_LEN 1
-#define BASIC_INT_LEN 2
+#define BASIC_INT_LEN 4
 #define BASIC_REAL_LEN 4
 #define BASIC_CHAR_LEN 1
 #define BASIC_PTR_LEN 4
@@ -151,7 +151,7 @@ class TypeAttrListNode {
 
     std::string getTypeString();
 
-    std::vector<TypeAttrNode *> getAttrList();
+    std::vector<TypeAttrNode *> &getAttrList();
 
     int getSize(int i);
 
@@ -221,6 +221,8 @@ class OrdAttrNode {
 
     int getSize();
 
+    SubrangeAttrNode *getSubrange();
+
     std::string genVizCode(int run);
 
     void translateId();
@@ -250,6 +252,8 @@ class SubrangeAttrNode {
     int getOffset();
 
     int getSize();
+
+    ExprNode *getLowerBound();
 
     std::string genVizCode(int run);
 

@@ -1,6 +1,5 @@
 .DS_Store
 .vscode
-bin/*
 src/pc/parser.output
 src/pc/parser.tab.cpp
 src/pc/parser.tab.hpp
