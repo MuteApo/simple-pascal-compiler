@@ -67,27 +67,31 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 ### 二、工程结构
 
 ``` bash
----- / ---- src ---- pc 编译器前后端源码
+---- / ---- bin 预先构建的编译器二进制文件
+       |
+       ---- doc 参考文档
+       |
+       ---- pas 测试使用的Pascal源代码
+       |
+       ---- src ---- as 汇编器源码
        |        |
-       |        ---- as 汇编器源码
+       |        ---- pc 编译器前后端源码
        |        |
        |        ---- sim 仿真器源码
        |        |
        |        ---- util 实用工具源码
        |
-       ---- bin 本工具链可以直接执行的二进制文件
+       ---- tester TA提供的测试工具
        |
-       ---- doc 实现参考文档
+       ---- .clang-format
        |
-       ---- test 测试过程中使用到的Pascal源代码
-       |
-       ---- README.md 本说明文档
+       ---- .gitignore
        |
        ---- LICENSE 
        |
        ---- Makefile
        |
-       ---- .gitignore
+       ---- README.md 本说明文档
 ```
 
 ### 三、项目进度
@@ -118,7 +122,7 @@ Pascal语言具有以下基本语言要素，我们将选择一部分实现：
 | :--------------- | :----------------: | :--------------------------------------------------: | :--------------------------------------------------: |
 | 自定义常量       | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
 | 自定义实类型     | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
-| 自定义字符串类型 | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
+| 自定义字符串类型 | :heavy_check_mark: |                  :heavy_check_mark:                  |                  :heavy_check_mark:                  |
 | 自定义枚举类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
 | 自定义子界类型   | :heavy_check_mark: |                  :heavy_check_mark:                  |                                                      |
 | 自定义集合类型   |                    |                                                      |                                                      |
@@ -178,31 +182,26 @@ sudo apt install graphviz
 
 ### 五、构建与测试
 
-构建Pascal Compiler可执行文件：
+构建可执行文件：
 ```bash
+# Pascal Compiler
 make pc
-```
-构建Assembler可执行文件：
-```bash
+
+# Assembler
 make as
-```
 
-构建Hex2Bin可执行文件：
-```bash
+# Hex2Bin
 make util
-```
 
-构建RV32I Simulator可执行文件：
-```bash
+# RV32I Simulator
 make sim
 ```
 
 构建上述所有可执行文件：
 ```bash
 make build
-```
-或
-```bash
+
+# alias
 make all
 ```
 
@@ -211,41 +210,46 @@ make all
 make clean
 ```
 
-语法树可视化（PAS_SRC为可选参数）：
+AST可视化：
 ```bash
 make visual PAS_SRC=fib_iterative.pas
 ```
 
-编译Pascal代码并产生目标代码（PAS_SRC为可选参数）：
+编译Pascal代码：
 ```bash
 make compile PAS_SRC=fib_iterative.pas
 ```
 
-编译Pascal代码输出诊断信息并产生目标代码（PAS_SRC为可选参数）：
+编译Pascal代码并输出诊断信息：
 ```bash
 make diagnose PAS_SRC=fib_iterative.pas
 ```
 
-使用模拟器运行目标代码（PAS_SRC为可选参数）：
+使用模拟器运行目标代码：
 ```bash
 make run PAS_SRC=fib_iterative.pas
 ```
 
-使用模拟器调试目标代码（PAS_SRC为可选参数）：
+使用模拟器调试目标代码：
 ```bash
 make debug PAS_SRC=fib_iterative.pas
 ```
 
-test目录下示例代码说明
+使用TA提供的矩阵乘法测试工具：
+```bash
+make test2
+```
 
-| 文件名                | 功能                                     |
-| :-------------------- | :--------------------------------------- |
-| array_record_nest.pas | 测试数组记录嵌套寻址                     |
-| error_detect.pas      | 测试错误检测                             |
-| fib_iterative.pas     | 斐波那契数列（循环）                     |
-| fib_recursive.pas     | 斐波那契数列（递归，暂不支持运行）       |
-| mat_mul.pas           | 矩阵乘法（TestCase2 :heavy_check_mark:） |
-| multiple_table.pas    | 打印乘法表（三种循环）                   |
-| nest.pas              | 测试作用域                               |
-| parser_test.pas       | 测试语法分析                             |
-| string_assign.pas     | 测试字符串赋值                           |
+pas目录下示例代码说明
+
+| 文件名                                     | 功能                               |
+| :----------------------------------------- | :--------------------------------- |
+| array_record_nest.pas                      | 测试数组记录嵌套寻址               |
+| error_detect.pas                           | 测试错误检测                       |
+| fib_iterative.pas                          | 斐波那契数列（循环）               |
+| fib_recursive.pas                          | 斐波那契数列（递归，暂不支持运行） |
+| mat_mul.pas（TestCase2:heavy_check_mark:） | 矩阵乘法                           |
+| multiple_table.pas                         | 打印乘法表（三种循环）             |
+| nest.pas                                   | 测试作用域                         |
+| parser_test.pas                            | 测试语法分析                       |
+| string_assign.pas                          | 测试字符串赋值                     |

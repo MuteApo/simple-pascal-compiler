@@ -1,5 +1,5 @@
 BIN_DIR := bin
-PAS_DIR := test
+PAS_DIR := pas
 PAS_SRC := mat_mul.pas
 
 NPROC := $(shell nproc)
@@ -8,7 +8,7 @@ CC := clang++
 CFLAG := -std=c++11 -Oz -ffunction-sections -fdata-sections
 LFLAG := -s -flto=thin -Wl,--gc-sections
 
-.PHONY: all pc as util sim build clean visual compile diagnose run debug
+.PHONY: all pc as util sim build clean visual compile diagnose run debug test2
 
 all: build
 
@@ -52,3 +52,8 @@ run: compile sim
 
 debug: diagnose sim
 	$(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF -d
+
+test2: build
+	@$(MAKE) compile PAS_SRC=mat_mul.pas
+	@echo "#! /bin/bash \n $(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF" > tester/agent.sh
+	tester/matrix-multiplication tester/agent.sh
