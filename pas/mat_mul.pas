@@ -1,25 +1,25 @@
 program test;
 {Comment A}
 var
-    a, b, c: array [0..30, 0..30] of integer;
+    a, b, c: array [1..30, 1..30] of integer;
     am, an, bm, bn: integer;
     i, j, k, x, l: Integer;
 begin
     read(am, an);
-    for i := 0 to am - 1 do
-        for j := 0 to an - 1 do 
+    for i := 1 to am do
+        for j := 1 to an do 
             read(a[i, j]);
     read(bm, bn);
-    for i := 0 to bm - 1 do
-        for j := 0 to bn - 1 do 
+    for i := 1 to bm do
+        for j := 1 to bn do 
             read(b[i, j]);
 
     if an <> bm
     then writeln('Incompatible Dimensions')
     else begin
-        for i := 0 to am - 1 do begin
-            for j := 0 to bn - 1 do begin
-                for k := 0 to an - 1 do
+        for i := 1 to am do begin
+            for j := 1 to bn do begin
+                for k := 1 to an do
                     c[i, j] := c[i, j] + a[i, k] * b[k, j];
 
                 x := c[i, j];
