@@ -209,7 +209,9 @@ class CaseStmtNode {
 
     void testExprType(ExprNode *condition);
 
-    std::string genAsmCode();
+    ConstListNode *getConstList();
+    
+    StmtNode      *getBody();
 };
 
 class CaseListNode {

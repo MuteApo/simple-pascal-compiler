@@ -584,6 +584,14 @@ void CaseStmtNode::testExprType(ExprNode *condition) {
     }
 }
 
+ConstListNode *CaseStmtNode::getConstList() {
+    return const_list;
+}
+
+StmtNode *CaseStmtNode::getBody() {
+    return body_part;
+}
+
 CaseListNode::CaseListNode() : uid(++global_uid), line_no(yylineno) {
     case_list.clear();
 }
@@ -635,7 +643,41 @@ std::string SwitchStmtNode::genVizCode(int run) {
 }
 
 std::string SwitchStmtNode::genAsmCode() {
-    return "";  // TODO
+    std::vector<std::string>    case_iter;
+    std::vector<CaseStmtNode *> cases = case_list->getCaseList();
+    for (int i = 0; i < cases.size(); i++) {
+        std::string cond_calc_code = "";
+        cond_calc_code += get_load_imm(0);
+        cond_calc_code += get_reg_save(t_table[0]);
+        std::vector<ExprNode *> const_list = cases.at(i)->getConstList()->getConstList();
+        for (int j = 0; j < const_list.size(); j++) {
+            cond_calc_code += const_list.at(j)->genAsmCodeRHS();
+            cond_calc_code += get_reg_save(t_table[0]);
+            cond_calc_code += condition->genAsmCodeRHS();
+            cond_calc_code += get_reg_xchg(t_table[1], t_table[0]);
+            cond_calc_code += get_reg_restore(t_table[2]);
+            cond_calc_code += get_integer_calc("cmp_eq");
+            cond_calc_code += get_reg_xchg(t_table[1], t_table[0]);
+            cond_calc_code += get_reg_restore(t_table[2]);
+            cond_calc_code += get_integer_calc("or");
+            cond_calc_code += get_reg_save(t_table[0]);
+        }
+        cond_calc_code += get_reg_restore(t_table[1]);
+        std::string body_code = cases.at(i)->getBody()->genAsmCode();
+        std::string case_code;
+        if (i == 0) {
+            case_code = get_stmt_cond(cond_calc_code, body_code, "");
+            case_iter.push_back(case_code);
+        } else {
+            case_code =
+                get_stmt_cond(cond_calc_code, body_code, case_iter.at(case_iter.size() - 1));
+            case_iter.push_back(case_code);
+        }
+    }
+    if (case_iter.size() == 0)
+        return "";
+    else
+        return case_iter.at(case_iter.size() - 1);
 }
 
 void SwitchStmtNode::testExprType() {
