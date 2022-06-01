@@ -227,41 +227,58 @@ string get_integer_calc(string operation, bool is_unsigned) {
     } else if (operation == "mul" || operation == "div" || operation == "mod") {
         if (is_unsigned) {
             if (operation == "mul") {
-                res += "\taddi t0, x0, 0\n";
-                res += "_lbl_" + to_string(internal_label_id + 3) + ":\n";
-                res += "\tbeq t2, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
-                res += "\taddi t3, t0, 0\n";
-                res += "\tadd t0, t0, t1\n";
-                res += "\tbgeu t0, t3,  _lbl_" + to_string(internal_label_id + 2) + "\n";
-                res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
-                res += "\tla a1, _msg_unsigned_overflow\n";
+                res += "\taddi a0, x0, 7\n";
+                res += "\tadd a1, x0, t1\n";
+                res += "\tadd a2, x0, t2\n";
                 res += "\tecall\n";
-                res += "\taddi a0, x0, " + to_string(ECALL_EXIT) + "\n";
+                res += "\tadd t0, x0, a0\n";
+                // res += "\taddi t0, x0, 0\n";
+                // res += "_lbl_" + to_string(internal_label_id + 3) + ":\n";
+                // res += "\tbeq t2, x0, _lbl_" + to_string(internal_label_id + 1) + "\n";
+                // res += "\taddi t3, t0, 0\n";
+                // res += "\tadd t0, t0, t1\n";
+                // res += "\tbgeu t0, t3,  _lbl_" + to_string(internal_label_id + 2) + "\n";
+                // res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
+                // res += "\tla a1, _msg_unsigned_overflow\n";
+                // res += "\tecall\n";
+                // res += "\taddi a0, x0, " + to_string(ECALL_EXIT) + "\n";
+                // res += "\tecall\n";
+                // res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
+                // res += "\taddi t2, t2, -1\n";
+                // res += "\tbeq x0, x0, _lbl_" + to_string(internal_label_id + 3) + "\n";
+                // res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
+                // internal_label_id += 3;
+            } else if (operation == "div") {
+                res += "\taddi a0, x0, 8\n";
+                res += "\tadd a1, x0, t1\n";
+                res += "\tadd a2, x0, t2\n";
                 res += "\tecall\n";
-                res += "_lbl_" + to_string(internal_label_id + 2) + ":\n";
-                res += "\taddi t2, t2, -1\n";
-                res += "\tbeq x0, x0, _lbl_" + to_string(internal_label_id + 3) + "\n";
-                res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
-                internal_label_id += 3;
-            } else if (operation == "div" || operation == "mod") {
-                res += "\tbne t2, x0, _lbl_" + to_string(++internal_label_id) + "\n";
-                res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
-                res += "\tla a1, _msg_div_zero\n";
+                res += "\tadd t0, x0, a0\n";
+            } else if (operation == "mod") {
+                res += "\taddi a0, x0, 9\n";
+                res += "\tadd a1, x0, t1\n";
+                res += "\tadd a2, x0, t2\n";
                 res += "\tecall\n";
-                res += "\taddi a0, x0, " + to_string(ECALL_EXIT) + "\n";
-                res += "\tecall\n";
-                res += "_lbl_" + to_string(internal_label_id) + ":\n";
-                res += "\taddi t0, x0, 0\n";
-                res += "\tbge x0, t1, 16\n";
-                res += "\tsub t1, t1, t2\n";
-                res += "\taddi t0, t0, 1\n";
-                res += "\tbeq x0, x0, -12\n";
-                res += "\tbeq t1, x0, 12\n";
-                res += "\tadd t1, t1, t2\n";  // Compensite for over-sub
-                res += "\taddi t0, t0, -1\n";
-                if (operation == "mod")  // Return remainder rather than quotient
-                    res += "\taddi t0, t1, 0\n";
+                res += "\tadd t0, x0, a0\n";
             }
+            // } else if (operation == "div" || operation == "mod") {
+            //     res += "\tbne t2, x0, _lbl_" + to_string(++internal_label_id) + "\n";
+            //     res += "\taddi a0, x0, " + to_string(ECALL_PRT_STR) + "\n";
+            //     res += "\tla a1, _msg_div_zero\n";
+            //     res += "\tecall\n";
+            //     res += "\taddi a0, x0, " + to_string(ECALL_EXIT) + "\n";
+            //     res += "\tecall\n";
+            //     res += "_lbl_" + to_string(internal_label_id) + ":\n";
+            //     res += "\taddi t0, x0, 0\n";
+            //     res += "\tbge x0, t1, 16\n";
+            //     res += "\tsub t1, t1, t2\n";
+            //     res += "\taddi t0, t0, 1\n";
+            //     res += "\tbeq x0, x0, -12\n";
+            //     res += "\tbeq t1, x0, 12\n";
+            //     res += "\tadd t1, t1, t2\n";  // Compensite for over-sub
+            //     res += "\taddi t0, t0, -1\n";
+            //     if (operation == "mod")  // Return remainder rather than quotient
+            //         res += "\taddi t0, t1, 0\n";
         } else {
             if (operation != "mod") {
                 res += "\tslti t3, t1, 0\n";

@@ -406,7 +406,8 @@ std::string BasicAttrNode::genVizCode(int run) {
 }
 
 bool BasicAttrNode::isTypeEqual(BasicAttrNode *type) {
-    return type->type == this->type;
+    // return type->type == this->type;
+    return true;  // TODO basic types is compatible with each other
 }
 
 OrdAttrNode::OrdAttrNode(SubrangeAttrNode *s_a)

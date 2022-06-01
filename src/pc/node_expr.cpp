@@ -192,30 +192,12 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                 switch (getResultType()->getBasicAttrNode()->getType()) {
                     case boolean:
                         switch (eval_type) {
-                            case EK_Eq:
-                                if (op_type == integer)
-                                    asm_code += get_integer_calc("cmp_eq", false);
-                                break;
-                            case EK_Ne:
-                                if (op_type == integer)
-                                    asm_code += get_integer_calc("cmp_ne", false);
-                                break;
-                            case EK_Lt:
-                                if (op_type == integer)
-                                    asm_code += get_integer_calc("cmp_lt", false);
-                                break;
-                            case EK_Gt:
-                                if (op_type == integer)
-                                    asm_code += get_integer_calc("cmp_gt", false);
-                                break;
-                            case EK_Le:
-                                if (op_type == integer)
-                                    asm_code += get_integer_calc("cmp_le", false);
-                                break;
-                            case EK_Ge:
-                                if (op_type == integer)
-                                    asm_code += get_integer_calc("cmp_ge", false);
-                                break;
+                            case EK_Eq: asm_code += get_integer_calc("cmp_eq", false); break;
+                            case EK_Ne: asm_code += get_integer_calc("cmp_ne", false); break;
+                            case EK_Lt: asm_code += get_integer_calc("cmp_lt", false); break;
+                            case EK_Gt: asm_code += get_integer_calc("cmp_gt", false); break;
+                            case EK_Le: asm_code += get_integer_calc("cmp_le", false); break;
+                            case EK_Ge: asm_code += get_integer_calc("cmp_ge", false); break;
                             case EK_Not:
                                 asm_code += get_load_imm(1);
                                 asm_code += get_reg_xchg(t_table[2], t_table[0]);
@@ -442,7 +424,7 @@ int LiteralNode::diff(LiteralNode *rhs) {
     if (literal_type != lt_basic || rhs->literal_type != lt_basic)
         throw ExpressionTypeError(line_no, "real basic type", "pointer/string");
     if (type->getType() != rhs->type->getType())
-        throw ExpressionTypeError(line_no, type->getTypeString(), rhs->type->getTypeString());
+        throw ExpressionTypeError(rhs->line_no, type->getTypeString(), rhs->type->getTypeString());
     switch (type->getType()) {
         case boolean: return bval - rhs->bval;
         case integer: return ival - rhs->ival;
@@ -552,7 +534,12 @@ std::string VarAccessNode::genAsmCode() {  // TODO
                     asm_code += get_reg_save(t_table[0]);
                     ExprNode *low_bound =
                         index_types.at(i)->getOrdAttrNode()->getSubrange()->getLowerBound();
-                    asm_code += get_load_imm(low_bound->getLiteralNode()->diff(new LiteralNode(0)));
+                    if (low_bound->getLiteralNode()->getType()->getType() == character)
+                        asm_code +=
+                            get_load_imm(low_bound->getLiteralNode()->diff(new LiteralNode('\0')));
+                    else
+                        asm_code +=
+                            get_load_imm(low_bound->getLiteralNode()->diff(new LiteralNode(0)));
                     asm_code += get_reg_xchg(t_table[2], t_table[0]);
                     asm_code += get_reg_restore(t_table[1]);
                     asm_code += get_integer_calc("sub");

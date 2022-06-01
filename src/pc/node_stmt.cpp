@@ -732,6 +732,8 @@ std::string ReadStmtNode::genAsmCode() {
                         // TODO
                         break;
                 }
+                asm_code += get_reg_xchg(t_table[2], t_table[0]);
+                asm_code += expr->genAsmCodeLHS();
                 break;
             case ordinal:
                 // TODO
@@ -745,8 +747,11 @@ std::string ReadStmtNode::genAsmCode() {
                         // TODO
                         break;
                     case struct_string:
-                        // asm_code += get_reg_xchg(t_table[1], t_table[0]);
-                        // asm_code += get_write("str_ptr");
+                        asm_code += get_reg_save(s_table[1]);
+                        asm_code += expr->genAsmCodeRHS();
+                        asm_code += get_reg_xchg(t_table[1], s_table[1]);
+                        asm_code += get_reg_restore(s_table[1]);
+                        asm_code += get_read("str_ptr");
                         break;
                 }
                 break;
@@ -757,8 +762,6 @@ std::string ReadStmtNode::genAsmCode() {
                 // TODO
                 break;
         }
-        asm_code += get_reg_xchg(t_table[2], t_table[0]);
-        asm_code += expr->genAsmCodeLHS();
     }
     return asm_code;
 }
