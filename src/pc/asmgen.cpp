@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
@@ -358,6 +358,11 @@ string get_float_calc(string operation) {
         res += "\taddi a0, x0, " + to_string(ECALL_REAL_DIV) + "\n";
         res += "\tadd a1, x0, t1\n";
         res += "\tadd a2, x0, t2\n";
+        res += "\tecall\n";
+        res += "\tadd t0, x0, a0\n";
+    } else if (operation == "fit") {
+        res += "\taddi a0, x0, " + to_string(ECALL_REAL_FIT) + "\n";
+        res += "\tadd a1, x0, t1\n";
         res += "\tecall\n";
         res += "\tadd t0, x0, a0\n";
     }

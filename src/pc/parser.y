@@ -230,7 +230,7 @@ IndexTypeList: IndexTypeList SYM_COMMA Type {
 }
 
 StringTypeDef: SID_STRING {
-    $$ = new StringAttrNode(new ExprNode(new LiteralNode(255)));
+    $$ = new StringAttrNode(new ExprNode(new LiteralNode(512)));
 }| SID_STRING SYM_LSBKT VAL_INT SYM_RSBKT {
     $$ = new StringAttrNode(new ExprNode(new LiteralNode($3))); 
 }| SID_STRING SYM_LSBKT Id SYM_RSBKT {

@@ -153,19 +153,19 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 | 逻辑运算 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 语句：
-|                |   词法/语法分析    |      语义分析      |    汇编代码生成    |
-| :------------- | :----------------: | :----------------: | :----------------: |
-| 赋值语句       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| goto语句       |        :x:         |        :x:         |        :x:         |
-| if语句         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| case语句       | :heavy_check_mark: | :heavy_check_mark: |                    |
-| while语句      | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| repeat语句     | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| for语句        | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| with语句       |        :x:         |        :x:         |        :x:         |
-| 调用语句       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| read/write语句 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| 复合语句       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+|                |   词法/语法分析    |      语义分析      |              汇编代码生成               |
+| :------------- | :----------------: | :----------------: | :-------------------------------------: |
+| 赋值语句       | :heavy_check_mark: | :heavy_check_mark: |           :heavy_check_mark:            |
+| goto语句       |        :x:         |        :x:         |                   :x:                   |
+| if语句         | :heavy_check_mark: | :heavy_check_mark: |           :heavy_check_mark:            |
+| case语句       | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>(有未知Bug) |
+| while语句      | :heavy_check_mark: | :heavy_check_mark: |           :heavy_check_mark:            |
+| repeat语句     | :heavy_check_mark: | :heavy_check_mark: |           :heavy_check_mark:            |
+| for语句        | :heavy_check_mark: | :heavy_check_mark: |           :heavy_check_mark:            |
+| with语句       |        :x:         |        :x:         |                   :x:                   |
+| 调用语句       | :heavy_check_mark: | :heavy_check_mark: |           :heavy_check_mark:            |
+| read/write语句 | :heavy_check_mark: | :heavy_check_mark: |           :heavy_check_mark:            |
+| 复合语句       | :heavy_check_mark: | :heavy_check_mark: |           :heavy_check_mark:            |
 
 作用域相关：
 |                      |   词法/语法分析    |      语义分析      |    汇编代码生成    |
@@ -270,17 +270,22 @@ make test1
 make test2
 ```
 
+使用TA提供的选课助手测试工具：
+```bash
+make test3
+```
+
 pas目录下示例代码说明
 
-| 文件名                                     | 功能                     |
-| :----------------------------------------- | :----------------------- |
-| array_record_nest.pas                      | 测试数组记录嵌套寻址     |
-| error_detect.pas                           | 测试错误检测             |
-| fib_iterative.pas                          | 斐波那契数列（循环）     |
-| fib_recursive.pas                          | 斐波那契数列（递归）     |
-| letter_count.pas                           | 统计单词中字母出现的次数 |
-| mat_mul.pas（TestCase2:heavy_check_mark:） | 矩阵乘法                 |
-| multiple_table.pas                         | 打印乘法表（三种循环）   |
-| nest.pas                                   | 测试作用域               |
-| parser_test.pas                            | 测试语法分析             |
-| qsort.pas（TestCase1:heavy_check_mark:）   | 快速排序                 |
+| 文件名                                          | 功能                     |
+| :---------------------------------------------- | :----------------------- |
+| auto_advisor.pas（TestCase3:heavy_check_mark:） | 选课助手                 |
+| error_detect.pas                                | 测试错误检测             |
+| fib_iterative.pas                               | 斐波那契数列（循环）     |
+| fib_recursive.pas                               | 斐波那契数列（递归）     |
+| letter_count.pas                                | 统计单词中字母出现的次数 |
+| mat_mul.pas（TestCase2:heavy_check_mark:）      | 矩阵乘法                 |
+| multiple_table.pas                              | 打印乘法表（三种循环）   |
+| nest.pas                                        | 测试作用域               |
+| parser_test.pas                                 | 测试语法分析             |
+| qsort.pas（TestCase1:heavy_check_mark:）        | 快速排序                 |

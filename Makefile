@@ -8,7 +8,7 @@ CC := clang++
 CFLAG := -std=c++11 -Oz -ffunction-sections -fdata-sections
 LFLAG := -s -flto=thin -Wl,--gc-sections
 
-.PHONY: all pc as util sim build clean visual compile diagnose run debug test1 test2
+.PHONY: all pc as util sim build clean visual compile diagnose run debug test1 test2 test3
 
 all: build
 
@@ -62,3 +62,8 @@ test2: build
 	@$(MAKE) compile PAS_SRC=mat_mul.pas
 	@echo "#! /bin/bash \n $(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF" > tester/agent.sh
 	tester/matrix-multiplication tester/agent.sh
+
+test3: build
+	@$(MAKE) compile PAS_SRC=auto_advisor.pas
+	@echo "#! /bin/bash \n $(BIN_DIR)/rvsim $(BIN_DIR)/target.bin -s 0xFFFFFF" > tester/agent.sh
+	tester/auto-advisor tester/agent.sh

@@ -136,6 +136,8 @@ TypeAttrNode *ExprNode::getResultType() {
                 if (eval_type == EK_Eq || eval_type == EK_Ne || eval_type == EK_Lt ||
                     eval_type == EK_Gt || eval_type == EK_Le || eval_type == EK_Ge)
                     return res_type = new TypeAttrNode(new BasicAttrNode(boolean));
+                if (eval_type == EK_Fdiv)
+                    return res_type = new TypeAttrNode(new BasicAttrNode(real));
                 return res_type = t2;
             }
             case el_literal: return res_type = literal_attr->getResultType();
@@ -185,7 +187,7 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
             asm_code += get_load_imm(0);
         asm_code += get_reg_xchg(t_table[2], t_table[0]);
         asm_code += get_reg_restore(t_table[1]);
-        BasicTypeKind op_type = op1->getResultType()->getBasicAttrNode()->getType();
+        BasicTypeKind op1_type = op1->getResultType()->getBasicAttrNode()->getType();
         // TODO: Basic Type for Ordinal
         switch (getResultType()->getType()) {
             case basic:
@@ -227,6 +229,18 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                         }
                         break;
                     case real:
+                        if (op1_type != real) {
+                            asm_code += get_float_calc("fit");
+                            asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                        }
+                        if (op2 != nullptr &&
+                            op1->getResultType()->getBasicAttrNode()->getType() != real) {
+                            asm_code += get_reg_save(t_table[1]);
+                            asm_code += get_reg_xchg(t_table[1], t_table[2]);
+                            asm_code += get_float_calc("fit");
+                            asm_code += get_reg_xchg(t_table[2], t_table[0]);
+                            asm_code += get_reg_restore(t_table[1]);
+                        }
                         switch (eval_type) {
                             case EK_Pos: asm_code += get_float_calc("fadd"); break;
                             case EK_Neg: asm_code += get_float_calc("fsub"); break;
@@ -237,7 +251,13 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                             default: break;  // TODO
                         }
                         break;
-                    case character: break;
+                    case character:
+                        switch (eval_type) {
+                            case EK_Add: asm_code += get_integer_calc("add", true); break;
+                            case EK_Sub: asm_code += get_integer_calc("sub", true); break;
+                            default: break;  // TODO
+                        }
+                        break;
                 }
                 break;
             case ordinal: break;  // TODO

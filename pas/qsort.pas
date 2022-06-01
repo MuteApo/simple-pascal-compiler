@@ -5,18 +5,18 @@ var
 
 procedure qsort(l, r: integer);
 var
-    i, j, mid: integer;
+    i, j, p, t: integer;
 begin
     i := l;
     j := r;
-    mid:= a[(l + r) div 2];
+    p:= a[(l + r) div 2];
     repeat
-        while a[i] < mid do i := i + 1;
-        while a[j] > mid do j := j - 1;
+        while a[i] < p do i := i + 1;
+        while a[j] > p do j := j - 1;
         if i <= j then begin
-            a[0] := a[i];
+            t := a[i];
             a[i] := a[j];
-            a[j] := a[0];
+            a[j] := t;
             i := i + 1;
             j := j - 1;
         end;

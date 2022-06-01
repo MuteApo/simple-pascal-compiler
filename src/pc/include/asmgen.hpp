@@ -12,14 +12,15 @@
 #define ECALL_REAL_SUB 5
 #define ECALL_REAL_MUL 6
 #define ECALL_REAL_DIV 7
-#define ECALL_PRT_CHAR 8
-#define ECALL_PRT_STR 9
-#define ECALL_PRT_INT 10
-#define ECALL_PRT_REAL 11
-#define ECALL_READ_CHAR 12
-#define ECALL_READ_STR 13
-#define ECALL_READ_INT 14
-#define ECALL_READ_REAL 15
+#define ECALL_REAL_FIT 8
+#define ECALL_PRT_CHAR 9
+#define ECALL_PRT_STR 10
+#define ECALL_PRT_INT 11
+#define ECALL_PRT_REAL 12
+#define ECALL_READ_CHAR 13
+#define ECALL_READ_STR 14
+#define ECALL_READ_INT 15
+#define ECALL_READ_REAL 16
 
 // All ASM Snippets use Static Register Allocation Policy below:
 // 1 - Atom Operation: t0 = t1 BASIC_OP(binary operator) t2, or

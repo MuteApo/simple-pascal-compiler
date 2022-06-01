@@ -20,33 +20,38 @@ void proc_ecall(bool &finish) {
         case ECALL_INT_DIV: write_register(10, arg1 / arg2); break;
         case ECALL_INT_MOD: write_register(10, arg1 % arg2); break;
         case ECALL_REAL_ADD: {
-            float res = *(float *)&arg1 + *(float *)&arg1;
+            float res = *(float *)&arg1 + *(float *)&arg2;
             write_register(10, *(uint32_t *)&res);
             break;
         }
         case ECALL_REAL_SUB: {
-            float res = *(float *)&arg1 - *(float *)&arg1;
+            float res = *(float *)&arg1 - *(float *)&arg2;
             write_register(10, *(uint32_t *)&res);
             break;
         }
         case ECALL_REAL_MUL: {
-            float res = *(float *)&arg1 * *(float *)&arg1;
+            float res = *(float *)&arg1 * *(float *)&arg2;
             write_register(10, *(uint32_t *)&res);
             break;
         }
         case ECALL_REAL_DIV: {
-            float res = *(float *)&arg1 / *(float *)&arg1;
+            float res = *(float *)&arg1 / *(float *)&arg2;
+            write_register(10, *(uint32_t *)&res);
+            break;
+        }
+        case ECALL_REAL_FIT: {
+            float res = arg1;
             write_register(10, *(uint32_t *)&res);
             break;
         }
         case ECALL_PRT_CHAR: printf("%c", (char)arg1); break;
         case ECALL_PRT_STR: printf("%s", get_ram_ptr(arg1)); break;
         case ECALL_PRT_INT: printf("%d", arg1); break;
-        case ECALL_PRT_REAL: printf("%g", *(float *)&arg1); break;
+        case ECALL_PRT_REAL: printf("%.1f", *(float *)&arg1); break;
         case ECALL_READ_CHAR: write_register(11, (uint32_t)getchar()); break;
         case ECALL_READ_STR: {
             string line = "";
-            cin >> line;
+            getline(cin, line);
             memcpy(get_ram_ptr(arg1), line.data(), line.length() + 1);
             break;
         }
