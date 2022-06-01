@@ -683,15 +683,21 @@ std::string IdNode::genAsmCode() {  // const is replaced using literal node befo
             int                    arg_len   = 0;
             std::set<VarTableItem>::iterator iter = scope_var.begin();
             while (iter != scope_var.end()) {
-                if (iter->var_type == VTI_ArgVal || iter->var_type == VTI_ArgVar) {
+                if (iter->var_type == VTI_ArgVal) {
                     arg_len += iter->var_def->getType()->getLength();
+                } else if (iter->var_type == VTI_ArgVar) {
+                    arg_len += BASIC_PTR_LEN;
                 }
                 iter++;
             }
             asm_code += get_retval_addr(arg_len);
             asm_code += get_reg_xchg(s_table[1], t_table[0]);
         } else if (var_type == VTI_ArgVar) {
-            // TODO
+            // Get pointer to the referenced varaible
+            asm_code += get_param_addr(var_offset);
+            asm_code += get_reg_xchg(t_table[1], t_table[0]);
+            asm_code += get_mem_access(BASIC_PTR_LEN, false, false);
+            asm_code += get_reg_xchg(s_table[1], t_table[0]);
         } else if (var_type == VTI_ArgVal) {
             asm_code += get_param_addr(var_offset);
             asm_code += get_reg_xchg(s_table[1], t_table[0]);

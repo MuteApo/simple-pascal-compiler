@@ -667,20 +667,34 @@ std::string FuncStmtNode::genAsmCode() {
     if (param_def_node != nullptr) {
         std::vector<ParamDefNode *> param_list = param_def_node->getParamList();
         for (int i = param_list.size() - 1; i >= 0; i--) {
-            ExprNode     *arg_expr   = func->getArgList()->getExprList().at(i);
-            TypeAttrNode *param_type = param_list.at(i)->getVarDef()->getType();
+            ExprNode     *arg_expr = func->getArgList()->getExprList().at(i);
+            TypeAttrNode *arg_type = arg_expr->getResultType();
             if (param_list.at(i)->isRef()) {
-                // TODO
+                arg_len += BASIC_PTR_LEN;
+                if (arg_expr->isMemAccessRoot()) {
+                    // TODO: Left-Value check for ArgVal
+                    ExprNodeType node_type = arg_expr->getNodeType();
+                    if (node_type == el_var_access) {
+                        param_copy_code += arg_expr->getVarAccessNode()->genAsmCode();
+                    } else if (node_type == el_id) {
+                        param_copy_code += arg_expr->getIdNode()->genAsmCode();
+                    }
+                } else {
+                    param_copy_code += arg_expr->genAsmCodeRHS();
+                }
+                param_copy_code += get_reg_xchg(t_table[2], s_table[1]);
+                param_copy_code += get_param_store();
             } else {
-                int var_len = param_type->getLength();
+                int var_len = arg_type->getLength();
                 arg_len += var_len;
-                if (param_type->getType() != structured) {
+                if (arg_type->getType() != structured) {
                     param_copy_code += arg_expr->genAsmCodeRHS();
                     param_copy_code += get_reg_xchg(t_table[2], t_table[0]);
                     param_copy_code += get_param_store();
                 } else {
-                    // TODO
-                    // param_copy_code += get_param_copy(var_len);
+                    param_copy_code += arg_expr->genAsmCodeRHS();
+                    param_copy_code += get_reg_xchg(t_table[2], s_table[1]);
+                    param_copy_code += get_param_copy(var_len);
                 }
             }
         }

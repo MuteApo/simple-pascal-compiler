@@ -1,6 +1,6 @@
 BIN_DIR := bin
 PAS_DIR := pas
-PAS_SRC := fib_recursive.pas
+PAS_SRC := nest.pas
 
 NPROC := $(shell nproc)
 
@@ -33,7 +33,7 @@ clean:
 	@$(MAKE) -C src/sim clean
 
 visual: pc
-	$(BIN_DIR)/pc -i $(PAS_DIR)/$(PAS_SRC) -V $(BIN_DIR)/tree_run0.viz $(BIN_DIR)/tree_run1.viz
+	$(BIN_DIR)/pc -i $(PAS_DIR)/$(PAS_SRC) -o $(BIN_DIR)/assembly.S -V $(BIN_DIR)/tree_run0.viz $(BIN_DIR)/tree_run1.viz
 	dot -Tsvg -o $(BIN_DIR)/tree_run0.svg $(BIN_DIR)/tree_run0.viz
 	dot -Tsvg -o $(BIN_DIR)/tree_run1.svg $(BIN_DIR)/tree_run1.viz
 
