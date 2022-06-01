@@ -1,7 +1,7 @@
 program env;
 var 
     x: integer;
-function a(m: integer; var n: integer):integer;
+function a(m: integer; n: integer):integer;
     var
         x: integer;
     procedure b;
@@ -14,12 +14,10 @@ begin
     x:=2;
     writeln(x);
     b;
-    {writeln(x);}
-    {write(m, n);}
-    a := 12;
+    a := m + n;
 end;
 
 begin
-    x := a(1, 2);
+    x := a(4, 5);
     writeln(x);
 end.

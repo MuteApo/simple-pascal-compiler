@@ -1,6 +1,6 @@
 BIN_DIR := bin
 PAS_DIR := pas
-PAS_SRC := nest.pas
+PAS_SRC := fib_recursive.pas
 
 NPROC := $(shell nproc)
 

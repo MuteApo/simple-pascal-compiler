@@ -1,4 +1,4 @@
-program r_fib;
+program fibr;
 var
     i: integer;
 
@@ -10,5 +10,5 @@ begin
 end; 
 
 begin
-    for i := 1 to 10 do fib(2 * i + 1);
+    for i := 1 to 10 do writeln('fib(', i, ') = ', fib(i));
 end.

@@ -24,10 +24,10 @@ const uint8_t a_table[8]  = {10, 11, 12, 13, 14, 15, 16, 17};
 // a1: defination level of the func/proc
 // func/proc's Activation Record:
 // ------------------------------ (High Address)
+// |        Return Value        | {4 bytes, only for func, BasicRealType}
+// |----------------------------|
 // |          List of           | {Leftest in arg list is at lowest addr}
 // |         Parameters         |
-// |----------------------------|
-// |        Return Value        | {4 bytes, only for func, BasicRealType}
 // |----------------------------|
 // |    CALL Lv - DEF Lv + 1    | {4 bytes (one word), as indirect access link}
 // |----------------------------|
@@ -83,7 +83,7 @@ std::string get_local_addr(int32_t local_offset);
 
 std::string get_global_addr(std::string name);
 
-std::string get_param_addr(uint32_t param_offset, bool has_retval);
+std::string get_param_addr(uint32_t param_offset);
 
 // Always load memory cell to t0, and write t2 to memory cell
 // Memory address is in t1
@@ -110,12 +110,15 @@ std::string get_func_framework(bool is_head, std::string name = "", uint32_t loc
 // t2: source of parameter
 std::string get_param_copy(uint32_t length);
 
+// Store single basic or ordinal type parameter in t2
+std::string get_param_store(void);
+
 std::string get_func_call(
     std::string name, std::string param_copy, bool has_retval, uint32_t call_lv, uint32_t def_lv);
 
-std::string get_retval_read(void);
+std::string get_retval_read(uint32_t arg_len);
 
-std::string get_retval_addr(void);
+std::string get_retval_addr(uint32_t arg_len);
 
 std::string get_func_cleanup(uint32_t arg_len, bool has_retval);
 

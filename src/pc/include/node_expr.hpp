@@ -247,6 +247,8 @@ class FuncNode {
 
     std::string genVizCode(int run);
 
+    ExprListNode *getArgList();
+
     bool testArgType();
 
     TypeAttrNode *getResultType();

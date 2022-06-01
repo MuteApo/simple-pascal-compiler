@@ -669,12 +669,22 @@ std::string IdNode::genAsmCode() {  // const is replaced using literal node befo
                 // TODO: non-local & non-global variable
             }
         } else if (var_type == VTI_RetVal) {
-            asm_code += get_retval_addr();
+            std::set<VarTableItem> scope_var = symbol_table.getVarScope(symbol_table.getLevel());
+            int                    arg_len   = 0;
+            std::set<VarTableItem>::iterator iter = scope_var.begin();
+            while (iter != scope_var.end()) {
+                if (iter->var_type == VTI_ArgVal || iter->var_type == VTI_ArgVar) {
+                    arg_len += iter->var_def->getType()->getLength();
+                }
+                iter++;
+            }
+            asm_code += get_retval_addr(arg_len);
             asm_code += get_reg_xchg(s_table[1], t_table[0]);
         } else if (var_type == VTI_ArgVar) {
             // TODO
         } else if (var_type == VTI_ArgVal) {
-            // TODO
+            asm_code += get_param_addr(var_offset);
+            asm_code += get_reg_xchg(s_table[1], t_table[0]);
         }
     }
     return asm_code;
@@ -744,6 +754,10 @@ TypeAttrNode *FuncNode::getResultType() {
     FuncDefNode *func = symbol_table.findFuncSymbol(func_name);
     if (func == nullptr) throw UndefineError(line_no, func_name);
     return res_type = func->getRetValType();
+}
+
+ExprListNode *FuncNode::getArgList() {
+    return arg_list;
 }
 
 // Generate a function call with retval with FuncStmtNode()

@@ -359,10 +359,9 @@ string get_global_addr(string name) {
 }
 
 // Will broke content in t1
-string get_param_addr(uint32_t param_offset, bool has_retval) {
+string get_param_addr(uint32_t param_offset) {
     string res = "";
     res += "\taddi t0, fp, 56\n";
-    if (has_retval) res += "\taddi t0, t0, 4\n";
     res += "\tli t1, " + to_string(param_offset) + "\n";
     res += "\tadd t0, t1, t0\n";
     return res;
@@ -461,11 +460,18 @@ string get_param_copy(uint32_t length) {
     return res;
 }
 
+std::string get_param_store(void) {
+    string res = "";
+    res += "\taddi sp, sp, -4\n";
+    res += "\tsw t2, 0(sp)\n";
+    return res;
+}
+
 string
 get_func_call(string name, string param_copys, bool has_retval, uint32_t call_lv, uint32_t def_lv) {
     string res = "";
-    res += param_copys;
     if (has_retval) res += "\taddi sp, sp, -4\n";
+    res += param_copys;
     res += "\tli a0, " + to_string(call_lv) + "\n";
     res += "\tli a1, " + to_string(def_lv) + "\n";
     res += "\tcall " + name + "\n";
@@ -473,17 +479,22 @@ get_func_call(string name, string param_copys, bool has_retval, uint32_t call_lv
 }
 
 // For caller to get return value
-std::string get_retval_read() {
+std::string get_retval_read(uint32_t arg_len) {
     string res = "";
-    res += "\taddi t1, sp, 0\n";
+    res += "\tli t1, " + to_string(arg_len) + "\n";
+    res += "\tadd t1, sp, t1\n";
     res += get_mem_access(4, false, false);
     return res;
 }
 
 // For callee to put return value
-std::string get_retval_addr() {
+std::string get_retval_addr(uint32_t arg_len) {
+    string res = "";
     // 56 = 4 * (1 (indirect access link) + 1 (old ra) + 11 (old s1-s11) + 1 (old fp))
-    return "\taddi t0, fp, 56\n";
+    res += "\taddi t0, fp, 56\n";
+    res += "\tli t1, " + to_string(arg_len) + "\n";
+    res += "\tadd t0, t0, t1\n";
+    return res;
 }
 
 // Clean params and retval after a call
