@@ -46,7 +46,7 @@ int ParamDefNode::genSymbolTable(int offset) {
 }
 
 bool ParamDefNode::testArgType(TypeAttrNode *type) {
-    return var_def->getType()->isTypeEqual(type);
+    return var_def->getType()->isTypeCompatible(type);
 }
 
 ParamDefListNode::ParamDefListNode() : uid(++global_uid), line_no(yylineno) {

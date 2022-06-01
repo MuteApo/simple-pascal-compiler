@@ -230,6 +230,15 @@ bool TypeAttrNode::isTypeEqual(TypeAttrNode *type, bool use_struct) {
     return false;
 }
 
+bool TypeAttrNode::isTypeCompatible(TypeAttrNode *type) {
+    if (isTypeEqual(type)) return true;
+    if (root_type == basic && type->root_type == basic) return true;
+    if (root_type == ordinal && type->root_type == basic) return ord_attr->isTypeCompatible(type);
+    if (type->root_type == ordinal && root_type == basic)
+        return type->ord_attr->isTypeCompatible(this);
+    return false;
+}
+
 std::string TypeAttrNode::genAsmDef(std::string var_name) {
     std::string           asm_def = "";
     std::vector<uint8_t>  field_size;
@@ -355,7 +364,7 @@ bool TypeAttrListNode::testIndexType(ExprListNode *indices) {
     if (type_attrs.size() != index_list.size())
         throw IndexDimensionError(indices->getLineNumber(), type_attrs.size(), index_list.size());
     for (int i = 0; i < type_attrs.size(); i++)
-        if (!type_attrs.at(i)->isTypeEqual(index_list.at(i)->getResultType()))
+        if (!type_attrs.at(i)->isTypeCompatible(index_list.at(i)->getResultType()))
             throw IndexTypeError(indices->getLineNumber(),
                                  i + 1,
                                  type_attrs.at(i)->getTypeString(),
@@ -482,6 +491,10 @@ bool OrdAttrNode::isTypeEqual(OrdAttrNode *type) {
                          enum_attr->isTypeEqual(type->enum_attr);
 }
 
+bool OrdAttrNode::isTypeCompatible(TypeAttrNode *type) {
+    return is_subrange ? subrange_attr->isTypeCompatible(type) : enum_attr->isTypeCompatible(type);
+}
+
 SubrangeAttrNode::SubrangeAttrNode(ExprNode *lb, ExprNode *ub)
         : uid(++global_uid),
           line_no(yylineno),
@@ -543,6 +556,10 @@ bool SubrangeAttrNode::isTypeEqual(SubrangeAttrNode *type) {
     return true;
 }
 
+bool SubrangeAttrNode::isTypeCompatible(TypeAttrNode *type) {
+    return low_bound->getResultType()->isTypeEqual(type);
+}
+
 EnumAttrNode::EnumAttrNode(std::vector<ExprNode *> exprs)
         : uid(++global_uid), line_no(yylineno), is_sym_gen(false) {
     items.clear();
@@ -597,6 +614,11 @@ bool EnumAttrNode::isTypeEqual(EnumAttrNode *type) {
     for (int i = 0; i < items.size(); i++)
         if (items.at(i) != type->items.at(i)) return false;
     return true;
+}
+
+bool EnumAttrNode::isTypeCompatible(TypeAttrNode *type) {
+    if (type->root_type != basic) return false;
+    return type->basic_attr->getType() == integer;
 }
 
 StructAttrNode::StructAttrNode(StructTypeKind  st,
@@ -771,8 +793,7 @@ bool ArrayAttrNode::isTypeEqual(ArrayAttrNode *type) {
 
 bool ArrayAttrNode::testIndexType(ExprListNode *indices) {
     try {
-        // TODO temporary removed
-        // index_type->testIndexType(indices);
+        index_type->testIndexType(indices);
     } catch (IndexDimensionError &e) {
         throw e;
     } catch (IndexTypeError &e) {

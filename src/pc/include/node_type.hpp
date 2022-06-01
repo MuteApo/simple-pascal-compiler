@@ -132,6 +132,8 @@ class TypeAttrNode {
 
     bool isTypeEqual(TypeAttrNode *type, bool use_struct = true);
 
+    bool isTypeCompatible(TypeAttrNode *type);
+
     std::string genAsmDef(std::string var_name);
 };
 
@@ -230,6 +232,8 @@ class OrdAttrNode {
     bool genSymbolTable();
 
     bool isTypeEqual(OrdAttrNode *type);
+
+    bool isTypeCompatible(TypeAttrNode *type);
 };
 
 class SubrangeAttrNode {
@@ -260,6 +264,8 @@ class SubrangeAttrNode {
     void translateId();
 
     bool isTypeEqual(SubrangeAttrNode *type);
+
+    bool isTypeCompatible(TypeAttrNode *type);
 };
 
 class EnumAttrNode {
@@ -288,6 +294,8 @@ class EnumAttrNode {
     bool genSymbolTable();
 
     bool isTypeEqual(EnumAttrNode *type);
+
+    bool isTypeCompatible(TypeAttrNode *type);
 };
 
 class StructAttrNode {
