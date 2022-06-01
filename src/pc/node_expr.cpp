@@ -226,7 +226,17 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                             default: break;  // TODO
                         }
                         break;
-                    case real: break;
+                    case real:
+                        switch (eval_type) {
+                            case EK_Pos: asm_code += get_float_calc("fadd"); break;
+                            case EK_Neg: asm_code += get_float_calc("fsub"); break;
+                            case EK_Add: asm_code += get_float_calc("fadd"); break;
+                            case EK_Sub: asm_code += get_float_calc("fsub"); break;
+                            case EK_Mul: asm_code += get_float_calc("fmul"); break;
+                            case EK_Fdiv: asm_code += get_float_calc("fdiv"); break;
+                            default: break;  // TODO
+                        }
+                        break;
                     case character: break;
                 }
                 break;
@@ -410,7 +420,7 @@ std::string LiteralNode::genAsmCode() {
             switch (type->getType()) {
                 case boolean: val = bval; break;
                 case integer: val = ival; break;
-                case real: *(float *)(&val) = dval; break;
+                case real: *(float *)&val = dval; break;
                 case character: val = cval; break;
             }
             asm_code += get_load_imm(val);

@@ -731,9 +731,7 @@ std::string ReadStmtNode::genAsmCode() {
                     case integer: asm_code += get_read("int"); break;
                     case boolean: asm_code += get_read("bool"); break;
                     case character: asm_code += get_read("char"); break;
-                    case real:
-                        // TODO
-                        break;
+                    case real: asm_code += get_read("real"); break;
                 }
                 asm_code += get_reg_xchg(t_table[2], t_table[0]);
                 asm_code += expr->genAsmCodeLHS();
@@ -809,7 +807,8 @@ std::string WriteStmtNode::genAsmCode() {
                         asm_code += get_write("char");
                         break;
                     case real:
-                        // TODO
+                        asm_code += get_reg_xchg(t_table[1], t_table[0]);
+                        asm_code += get_write("real");
                         break;
                 }
                 break;

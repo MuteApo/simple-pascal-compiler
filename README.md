@@ -126,17 +126,17 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 | 常量   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 类型与变量定义：
-|            |   词法/语法分析    |      语义分析      |                汇编代码生成                |
-| :--------- | :----------------: | :----------------: | :----------------------------------------: |
-| 实类型     | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（未实现Real） |
-| 字符串类型 | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
-| 枚举类型   | :heavy_check_mark: | :heavy_check_mark: |                                            |
-| 子界类型   | :heavy_check_mark: | :heavy_check_mark: |                                            |
-| 集合类型   |                    |                    |                                            |
-| 数组类型   | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
-| 记录类型   | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
-| 指针类型   | :heavy_check_mark: | :heavy_check_mark: |                                            |
-| 过程和函数 | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+|            |   词法/语法分析    |      语义分析      |    汇编代码生成    |
+| :--------- | :----------------: | :----------------: | :----------------: |
+| 实类型     | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 字符串类型 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 枚举类型   | :heavy_check_mark: | :heavy_check_mark: |                    |
+| 子界类型   | :heavy_check_mark: | :heavy_check_mark: |                    |
+| 集合类型   |                    |                    |                    |
+| 数组类型   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 记录类型   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 指针类型   | :heavy_check_mark: | :heavy_check_mark: |                    |
+| 过程和函数 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 结构化变量访问：
 |              |   词法/语法分析    |      语义分析      |    汇编代码生成    |
@@ -146,26 +146,26 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 | 指针变量访问 | :heavy_check_mark: | :heavy_minus_sign: |                    |
 
 表达式：
-|          |   词法/语法分析    |      语义分析      |              汇编代码生成              |
-| :------- | :----------------: | :----------------: | :------------------------------------: |
-| 算术运算 | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅整型） |
-| 关系运算 | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅整型） |
-| 逻辑运算 | :heavy_check_mark: | :heavy_check_mark: |           :heavy_check_mark:           |
+|          |   词法/语法分析    |      语义分析      |    汇编代码生成    |
+| :------- | :----------------: | :----------------: | :----------------: |
+| 算术运算 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 关系运算 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 逻辑运算 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 语句：
-|                |   词法/语法分析    |      语义分析      |                  汇编代码生成                  |
-| :------------- | :----------------: | :----------------: | :--------------------------------------------: |
-| 赋值语句       | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅整型、字符串） |
-| goto语句       |        :x:         |        :x:         |                      :x:                       |
-| if语句         | :heavy_check_mark: | :heavy_check_mark: |               :heavy_check_mark:               |
-| case语句       | :heavy_check_mark: | :heavy_check_mark: |                                                |
-| while语句      | :heavy_check_mark: | :heavy_check_mark: |               :heavy_check_mark:               |
-| repeat语句     | :heavy_check_mark: | :heavy_check_mark: |               :heavy_check_mark:               |
-| for语句        | :heavy_check_mark: | :heavy_check_mark: |               :heavy_check_mark:               |
-| with语句       |        :x:         |        :x:         |                      :x:                       |
-| 调用语句       | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅无参过程调用） |
-| read/write语句 | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅整型、字符串） |
-| 复合语句       | :heavy_check_mark: | :heavy_check_mark: |               :heavy_check_mark:               |
+|                |   词法/语法分析    |      语义分析      |                汇编代码生成                |
+| :------------- | :----------------: | :----------------: | :----------------------------------------: |
+| 赋值语句       | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+| goto语句       |        :x:         |        :x:         |                    :x:                     |
+| if语句         | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+| case语句       | :heavy_check_mark: | :heavy_check_mark: |                                            |
+| while语句      | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+| repeat语句     | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+| for语句        | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+| with语句       |        :x:         |        :x:         |                    :x:                     |
+| 调用语句       | :heavy_check_mark: | :heavy_check_mark: | :heavy_exclamation_mark:<br>（仅无参调用） |
+| read/write语句 | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
+| 复合语句       | :heavy_check_mark: | :heavy_check_mark: |             :heavy_check_mark:             |
 
 作用域相关：
 |                      |   词法/语法分析    |      语义分析      |    汇编代码生成    |
@@ -175,10 +175,10 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 | 非全局非局部变量访问 | :heavy_minus_sign: | :heavy_check_mark: |                    |
 
 编译器特性：
-|          |   词法/语法分析    |                       语义分析                       |    汇编代码生成    |
-| :------- | :----------------: | :--------------------------------------------------: | :----------------: |
-| 类型检查 | :heavy_minus_sign: | :heavy_exclamation_mark:<br>（仅严格相等、无相容性） | :heavy_minus_sign: |
-| 错误恢复 |                    |               :heavy_exclamation_mark:               | :heavy_minus_sign: |
+|          |   词法/语法分析    |         语义分析         |    汇编代码生成    |
+| :------- | :----------------: | :----------------------: | :----------------: |
+| 类型检查 | :heavy_minus_sign: |    :heavy_check_mark:    | :heavy_minus_sign: |
+| 错误恢复 |                    | :heavy_exclamation_mark: | :heavy_minus_sign: |
 
 ### 四、开发环境
 

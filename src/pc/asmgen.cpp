@@ -7,14 +7,6 @@ using namespace std;
 
 #include "include/asmgen.hpp"
 
-#define ECALL_EXIT 0
-#define ECALL_PRT_CHAR 1
-#define ECALL_PRT_STR 2
-#define ECALL_PRT_INT 3
-#define ECALL_READ_CHAR 4
-#define ECALL_READ_STR 5
-#define ECALL_READ_INT 6
-
 #define GLOBAL_INIT_VAL (0)
 
 bool     in_code_segment;
@@ -227,7 +219,7 @@ string get_integer_calc(string operation, bool is_unsigned) {
     } else if (operation == "mul" || operation == "div" || operation == "mod") {
         if (is_unsigned) {
             if (operation == "mul") {
-                res += "\taddi a0, x0, 7\n";
+                res += "\taddi a0, x0, " + to_string(ECALL_INT_MUL) + "\n";
                 res += "\tadd a1, x0, t1\n";
                 res += "\tadd a2, x0, t2\n";
                 res += "\tecall\n";
@@ -249,13 +241,13 @@ string get_integer_calc(string operation, bool is_unsigned) {
                 // res += "_lbl_" + to_string(internal_label_id + 1) + ":\n";
                 // internal_label_id += 3;
             } else if (operation == "div") {
-                res += "\taddi a0, x0, 8\n";
+                res += "\taddi a0, x0, " + to_string(ECALL_INT_DIV) + "\n";
                 res += "\tadd a1, x0, t1\n";
                 res += "\tadd a2, x0, t2\n";
                 res += "\tecall\n";
                 res += "\tadd t0, x0, a0\n";
             } else if (operation == "mod") {
-                res += "\taddi a0, x0, 9\n";
+                res += "\taddi a0, x0, " + to_string(ECALL_INT_MOD) + "\n";
                 res += "\tadd a1, x0, t1\n";
                 res += "\tadd a2, x0, t2\n";
                 res += "\tecall\n";
@@ -338,6 +330,36 @@ string get_integer_calc(string operation, bool is_unsigned) {
         res += "\taddi t0, x0, 1\n";
     } else {
         printf("%s is not a basic expr\n", operation.data());
+    }
+    return res;
+}
+
+string get_float_calc(string operation) {
+    string res = "";
+    if (operation == "fadd") {
+        res += "\taddi a0, x0, " + to_string(ECALL_REAL_ADD) + "\n";
+        res += "\tadd a1, x0, t1\n";
+        res += "\tadd a2, x0, t2\n";
+        res += "\tecall\n";
+        res += "\tadd t0, x0, a0\n";
+    } else if (operation == "fsub") {
+        res += "\taddi a0, x0, " + to_string(ECALL_REAL_SUB) + "\n";
+        res += "\tadd a1, x0, t1\n";
+        res += "\tadd a2, x0, t2\n";
+        res += "\tecall\n";
+        res += "\tadd t0, x0, a0\n";
+    } else if (operation == "fmul") {
+        res += "\taddi a0, x0, " + to_string(ECALL_REAL_MUL) + "\n";
+        res += "\tadd a1, x0, t1\n";
+        res += "\tadd a2, x0, t2\n";
+        res += "\tecall\n";
+        res += "\tadd t0, x0, a0\n";
+    } else if (operation == "fdiv") {
+        res += "\taddi a0, x0, " + to_string(ECALL_REAL_DIV) + "\n";
+        res += "\tadd a1, x0, t1\n";
+        res += "\tadd a2, x0, t2\n";
+        res += "\tecall\n";
+        res += "\tadd t0, x0, a0\n";
     }
     return res;
 }
@@ -606,10 +628,12 @@ string get_read(string type) {
         res += "\tadd a1, t1, x0\n";
     } else if (type == "int") {
         res += "\taddi a0, x0, " + to_string(ECALL_READ_INT) + "\n";
+    } else if (type == "real") {
+        res += "\taddi a0, x0, " + to_string(ECALL_READ_REAL) + "\n";
     } else
         return "";
     res += "\tecall\n";
-    if (type == "char" || type == "int") res += "\taddi t0, a1, 0\n";
+    if (type != "str_ptr") res += "\taddi t0, a1, 0\n";
     return res;
 }
 
@@ -628,6 +652,8 @@ string get_write(string type) {
         res += "\tbne t1, x0, _lbl_" + to_string(++internal_label_id) + "\n";
         res += "\tla a1, _msg_boolean_false\n";
         res += "_lbl_" + to_string(internal_label_id) + ":\n";
+    } else if (type == "real") {
+        res += "\taddi a0, x0, " + to_string(ECALL_PRT_REAL) + "\n";
     } else
         return "";
     res += "\tecall\n";
