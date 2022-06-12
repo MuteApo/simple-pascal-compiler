@@ -68,7 +68,7 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 
 ### 二、工程结构
 
-``` bash
+``` shell
 ---- / ---- bin 可执行文件构建目录
        |
        ---- doc 参考文档
@@ -189,7 +189,7 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 
 建议在Linux环境下（Docker/VM/wsl）进行开发。Ubuntu下环境搭建：
 
-```bash
+```shell
 # gnu make
 sudo apt install make
 
@@ -203,10 +203,38 @@ sudo apt install flex bison
 sudo apt install graphviz
 ```
 
+Windows下Docker环境的搭建（`cmd`或`PowerShell`下）：
+
+```shell
+@REM build a new image and load it to your docker
+docker build -t cxx-buildpkg:v1.0 .
+
+@REM save the image mentioned above as a file (if needed)
+docker save -o spc-buildenv.tar cxx-buildpkg:v1.0
+
+@REM load image from an existing file
+docker load -i spc-buildenv.tar
+
+@REM create a container from the loaded image above
+docker create --name spc-build -it -v <absolute path to this folder>:/home cxx-buildpkg:v1.0
+
+@REM start and enter the container
+docker start spc-build
+docker exec -it spc-build /bin/bash
+
+@REM stop the container
+docker stop spc-build
+
+@REM remove the container and the image from your docker
+docker rm -f spc-build
+docker rmi -f cxx-buildpkg:v1.0
+```
+
 ### 五、构建与测试
 
 构建可执行文件：
-```bash
+
+```shell
 # Pascal Compiler
 make pc
 
@@ -221,7 +249,8 @@ make sim
 ```
 
 构建上述所有可执行文件：
-```bash
+
+```shell
 make build
 
 # alias
@@ -229,47 +258,56 @@ make all
 ```
 
 清理构建产物：
-```bash
+
+```shell
 make clean
 ```
 
 AST可视化：
-```bash
+
+```shell
 make visual PAS_SRC=fib_recursive.pas
 ```
 
 编译Pascal代码：
-```bash
+
+```shell
 make compile PAS_SRC=fib_recursive.pas
 ```
 
 编译Pascal代码并输出诊断信息：
-```bash
+
+```shell
 make diagnose PAS_SRC=fib_recursive.pas
 ```
 
 使用模拟器运行目标代码：
-```bash
+
+```shell
 make run PAS_SRC=fib_recursive.pas
 ```
 
 使用模拟器调试目标代码：
-```bash
+
+```shell
 make debug PAS_SRC=fib_recursive.pas
 ```
 
 使用TA提供的快速排序测试工具：
-```bash
+
+```shell
 make test1
 ```
 
 使用TA提供的矩阵乘法测试工具：
-```bash
+
+```shell
 make test2
 ```
 
 使用TA提供的选课助手测试工具：
-```bash
+
+```shell
 make test3
 ```
 
