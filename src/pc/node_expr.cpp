@@ -696,7 +696,15 @@ std::string IdNode::genAsmCode() {  // const is replaced using literal node befo
                 asm_code += get_local_addr(var_offset);
                 asm_code += get_reg_xchg(s_table[1], t_table[0]);
             } else {
-                // TODO: non-local & non-global variable
+                // non-local & non-global variable
+                asm_code += get_reg_save(s_table[0]);  // Save original fp
+                for (int i = 0; i < symbol_table.getLevel() - var_level; i++) {
+                    asm_code += get_access_link();
+                    asm_code += get_reg_xchg(s_table[0], t_table[0]);
+                }
+                asm_code += get_local_addr(var_offset);
+                asm_code += get_reg_xchg(s_table[1], t_table[0]);
+                asm_code += get_reg_restore(s_table[0]);
             }
         } else if (var_type == VTI_RetVal) {
             std::set<VarTableItem> scope_var = symbol_table.getVarScope(symbol_table.getLevel());

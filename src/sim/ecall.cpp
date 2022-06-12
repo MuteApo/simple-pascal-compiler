@@ -57,13 +57,13 @@ void proc_ecall(bool &finish) {
         }
         case ECALL_READ_INT: {
             uint32_t num;
-            scanf("%d", &num);
+            int      res = scanf("%d", &num);
             write_register(11, num);
             break;
         }
         case ECALL_READ_REAL: {
             float num;
-            scanf("%f", &num);
+            int   res = scanf("%f", &num);
             write_register(11, *(uint32_t *)&num);
             break;
         }

@@ -89,6 +89,8 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
        |
        ---- .gitignore
        |
+       ---- Dockerfile
+       |
        ---- LICENSE 
        |
        ---- Makefile
@@ -100,13 +102,9 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 
 目前已经完成的模块：
 
-- [x] 建立项目仓库，确定需要实现的Pascal语言标准
-  - 语言标准参考`./doc/Pascal_User_Manual_and_Report_Fourth_Edition.pdf`
-  - 词法分析（Lex）实现参考：
-    - <https://opensource.apple.com/source/flex/flex-26/flex/examples/manual/pascal.lex>
-    - <https://github.com/yinxiaojian/pascal-compiler/blob/master/lex.l>
-  - 语法分析（Yacc）实现参考：
-    - <https://github.com/yinxiaojian/pascal-compiler/blob/master/yacc.y>
+- [x] 建立项目仓库，确定需要实现的Pascal语言标准  
+  - `./doc/pascal-iso-7185-1990.pdf`
+  - `./doc/Pascal_User_Manual_and_Report_Fourth_Edition.pdf`
 - [x] 实现编译器前端
   - [x] 词法分析器（需要移除注释）
   - [x] 语法分析器
@@ -172,7 +170,7 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 | :------------------- | :----------------: | :----------------: | :----------------: |
 | 全局变量定义和访问   | :heavy_minus_sign: | :heavy_check_mark: | :heavy_check_mark: |
 | 局部变量定义和访问   | :heavy_minus_sign: | :heavy_check_mark: | :heavy_check_mark: |
-| 非全局非局部变量访问 | :heavy_minus_sign: | :heavy_check_mark: |                    |
+| 非全局非局部变量访问 | :heavy_minus_sign: | :heavy_check_mark: | :heavy_check_mark: |
 
 编译器特性：
 |          |   词法/语法分析    |         语义分析         |    汇编代码生成    |
@@ -186,17 +184,17 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 
 - 词法分析器自动生成工具Lex（Flex）
 - 语法分析器自动生成工具Yacc（Bison）
-- 源码构建工具GNU make和Clang/LLVM
+- 源码构建工具GNU make和gcc/g++
 - 可视化工具Graphviz
 
 建议在Linux环境下（Docker/VM/wsl）进行开发。Ubuntu下环境搭建：
 
 ```bash
-# gnu tool-chain
-sudo apt install build-essential
+# gnu make
+sudo apt install make
 
-# llvm & clang
-sudo apt install llvm clang
+# gcc & g++
+sudo apt install gcc
 
 # lex & yacc
 sudo apt install flex bison

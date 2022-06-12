@@ -5,15 +5,19 @@ function a(m: integer; n: integer):integer;
     var
         x: integer;
     procedure b;
+        procedure c;
+        begin
+            writeln(x);
+            x := 4;
+        end;
     begin 
-        {x := 3;
-        writeln(x);}
-        writeln(3);
+        x := 3;
+        c;
     end;
 begin
-    x:=2;
-    writeln(x);
+    x := 2; 
     b;
+    writeln(x);
     a := m + n;
 end;
 

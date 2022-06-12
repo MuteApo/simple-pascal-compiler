@@ -4,9 +4,9 @@ PAS_SRC := nest.pas
 
 NPROC := $(shell nproc)
 
-CC := clang++
-CFLAG := -std=c++11 -Oz -ffunction-sections -fdata-sections
-LFLAG := -s -flto=thin -Wl,--gc-sections
+CC := g++
+CFLAG := -std=c++11 -Os -ffunction-sections -fdata-sections
+LFLAG := -Wl,--gc-sections -s
 
 .PHONY: all pc as util sim build clean visual compile diagnose run debug test1 test2 test3
 

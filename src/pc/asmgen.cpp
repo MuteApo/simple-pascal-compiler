@@ -535,16 +535,6 @@ string get_func_cleanup(uint32_t arg_len, bool has_retval) {
     return res;
 }
 
-string get_fp_before(uint32_t level_to_jump) {
-    string res = "";
-    res += "\tli t1, " + to_string(level_to_jump) + "\n";
-    res += "_lbl_" + to_string(++internal_label_id) + ":\n";
-    res += "\tlw t0, 0(t0)\n";  // x0 = old fp
-    res += "\taddi t1, t1, -1\n";
-    res += "\tbne t1, x0, " + to_string(internal_label_id) + "\n";
-    return res;
-}
-
 // fp of target level of AR is finally in t0
 string get_access_link(void) {
     string res = "";
@@ -553,7 +543,7 @@ string get_access_link(void) {
     res += "_lbl_" + to_string(++internal_label_id) + ":\n";
     res += "\tlw t0, 0(t0)\n";  // x0 = old fp
     res += "\taddi t1, t1, -1\n";
-    res += "bne t1, x0, " + to_string(internal_label_id) + "\n";
+    res += "\tbne t1, x0, _lbl_" + to_string(internal_label_id) + "\n";
     return res;
 }
 

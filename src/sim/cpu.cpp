@@ -298,7 +298,7 @@ bool exec_inst(uint32_t inst, bool exec, bool &finish, bool &skip_pc_inc, string
 }
 
 void stat_cpu(void) {
-    system(CLS);
+    int res = system(CLS);
     printf("PC: 0x%08X\n", get_pc());
     printf("\nGeneral Registers:\n");
     for (int reg_id = 0; reg_id < 32; reg_id++) {

@@ -17,8 +17,8 @@ bool init_ram(FILE *binary_file, uint32_t load_base, uint32_t ram_size) {
         avail_size = ram_size;
     }
     fseek(binary_file, 0, SEEK_SET);
-    fread(ram + load_base, 1, binary_size, binary_file);
-    return true;
+    size_t s = fread(ram + load_base, 1, binary_size, binary_file);
+    return s == binary_size;
 }
 
 uint32_t read_ram_byte(uint32_t addr, bool is_unsigned) {

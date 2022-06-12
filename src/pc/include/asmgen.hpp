@@ -142,8 +142,6 @@ std::string get_retval_addr(uint32_t arg_len);
 
 std::string get_func_cleanup(uint32_t arg_len, bool has_retval);
 
-std::string get_fp_before(uint32_t level_to_jump);
-
 std::string get_access_link(void);
 
 /** Basic Statement and Dynamic Check **/

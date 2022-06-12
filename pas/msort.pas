@@ -7,8 +7,7 @@ procedure msort(l, r: integer);
 var
     m, i: integer;
 
-    { procedure sort(l, r: integer); m is accessed as non-global-non-local var in msort(), rather param to sort() }
-    procedure sort(l, m, r: integer); 
+    procedure sort(l, r: integer);
     var
         i, j, k: integer;
     begin
@@ -43,8 +42,7 @@ begin
         msort(l, m);
         msort(m + 1, r);
     end;
-    { sort(l, r); }
-    sort(l, m, r);
+    sort(l, r);
     for i := l to r do a[i] := b[i];
 end;
 
