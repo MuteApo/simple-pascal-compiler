@@ -193,7 +193,7 @@ std::string StmtNode::genVizCode(int run) {
             result += vizEdge(uid, write_stmt->getUid(), "write", "Write Statement");
             result += write_stmt->genVizCode(run);
             break;
-        default: break;  // TODO
+        default: break;
     }
     return result;
 }
@@ -797,12 +797,6 @@ std::string ReadStmtNode::genAsmCode() {
                 break;
             case structured:
                 switch (expr->getResultType()->getStructAttr()->getType()) {
-                    case struct_array:
-                        // TODO
-                        break;
-                    case struct_record:
-                        // TODO
-                        break;
                     case struct_string:
                         asm_code += get_reg_save(s_table[1]);
                         asm_code += expr->genAsmCodeRHS();
@@ -810,14 +804,10 @@ std::string ReadStmtNode::genAsmCode() {
                         asm_code += get_reg_restore(s_table[1]);
                         asm_code += get_read("str_ptr");
                         break;
+                    default: break;
                 }
                 break;
-            case pointer:
-                // TODO
-                break;
-            case type_identifier:
-                // TODO
-                break;
+            default: break;
         }
     }
     return asm_code;
@@ -873,12 +863,6 @@ std::string WriteStmtNode::genAsmCode() {
                 break;
             case structured:
                 switch (expr->getResultType()->getStructAttr()->getType()) {
-                    case struct_array:
-                        // TODO
-                        break;
-                    case struct_record:
-                        // TODO
-                        break;
                     case struct_string:
                         if (expr->getNodeType() == el_id)
                             asm_code += get_reg_xchg(t_table[1], s_table[1]);
@@ -886,14 +870,10 @@ std::string WriteStmtNode::genAsmCode() {
                             asm_code += get_reg_xchg(t_table[1], t_table[0]);
                         asm_code += get_write("str_ptr");
                         break;
+                    default: break;
                 }
                 break;
-            case pointer:
-                // TODO
-                break;
-            case type_identifier:
-                // TODO
-                break;
+            default: break;
         }
     }
     if (is_writeln) {

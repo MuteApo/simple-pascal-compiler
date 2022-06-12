@@ -188,7 +188,7 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
         asm_code += get_reg_xchg(t_table[2], t_table[0]);
         asm_code += get_reg_restore(t_table[1]);
         BasicTypeKind op1_type = op1->getResultType()->getBasicAttrNode()->getType();
-        // TODO: Basic Type for Ordinal
+        // TODO: Get Basic Type for Ordinal Type
         switch (getResultType()->getType()) {
             case basic:
                 switch (getResultType()->getBasicAttrNode()->getType()) {
@@ -207,7 +207,7 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                                 break;
                             case EK_And: asm_code += get_integer_calc("and", true); break;
                             case EK_Or: asm_code += get_integer_calc("or", true); break;
-                            default: break;  // TODO
+                            default: break;
                         }
                         break;
                     case integer:
@@ -225,7 +225,7 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                             case EK_Xor: asm_code += get_integer_calc("xor", true); break;
                             case EK_Shl: asm_code += get_integer_calc("shl", true); break;
                             case EK_Shr: asm_code += get_integer_calc("shr", true); break;
-                            default: break;  // TODO
+                            default: break;
                         }
                         break;
                     case real:
@@ -248,14 +248,14 @@ std::string ExprNode::genAsmCodeRHS() {  // Only for right value code generation
                             case EK_Sub: asm_code += get_float_calc("fsub"); break;
                             case EK_Mul: asm_code += get_float_calc("fmul"); break;
                             case EK_Fdiv: asm_code += get_float_calc("fdiv"); break;
-                            default: break;  // TODO
+                            default: break;
                         }
                         break;
                     case character:
                         switch (eval_type) {
                             case EK_Add: asm_code += get_integer_calc("add", true); break;
                             case EK_Sub: asm_code += get_integer_calc("sub", true); break;
-                            default: break;  // TODO
+                            default: break;
                         }
                         break;
                 }
@@ -529,7 +529,7 @@ std::string VarAccessNode::genVizCode(int run) {
     return result;
 }
 
-std::string VarAccessNode::genAsmCode() {  // TODO
+std::string VarAccessNode::genAsmCode() {
     std::string asm_code = "";
     if (host->getNodeType() == el_id) {
         asm_code += host->getIdNode()->genAsmCode();

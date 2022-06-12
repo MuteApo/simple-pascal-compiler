@@ -304,7 +304,9 @@ void stat_cpu(void) {
     for (int reg_id = 0; reg_id < 32; reg_id++) {
         uint32_t reg_data  = read_register(reg_id);
         string   reg_alias = reg2alias(reg_id).data();
-        printf("x%d(%s):0x%08X\t", reg_id, reg_alias.data(), reg_data);
+        char     str_label[10];
+        sprintf(str_label, "x%d(%s)", reg_id, reg_alias.data());
+        printf("%-8s:0x%08X\t", str_label, reg_data);
         if (reg_id % 4 == 3) printf("\n");
     }
     printf("\nContents of Stack:\n");
@@ -314,7 +316,7 @@ void stat_cpu(void) {
         if (elem_addr >= avail_size) break;
         if (i % 24 == 0) {
             if (i != 0) printf("\n");
-            printf("  0x%08X: ", elem_addr);
+            printf("    0x%08X: ", elem_addr);
         }
         printf("%02X ", read_ram_byte(elem_addr, true));
     }
@@ -326,9 +328,9 @@ void stat_cpu(void) {
         if (inst_addr >= avail_size) break;
         uint32_t inst = read_ram_word(inst_addr);
         if (i == 0)
-            printf("->");
+            printf("  ->");
         else
-            printf("  ");
+            printf("    ");
         printf("0x%08X:0x%08X\t", inst_addr, inst);
         exec_inst(inst, false, finish, skip_pc_inc, inst_asm);
         puts(inst_asm.data());
@@ -390,7 +392,7 @@ bool debug_cpu(uint32_t init_pc) {
             if (!brk) continue;
         static string cmd = "";
         while (1) {
-            printf("<Commands: s(step), v(view), b(breakpoint), q(quit)>\n");
+            printf("[Commands: s(step), v(view), b(breakpoint), q(quit)]\n");
             string cmd_buf;
             getline(cin, cmd_buf);
             if (cmd_buf != "") cmd = cmd_buf;
