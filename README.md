@@ -69,7 +69,7 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
 ### 二、工程结构
 
 ``` bash
----- / ---- bin 预先构建的编译器二进制文件
+---- / ---- bin 可执行文件构建目录
        |
        ---- doc 参考文档
        |
@@ -107,15 +107,15 @@ Pascal语言具有以下基本语言特性，我们将选择一部分实现：
     - <https://github.com/yinxiaojian/pascal-compiler/blob/master/lex.l>
   - 语法分析（Yacc）实现参考：
     - <https://github.com/yinxiaojian/pascal-compiler/blob/master/yacc.y>
-- [ ] 实现编译器前端
+- [x] 实现编译器前端
   - [x] 词法分析器（需要移除注释）
   - [x] 语法分析器
-  - [ ] 语义分析器
+  - [x] 语义分析器
 - [x] 实现语法树可视化
-- [ ] 实现目标机汇编生成
+- [x] 实现目标机汇编生成
 - [x] 实现汇编器
 - [x] 实现仿真器
-- [ ] 完成仿真器或实机测试
+- [x] 完成仿真器或实机测试
 
 目前已经实现的语言特性：
 
@@ -237,27 +237,27 @@ make clean
 
 AST可视化：
 ```bash
-make visual PAS_SRC=fib_iterative.pas
+make visual PAS_SRC=fib_recursive.pas
 ```
 
 编译Pascal代码：
 ```bash
-make compile PAS_SRC=fib_iterative.pas
+make compile PAS_SRC=fib_recursive.pas
 ```
 
 编译Pascal代码并输出诊断信息：
 ```bash
-make diagnose PAS_SRC=fib_iterative.pas
+make diagnose PAS_SRC=fib_recursive.pas
 ```
 
 使用模拟器运行目标代码：
 ```bash
-make run PAS_SRC=fib_iterative.pas
+make run PAS_SRC=fib_recursive.pas
 ```
 
 使用模拟器调试目标代码：
 ```bash
-make debug PAS_SRC=fib_iterative.pas
+make debug PAS_SRC=fib_recursive.pas
 ```
 
 使用TA提供的快速排序测试工具：
@@ -277,15 +277,16 @@ make test3
 
 pas目录下示例代码说明
 
-| 文件名                                          | 功能                     |
-| :---------------------------------------------- | :----------------------- |
-| auto_advisor.pas（TestCase3:heavy_check_mark:） | 选课助手                 |
-| error_detect.pas                                | 测试错误检测             |
-| fib_iterative.pas                               | 斐波那契数列（循环）     |
-| fib_recursive.pas                               | 斐波那契数列（递归）     |
-| letter_count.pas                                | 统计单词中字母出现的次数 |
-| mat_mul.pas（TestCase2:heavy_check_mark:）      | 矩阵乘法                 |
-| multiple_table.pas                              | 打印乘法表（三种循环）   |
-| nest.pas                                        | 测试作用域               |
-| parser_test.pas                                 | 测试语法分析             |
-| qsort.pas（TestCase1:heavy_check_mark:）        | 快速排序                 |
+| 文件名             | 功能                                     |
+| :----------------- | :--------------------------------------- |
+| auto_advisor.pas   | 选课助手 （TestCase3:heavy_check_mark:） |
+| error_detect.pas   | 测试错误检测                             |
+| fib_iterative.pas  | 斐波那契数列（循环）                     |
+| fib_recursive.pas  | 斐波那契数列（递归）                     |
+| letter_count.pas   | 统计单词中字母出现的次数                 |
+| mat_mul.pas        | 矩阵乘法 （TestCase2:heavy_check_mark:） |
+| msort.pas          | 归并排序（非全局非局部）                 |
+| multiple_table.pas | 打印乘法表（三种循环）                   |
+| nest.pas           | 测试作用域                               |
+| parser_test.pas    | 测试语法分析                             |
+| qsort.pas          | 快速排序 （TestCase1:heavy_check_mark:） |
